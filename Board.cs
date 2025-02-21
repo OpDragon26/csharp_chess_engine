@@ -47,6 +47,11 @@ namespace Board
         public void MakeMove(Move.Move move)
         {
             this.board[move.To[1],move.To[0]] = this.board[move.From[1],move.From[0]];
+            if (move.Promotion != PieceType.Empty)
+            {
+                this.board[move.To[1],move.To[0]].Role = move.Promotion;
+            }
+
             this.board[move.From[1],move.From[0]] = Empty;
         }
 
