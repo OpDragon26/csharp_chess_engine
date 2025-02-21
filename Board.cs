@@ -17,7 +17,7 @@ namespace Board
 
                 for (int i = 0; i < 8; i++)
                 {
-                    StringBoard += (8 - i).ToString() + " ";
+                    StringBoard += (i + 1).ToString() + " ";
 
                     for (int j = 0; j < 8; j++)
                     {
@@ -30,7 +30,7 @@ namespace Board
             } else {
                 for (int i = 0; i < 8; i++)
                 {
-                    StringBoard += (i + 1).ToString() + " ";
+                    StringBoard += (8 - i).ToString() + " ";
 
                     for (int j = 0; j < 8; j++)
                     {

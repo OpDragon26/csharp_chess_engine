@@ -12,14 +12,14 @@ namespace Move
 
 
         public static Dictionary<string, int> FileIndex = new Dictionary<string, int>{
-            {"a",1},
-            {"b",2},
-            {"c",3},
-            {"d",4},
-            {"e",5},
-            {"f",6},
-            {"g",7},
-            {"h",8},
+            {"a",0},
+            {"b",1},
+            {"c",2},
+            {"d",3},
+            {"e",4},
+            {"f",5},
+            {"g",6},
+            {"h",7},
         };
 
         public static Dictionary<string, Piece.Piece> Promotions = new Dictionary<string, Piece.Piece>{
@@ -51,9 +51,14 @@ namespace Move
             string[] MoveString = move.Split("-");
 
             NewMove.From[0] = FileIndex[MoveString[0][0].ToString()];
-            NewMove.From[1] = 7 - Convert.ToInt32(MoveString[0][1]);
+            NewMove.From[1] = Int32.Parse(MoveString[0][1].ToString()) - 1;
             NewMove.To[0] = FileIndex[MoveString[1][0].ToString()];
-            NewMove.To[1] = 7 - Convert.ToInt32(MoveString[1][1]);
+            NewMove.To[1] = Int32.Parse(MoveString[1][1].ToString()) - 1;
+
+            Console.WriteLine(FileIndex[MoveString[0][0].ToString()]);
+            Console.WriteLine(Int32.Parse(MoveString[0][1].ToString()) - 1);
+            Console.WriteLine(FileIndex[MoveString[1][0].ToString()]);
+            Console.WriteLine(Int32.Parse(MoveString[1][1].ToString()) - 1);
 
             if (MoveString.Length == 2)
             {
