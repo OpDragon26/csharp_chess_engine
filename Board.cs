@@ -1,6 +1,7 @@
 using System.Security.Cryptography.X509Certificates;
 using Piece;
 using static Piece.Presets;
+using Move;
 
 namespace Board
 {
@@ -42,6 +43,12 @@ namespace Board
             Console.WriteLine(StringBoard);
         }
 
+        public void MakeMove(Move.Move move)
+        {
+            this.board[move.To[1],move.To[0]] = this.board[move.From[1],move.From[0]];
+            this.board[move.From[1],move.From[0]] = Empty;
+        }
+
         public static Board Constructor(Piece.Piece[,] board)
         {
             Board NewBoard = new Board();
@@ -51,6 +58,7 @@ namespace Board
             return NewBoard;
 
         }
+
     }
 
     public static class Presets {

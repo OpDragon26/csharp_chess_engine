@@ -9,7 +9,6 @@ namespace Move
         public int[] To = new int[] {0,0};
 
         public Piece.Piece Promotion = Piece.Presets.Empty; // Empty for no promotion
-        public bool Color = false;
 
 
         public static Dictionary<string, int> FileIndex = new Dictionary<string, int>{
@@ -34,13 +33,12 @@ namespace Move
             {"b",B_Bishop},
         };
 
-        public Move Constructor(int[] from, int[] to, bool color, Piece.Piece promotion)
+        public static Move Constructor(int[] from, int[] to, Piece.Piece promotion)
         {
             Move NewMove = new Move();
 
             NewMove.From = from;
             NewMove.To = to;
-            NewMove.Color = color;
             NewMove.Promotion = promotion;
 
             return NewMove;
@@ -56,7 +54,6 @@ namespace Move
             NewMove.From[1] = 7 - Convert.ToInt32(MoveString[0][1]);
             NewMove.To[0] = FileIndex[MoveString[1][0].ToString()];
             NewMove.To[1] = 7 - Convert.ToInt32(MoveString[1][1]);
-
 
             if (MoveString.Length == 2)
             {
