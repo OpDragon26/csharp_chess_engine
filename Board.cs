@@ -10,8 +10,9 @@ namespace Board
 
         public void PrintBoard(bool color)
         {
-            if (!color) {
-                string StringBoard = string.Empty;
+            string StringBoard = string.Empty;
+
+            if (color) {
 
                 for (int i = 0; i < 8; i++)
                 {
@@ -24,9 +25,21 @@ namespace Board
                     StringBoard += "\n";
                 }
 
-                Console.WriteLine("# A B C D E F G H");
-                Console.WriteLine(StringBoard);
+            } else {
+                for (int i = 0; i < 8; i++)
+                {
+                    StringBoard += (i + 1).ToString() + " ";
+
+                    for (int j = 0; j < 8; j++)
+                    {
+                        StringBoard += Piece.Presets.PieceString[this.board[7 - i,7 - j]] + " ";
+                    }
+                    StringBoard += "\n";
+                }
             }
+
+            Console.WriteLine("# A B C D E F G H");
+            Console.WriteLine(StringBoard);
         }
 
         public static Board Constructor(Piece.Piece[,] board)
@@ -43,14 +56,14 @@ namespace Board
     public static class Presets {
         public static Piece.Piece[,] StartingPosition = new Piece.Piece[,] 
         {
-            {B_Rook, B_Knight, B_Bishop, B_Queen, B_King, B_Bishop, B_Knight, B_Rook},
-            {B_Pawn, B_Pawn, B_Pawn, B_Pawn, B_Pawn, B_Pawn, B_Pawn, B_Pawn},
-            {Empty, Empty, Empty, Empty, Empty, Empty, Empty, Empty},
-            {Empty, Empty, Empty, Empty, Empty, Empty, Empty, Empty},
-            {Empty, Empty, Empty, Empty, Empty, Empty, Empty, Empty},
-            {Empty, Empty, Empty, Empty, Empty, Empty, Empty, Empty},
-            {W_Pawn, W_Pawn, W_Pawn, W_Pawn, W_Pawn, W_Pawn, W_Pawn, W_Pawn},
             {W_Rook, W_Knight, W_Bishop, W_Queen, W_King, W_Bishop, W_Knight, W_Rook},
+            {W_Pawn, W_Pawn, W_Pawn, W_Pawn, W_Pawn, W_Pawn, W_Pawn, W_Pawn},
+            {Empty, Empty, Empty, Empty, Empty, Empty, Empty, Empty},
+            {Empty, Empty, Empty, Empty, Empty, Empty, Empty, Empty},
+            {Empty, Empty, Empty, Empty, Empty, Empty, Empty, Empty},
+            {Empty, Empty, Empty, Empty, Empty, Empty, Empty, Empty},
+            {B_Pawn, B_Pawn, B_Pawn, B_Pawn, B_Pawn, B_Pawn, B_Pawn, B_Pawn},
+            {B_Rook, B_Knight, B_Bishop, B_Queen, B_King, B_Bishop, B_Knight, B_Rook},
         };
         public static Board StartingBoard = Board.Constructor(StartingPosition);
     }
