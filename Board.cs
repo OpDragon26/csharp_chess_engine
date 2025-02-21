@@ -48,9 +48,9 @@ namespace Board
         {
             this.board[move.To[1],move.To[0]] = this.board[move.From[1],move.From[0]];
             
-            if (move.Promotion != PieceType.Empty)
+            if (move.Promotion != Empty)
             {
-                this.board[move.To[1],move.To[0]].Role = move.Promotion;
+                this.board[move.To[1],move.To[0]] = move.Promotion;
             }
 
             this.board[move.From[1],move.From[0]] = Empty;

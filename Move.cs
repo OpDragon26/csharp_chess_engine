@@ -8,7 +8,7 @@ namespace Move
         public int[] From = new int[] {0,0};
         public int[] To = new int[] {0,0};
 
-        public Piece.PieceType Promotion = Piece.PieceType.Empty; // Empty for no promotion
+        public Piece.Piece Promotion = Empty; // Empty for no promotion
 
 
         public static Dictionary<string, int> FileIndex = new Dictionary<string, int>{
@@ -22,14 +22,18 @@ namespace Move
             {"h",7},
         };
 
-        public static Dictionary<string, Piece.PieceType> Promotions = new Dictionary<string, Piece.PieceType>{
-            {"Q",Piece.PieceType.Queen},
-            {"R",Piece.PieceType.Rook},
-            {"N",Piece.PieceType.Knight},
-            {"B",Piece.PieceType.Bishop},
+        public static Dictionary<string, Piece.Piece> Promotions = new Dictionary<string, Piece.Piece>{
+            {"Q",W_Queen},
+            {"R",W_Rook},
+            {"N",W_Knight},
+            {"B",W_Bishop},
+            {"q",B_Queen},
+            {"r",B_Rook},
+            {"n",B_Knight},
+            {"b",B_Bishop},
         };
 
-        public static Move Constructor(int[] from, int[] to, Piece.PieceType promotion)
+        public static Move Constructor(int[] from, int[] to, Piece.Piece promotion)
         {
             Move NewMove = new Move();
 
@@ -53,7 +57,7 @@ namespace Move
 
             if (MoveString.Length == 2)
             {
-                NewMove.Promotion = PieceType.Empty;
+                NewMove.Promotion = Empty;
             }
             else if (MoveString.Length == 3)
             {

@@ -64,20 +64,5 @@ namespace Piece
             {B_Queen, "♕"},
             {B_King, "♔"},
         };
-
-        public static Dictionary<PieceType, string> PieceStringWhite = new Dictionary<PieceType, string>{
-            {PieceType.Empty, " "},
-            {PieceType.Pawn, " "},
-            {PieceType.Rook, " "},
-            {PieceType.Knight, " "},
-            {PieceType.Bishop, " "},
-            {PieceType.Queen, " "},
-            {PieceType.King, " "},
-        };
-
-        public static string Stringify(Piece piece)
-        {
-
-        }
     }
 }
