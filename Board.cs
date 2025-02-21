@@ -25,6 +25,7 @@ namespace Board
                     }
                     StringBoard += "\n";
                 }
+                Console.WriteLine("# A B C D E F G H");
 
             } else {
                 for (int i = 0; i < 8; i++)
@@ -37,9 +38,9 @@ namespace Board
                     }
                     StringBoard += "\n";
                 }
+                Console.WriteLine("# H G F E D C B A");
             }
 
-            Console.WriteLine("# A B C D E F G H");
             Console.WriteLine(StringBoard);
         }
 
