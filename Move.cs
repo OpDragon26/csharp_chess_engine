@@ -55,11 +55,6 @@ namespace Move
             NewMove.To[0] = FileIndex[MoveString[1][0].ToString()];
             NewMove.To[1] = Int32.Parse(MoveString[1][1].ToString()) - 1;
 
-            Console.WriteLine(FileIndex[MoveString[0][0].ToString()]);
-            Console.WriteLine(Int32.Parse(MoveString[0][1].ToString()) - 1);
-            Console.WriteLine(FileIndex[MoveString[1][0].ToString()]);
-            Console.WriteLine(Int32.Parse(MoveString[1][1].ToString()) - 1);
-
             if (MoveString.Length == 2)
             {
                 NewMove.Promotion = Piece.Presets.Empty;
