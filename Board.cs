@@ -1,7 +1,5 @@
-using System.Security.Cryptography.X509Certificates;
 using Piece;
 using static Piece.Presets;
-using Move;
 
 namespace Board
 {
@@ -61,6 +59,7 @@ namespace Board
             // castling
             if (Enumerable.SequenceEqual(new int[] {move.From[1],move.From[0]}, Presets.WKStartPos))
             {
+                this.Castling[false] = new bool[] {false, false};
                 if (Enumerable.SequenceEqual(new int[] {move.To[1],move.To[0]}, Presets.WKShortCastlePos))
                 {
                     this.board[Presets.WRShortCastlePos[0],Presets.WRShortCastlePos[1]] = Empty;
@@ -74,6 +73,7 @@ namespace Board
             } 
             else if (Enumerable.SequenceEqual(new int[] {move.From[1],move.From[0]}, Presets.BKStartPos))
             {
+                this.Castling[true] = new bool[] {false, false};
                 if (Enumerable.SequenceEqual(new int[] {move.To[1],move.To[0]}, Presets.BKShortCastlePos))
                 {
                     this.board[Presets.BRShortCastlePos[0],Presets.BRShortCastlePos[1]] = Empty;
@@ -84,6 +84,22 @@ namespace Board
                     this.board[Presets.BRLongCastlePos[0],Presets.BRLongCastlePos[1]] = Empty;
                     this.board[Presets.BRLongCastleDest[0],Presets.BRLongCastleDest[1]] = B_Rook;
                 }
+            }
+            else if (Enumerable.SequenceEqual(new int[] {move.To[1],move.To[0]}, Presets.WhiteRookHPos))
+            {
+                this.Castling[false][0] = false;
+            }
+            else if (Enumerable.SequenceEqual(new int[] {move.To[1],move.To[0]}, Presets.WhiteRookAPos))
+            {
+                this.Castling[false][1] = false;
+            }
+            else if (Enumerable.SequenceEqual(new int[] {move.To[1],move.To[0]}, Presets.BlackRookHPos))
+            {
+                this.Castling[true][0] = false;
+            }
+            else if (Enumerable.SequenceEqual(new int[] {move.To[1],move.To[0]}, Presets.BlackRookAPos))
+            {
+                this.Castling[true][1] = false;
             }
 
             // en passant (Holy Hell!)
@@ -142,29 +158,35 @@ namespace Board
         };
         public static Board StartingBoard = Board.Constructor(StartingPosition, new bool[] {true,true}, new bool[] {true,true}, new int[] {8,8});
 
-        internal static int[] WKStartPos = new int[] {0,4}; // file, rank
+        internal static int[] WKStartPos = {0,4}; // file, rank
 
         // white short castle
-        internal static int[] WKShortCastlePos = new int[] {0,6};
-        internal static int[] WRShortCastlePos = new int[] {0,7};
-        internal static int[] WRShortCastleDest = new int[] {0,5};
+        internal static int[] WKShortCastlePos = {0,6};
+        internal static int[] WRShortCastlePos = {0,7};
+        internal static int[] WRShortCastleDest = {0,5};
 
         // white long castle
-        internal static int[] WKLongCastlePos = new int[] {0,2};
-        internal static int[] WRLongCastlePos = new int[] {0,0};
-        internal static int[] WRLongCastleDest = new int[] {0,3};
+        internal static int[] WKLongCastlePos = {0,2};
+        internal static int[] WRLongCastlePos = {0,0};
+        internal static int[] WRLongCastleDest = {0,3};
 
-        internal static int[] BKStartPos = new int[] {7,4}; // file, rank
+        internal static int[] BKStartPos = {7,4}; // file, rank
 
         // black short castle
-        internal static int[] BKShortCastlePos = new int[] {7,6};
-        internal static int[] BRShortCastlePos = new int[] {7,7};
-        internal static int[] BRShortCastleDest = new int[] {7,5};
+        internal static int[] BKShortCastlePos = {7,6};
+        internal static int[] BRShortCastlePos = {7,7};
+        internal static int[] BRShortCastleDest = {7,5};
 
         // black long castle
-        internal static int[] BKLongCastlePos = new int[] {7,2};
-        internal static int[] BRLongCastlePos = new int[] {7,0};
-        internal static int[] BRLongCastleDest = new int[] {7,3};
+        internal static int[] BKLongCastlePos = {7,2};
+        internal static int[] BRLongCastlePos = {7,0};
+        internal static int[] BRLongCastleDest = {7,3};
+
+        // rook positions
+        internal static int[] WhiteRookAPos = {0,0};
+        internal static int[] WhiteRookHPos = {0,7};
+        internal static int[] BlackRookAPos = {7,0};
+        internal static int[] BlackRookHPos = {7,7};
 
         public static Dictionary<string, int> FileIndex = new Dictionary<string, int>{
             {"a",0},
