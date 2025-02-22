@@ -10,7 +10,6 @@ PlayingBoard.MakeMove(Moves[0]);
 PlayingBoard.PrintBoard(false);
 
 // create an algorythm to find all legal moves 
-
 // - create an algorythm to find all legal moves with all pieces of a certain color on a certain board
 // -- don't add moves where the king would be in check
 // -- filter castling through pieces
