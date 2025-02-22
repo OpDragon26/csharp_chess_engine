@@ -80,20 +80,20 @@ namespace Board
 
                 if (TargetPiece == Empty)
                 {
-                    if (pos[1] == 0 | pos[1] == 7) // promotion
+                    if (TargetSquare[1] == 0 | TargetSquare[1] == 7) // promotion
                     { 
                         if (color)
                         {
                             MoveList.Add(Move.Move.Constructor(pos, TargetSquare, B_Queen));
                             MoveList.Add(Move.Move.Constructor(pos, TargetSquare, B_Rook));
-                            MoveList.Add(Move.Move.Constructor(pos, TargetSquare, B_King));
+                            MoveList.Add(Move.Move.Constructor(pos, TargetSquare, B_Knight));
                             MoveList.Add(Move.Move.Constructor(pos, TargetSquare, B_Bishop));
                         }
                         else
                         {
                             MoveList.Add(Move.Move.Constructor(pos, TargetSquare, W_Queen));
                             MoveList.Add(Move.Move.Constructor(pos, TargetSquare, W_Rook));
-                            MoveList.Add(Move.Move.Constructor(pos, TargetSquare, W_King));
+                            MoveList.Add(Move.Move.Constructor(pos, TargetSquare, W_Knight));
                             MoveList.Add(Move.Move.Constructor(pos, TargetSquare, W_Bishop));
                         }
                     }
@@ -121,20 +121,20 @@ namespace Board
 
                     if (TargetPiece.Color != color | Enumerable.SequenceEqual(TargetSquare, board.EnpassantSquare))
                     {
-                        if (pos[1] == 0 | pos[1] == 7) // promotion
+                        if (TargetSquare[1] == 0 | TargetSquare[1] == 7) // promotion
                         { 
                             if (color)
                             {
                                 MoveList.Add(Move.Move.Constructor(pos, TargetSquare, B_Queen));
                                 MoveList.Add(Move.Move.Constructor(pos, TargetSquare, B_Rook));
-                                MoveList.Add(Move.Move.Constructor(pos, TargetSquare, B_King));
+                                MoveList.Add(Move.Move.Constructor(pos, TargetSquare, B_Knight));
                                 MoveList.Add(Move.Move.Constructor(pos, TargetSquare, B_Bishop));
                             }
                             else
                             {
                                 MoveList.Add(Move.Move.Constructor(pos, TargetSquare, W_Queen));
                                 MoveList.Add(Move.Move.Constructor(pos, TargetSquare, W_Rook));
-                                MoveList.Add(Move.Move.Constructor(pos, TargetSquare, W_King));
+                                MoveList.Add(Move.Move.Constructor(pos, TargetSquare, W_Knight));
                                 MoveList.Add(Move.Move.Constructor(pos, TargetSquare, W_Bishop));
                             }
                         }
