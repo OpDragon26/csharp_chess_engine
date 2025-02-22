@@ -10,5 +10,4 @@ PlayingBoard.MakeMove(Move.Move.FromString("e5-d6"));
 
 PlayingBoard.PrintBoard(true);
 
-// implement en passant and castling
 // create an algorythm to find all legal moves
