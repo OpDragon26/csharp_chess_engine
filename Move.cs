@@ -1,5 +1,6 @@
 using Piece;
 using static Piece.Presets;
+using static Board.Presets;
 
 namespace Move
 {
@@ -9,7 +10,6 @@ namespace Move
         public int[] To = new int[] {0,0};
 
         public Piece.Piece Promotion = Empty; // Empty for no promotion
-
 
         public static Dictionary<string, int> FileIndex = new Dictionary<string, int>{
             {"a",0},
@@ -50,10 +50,13 @@ namespace Move
 
             string[] MoveString = move.Split("-");
 
-            NewMove.From[0] = FileIndex[MoveString[0][0].ToString()];
-            NewMove.From[1] = Int32.Parse(MoveString[0][1].ToString()) - 1;
-            NewMove.To[0] = FileIndex[MoveString[1][0].ToString()];
-            NewMove.To[1] = Int32.Parse(MoveString[1][1].ToString()) - 1;
+            NewMove.From = ConvertSquare(MoveString[0], false);
+            NewMove.To = ConvertSquare(MoveString[1], false);
+
+            Console.WriteLine(NewMove.From[0]);
+            Console.WriteLine(NewMove.From[1]);
+            Console.WriteLine(NewMove.To[0]);
+            Console.WriteLine(NewMove.To[1]);
 
             if (MoveString.Length == 2)
             {
