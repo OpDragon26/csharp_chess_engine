@@ -95,6 +95,20 @@ namespace Board
         }
     }
 
+    internal class PawnPattern
+    {
+        public int[,] MovePattern = new int[,] {};
+        public int[,] CapturePattern = new int[,] {};
+
+        public static PawnPattern Constructor(int[,] movePattern, int[,] capturePattern)
+        {
+            PawnPattern NewPattern = new PawnPattern();
+            NewPattern.MovePattern = movePattern;
+            NewPattern.CapturePattern = capturePattern;
+            return NewPattern;
+        }
+    }
+
     internal static class Patterns
     {
         internal static Dictionary<PieceType, Pattern> PiecePatterns = new Dictionary<PieceType, Pattern>{
