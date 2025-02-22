@@ -8,8 +8,10 @@ namespace Board
     public class Board
     {
         public Piece.Piece[,] board = new Piece.Piece[8,8];
-        public bool[] White_Castle = {true, true}; // Kinside - Queenside
-        public bool[] Black_Castle = {true, true};
+        public bool[] WhiteCastle = {true, true}; // Kingside - Queenside
+        public bool[] BlackCastle = {true, true};
+
+        public int[] EnpassantSquare = {8,8}; // file, rank  8,8 for no en passant
 
 
         public void PrintBoard(bool color)
@@ -53,7 +55,8 @@ namespace Board
                 this.board[move.To[1],move.To[0]] = move.Promotion;
             }
             this.board[move.From[1],move.From[0]] = Empty;
-
+            
+            // castling
             if (Enumerable.SequenceEqual(new int[] {move.From[1],move.From[0]}, Presets.WKStartPos))
             {
                 if (Enumerable.SequenceEqual(new int[] {move.To[1],move.To[0]}, Presets.WKShortCastlePos))
@@ -80,12 +83,46 @@ namespace Board
                     this.board[Presets.BRLongCastleDest[0],Presets.BRLongCastleDest[1]] = B_Rook;
                 }
             }
+
+            // en passant (Holy Hell!)
+            if (this.board[move.To[1],move.To[0]].Role == PieceType.Pawn)
+            {
+                int RankDistance = move.From[1] - move.To[1];
+
+                if (Enumerable.SequenceEqual(move.To, this.EnpassantSquare))
+                {
+                    if (this.board[move.To[1] + 1,move.To[0]].Role == PieceType.Pawn)
+                    {
+                        this.board[move.To[1] + 1,move.To[0]] = Empty;
+                    }
+                    else if (this.board[move.To[1] - 1,move.To[0]].Role == PieceType.Pawn)
+                    {
+                        this.board[move.To[1] - 1,move.To[0]] = Empty;
+                    }
+                }
+                else if (RankDistance == 2 | RankDistance == -2)
+                {
+                    this.EnpassantSquare = new int[] {move.From[0], move.To[1] + (RankDistance / 2)};
+                }
+                else
+                {
+                    this.EnpassantSquare = new int[] {8,8};
+                }
+
+            }
+            else
+            {
+                this.EnpassantSquare = new int[] {8,8};
+            } 
         }
 
-        public static Board Constructor(Piece.Piece[,] board)
+        public static Board Constructor(Piece.Piece[,] board, bool[] whiteCastle, bool[] blackCastle, int[] enpassantSquare)
         {
             Board NewBoard = new Board();
             NewBoard.board = board;
+            NewBoard.WhiteCastle = whiteCastle;
+            NewBoard.BlackCastle = blackCastle;
+            NewBoard.EnpassantSquare = enpassantSquare;
             return NewBoard;
         }
     }
@@ -102,7 +139,7 @@ namespace Board
             {B_Pawn, B_Pawn, B_Pawn, B_Pawn, B_Pawn, B_Pawn, B_Pawn, B_Pawn},
             {B_Rook, B_Knight, B_Bishop, B_Queen, B_King, B_Bishop, B_Knight, B_Rook},
         };
-        public static Board StartingBoard = Board.Constructor(StartingPosition);
+        public static Board StartingBoard = Board.Constructor(StartingPosition, new bool[] {true,true}, new bool[] {true,true}, new int[] {8,8});
 
         internal static int[] WKStartPos = new int[] {0,4}; // file, rank
 
