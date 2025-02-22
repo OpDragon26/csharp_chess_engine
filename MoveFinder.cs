@@ -160,7 +160,7 @@ namespace Board
                     {
                         TargetPiece = board.board[TargetSquare[1],TargetSquare[0]];
 
-                        if (TargetPiece.Color != color || Enumerable.SequenceEqual(TargetSquare, board.EnpassantSquare))
+                        if (TargetPiece.Role != PieceType.Empty && TargetPiece.Color != color || Enumerable.SequenceEqual(TargetSquare, board.EnpassantSquare))
                         {
                             if (TargetSquare[1] == 0 || TargetSquare[1] == 7) // promotion
                             { 
@@ -321,7 +321,7 @@ namespace Board
             },
             {true,
                 PawnPattern.Constructor(new int[,] {
-                    {-1,0}
+                    {0,-1}
                 }, new int[,] {
                     {-1,1},
                     {-1,-1}
