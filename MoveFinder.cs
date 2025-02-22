@@ -70,6 +70,81 @@ namespace Board
                     }
                 }
             }
+            else
+            {
+                PawnPattern pawnPattern = Patterns.PawnPatterns[color];
+
+                // forward moves
+                int[] TargetSquare = new int[] {pos[0] + pawnPattern.MovePattern[0,0], pos[1] + pawnPattern.MovePattern[0,1]};
+                Piece.Piece TargetPiece = board.board[TargetSquare[1],TargetSquare[0]];
+
+                if (TargetPiece == Empty)
+                {
+                    if (pos[1] == 0 | pos[1] == 7) // promotion
+                    { 
+                        if (color)
+                        {
+                            MoveList.Add(Move.Move.Constructor(pos, TargetSquare, B_Queen));
+                            MoveList.Add(Move.Move.Constructor(pos, TargetSquare, B_Rook));
+                            MoveList.Add(Move.Move.Constructor(pos, TargetSquare, B_King));
+                            MoveList.Add(Move.Move.Constructor(pos, TargetSquare, B_Bishop));
+                        }
+                        else
+                        {
+                            MoveList.Add(Move.Move.Constructor(pos, TargetSquare, W_Queen));
+                            MoveList.Add(Move.Move.Constructor(pos, TargetSquare, W_Rook));
+                            MoveList.Add(Move.Move.Constructor(pos, TargetSquare, W_King));
+                            MoveList.Add(Move.Move.Constructor(pos, TargetSquare, W_Bishop));
+                        }
+                    }
+                    else // simple move
+                    {
+                        MoveList.Add(Move.Move.Constructor(pos, TargetSquare, Empty));
+                    }
+                }
+                // double move
+                if (pos[1] == PawnPattern.DoubleMoveRanks[color])
+                {
+                    TargetSquare = new int[] {pos[0] + pawnPattern.MovePattern[0,0] * 2, pos[1] + pawnPattern.MovePattern[0,1] * 2};
+                    TargetPiece = board.board[TargetSquare[1],TargetSquare[0]];
+
+                    if (TargetPiece == Empty)
+                    {
+                        MoveList.Add(Move.Move.Constructor(pos, TargetSquare, Empty));
+                    }
+                }
+                // captures
+                for (int i= 0; i < 2; i++)
+                {
+                    TargetSquare = new int[] {pos[0] + pawnPattern.CapturePattern[i,0], pos[1] + pawnPattern.CapturePattern[i,1]};
+                    TargetPiece = board.board[TargetSquare[1],TargetSquare[0]];
+
+                    if (TargetPiece.Color != color | Enumerable.SequenceEqual(TargetSquare, board.EnpassantSquare))
+                    {
+                        if (pos[1] == 0 | pos[1] == 7) // promotion
+                        { 
+                            if (color)
+                            {
+                                MoveList.Add(Move.Move.Constructor(pos, TargetSquare, B_Queen));
+                                MoveList.Add(Move.Move.Constructor(pos, TargetSquare, B_Rook));
+                                MoveList.Add(Move.Move.Constructor(pos, TargetSquare, B_King));
+                                MoveList.Add(Move.Move.Constructor(pos, TargetSquare, B_Bishop));
+                            }
+                            else
+                            {
+                                MoveList.Add(Move.Move.Constructor(pos, TargetSquare, W_Queen));
+                                MoveList.Add(Move.Move.Constructor(pos, TargetSquare, W_Rook));
+                                MoveList.Add(Move.Move.Constructor(pos, TargetSquare, W_King));
+                                MoveList.Add(Move.Move.Constructor(pos, TargetSquare, W_Bishop));
+                            }
+                        }
+                        else // simple move
+                        {
+                            MoveList.Add(Move.Move.Constructor(pos, TargetSquare, Empty));
+                        }
+                    }
+                }
+            }
 
             Move.Move[] Moves = (Move.Move[])MoveList.ToArray(typeof(Move.Move));
             return Moves;
@@ -83,7 +158,7 @@ namespace Board
 
     internal class Pattern
     {
-        public int[,] pattern = new int[,] {};
+        public int[,] pattern = new int[,] {}; // file, rank
         public bool Repeat = true;
 
         public static Pattern Constructor(int[,] pattern, bool repeat)
@@ -107,6 +182,11 @@ namespace Board
             NewPattern.CapturePattern = capturePattern;
             return NewPattern;
         }
+
+        public static Dictionary<bool, int> DoubleMoveRanks = new Dictionary<bool, int>{
+            {false, 1},
+            {true, 6},
+        };
     }
 
     internal static class Patterns
@@ -169,6 +249,25 @@ namespace Board
                 },
                 false
             )},
+        };
+
+        internal static Dictionary<bool, PawnPattern> PawnPatterns = new Dictionary<bool, PawnPattern>{
+            {false,
+                PawnPattern.Constructor(new int[,] {
+                    {0,1}
+                }, new int[,] {
+                    {1,1},
+                    {-1,1}
+                })
+            },
+            {true,
+                PawnPattern.Constructor(new int[,] {
+                    {0,-1}
+                }, new int[,] {
+                    {1,-1},
+                    {-1,-1}
+                })
+            },
         };
     }
 }
