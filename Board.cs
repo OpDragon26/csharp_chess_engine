@@ -8,8 +8,10 @@ namespace Board
     public class Board
     {
         public Piece.Piece[,] board = new Piece.Piece[8,8];
-        public bool[] WhiteCastle = {true, true}; // Kingside - Queenside
-        public bool[] BlackCastle = {true, true};
+        public Dictionary<bool, bool[]> Castling = new Dictionary<bool, bool[]> {
+            {false, new bool[] {true, true}}, // Short, Long
+            {true, new bool[] {true, true}},
+        };
 
         public int[] EnpassantSquare = {8,8}; // file, rank  8,8 for no en passant
 
@@ -100,7 +102,7 @@ namespace Board
                         this.board[move.To[1] - 1,move.To[0]] = Empty;
                     }
                 }
-                else if (RankDistance == 2 | RankDistance == -2)
+                else if (RankDistance == 2 || RankDistance == -2)
                 {
                     this.EnpassantSquare = new int[] {move.From[0], move.To[1] + (RankDistance / 2)};
                 }
@@ -120,8 +122,7 @@ namespace Board
         {
             Board NewBoard = new Board();
             NewBoard.board = board;
-            NewBoard.WhiteCastle = whiteCastle;
-            NewBoard.BlackCastle = blackCastle;
+            NewBoard.Castling = new Dictionary<bool, bool[]> {{false, blackCastle},{true, whiteCastle}};
             NewBoard.EnpassantSquare = enpassantSquare;
             return NewBoard;
         }
