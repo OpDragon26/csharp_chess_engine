@@ -342,56 +342,6 @@ namespace Board
     }
     public static class TestCases
     {
-        public static Piece.Piece[,] WhiteCheckmatePosition = new Piece.Piece[,] 
-        {
-            {W_King, Empty, Empty, Empty, Empty, Empty, Empty, Empty},
-            {Empty, Empty, Empty, Empty, Empty, Empty, Empty, Empty},
-            {Empty, Empty, Empty, Empty, Empty, Empty, Empty, Empty},
-            {Empty, Empty, Empty, Empty, Empty, Empty, Empty, Empty},
-            {Empty, Empty, Empty, Empty, Empty, Empty, Empty, Empty},
-            {Empty, Empty, Empty, Empty, Empty, Empty, Empty, Empty},
-            {W_Rook, Empty, Empty, Empty, Empty, Empty, Empty, Empty},
-            {W_Rook, Empty, Empty, Empty, B_King, Empty, Empty, Empty},
-        };
-        public static Board WhiteCheckmateBoard = Board.Constructor(WhiteCheckmatePosition, true, new bool[] {false, false}, new bool[] {false, false}, new int[] {8,8});
-
-        public static Piece.Piece[,] BlackCheckmatePosition = new Piece.Piece[,] 
-        {
-            {B_King, Empty, Empty, Empty, Empty, Empty, Empty, Empty},
-            {Empty, Empty, Empty, Empty, Empty, Empty, Empty, Empty},
-            {Empty, Empty, Empty, Empty, Empty, Empty, Empty, Empty},
-            {Empty, Empty, Empty, Empty, Empty, Empty, Empty, Empty},
-            {Empty, Empty, Empty, Empty, Empty, Empty, Empty, Empty},
-            {Empty, Empty, Empty, Empty, Empty, Empty, Empty, Empty},
-            {B_Rook, Empty, Empty, Empty, Empty, Empty, Empty, Empty},
-            {B_Rook, Empty, Empty, Empty, W_King, Empty, Empty, Empty},
-        };
-        public static Board BlackCheckmateBoard = Board.Constructor(BlackCheckmatePosition, false, new bool[] {false, false}, new bool[] {false, false}, new int[] {8,8});
-
-        public static Piece.Piece[,] StalematePosition = new Piece.Piece[,] 
-        {
-            {Empty, Empty, Empty, Empty, Empty, Empty, Empty, Empty},
-            {Empty, Empty, Empty, Empty, Empty, Empty, Empty, Empty},
-            {Empty, Empty, Empty, Empty, Empty, Empty, Empty, Empty},
-            {Empty, Empty, Empty, Empty, Empty, Empty, Empty, Empty},
-            {Empty, Empty, Empty, Empty, Empty, Empty, Empty, Empty},
-            {Empty, Empty, Empty, W_King, Empty, W_Queen, Empty, Empty},
-            {Empty, Empty, Empty, Empty, Empty, Empty, Empty, Empty},
-            {Empty, Empty, Empty, Empty, B_King, Empty, Empty, Empty},
-        };
-        public static Board StalemateBoard = Board.Constructor(StalematePosition, true, new bool[] {false, false}, new bool[] {false, false}, new int[] {8,8});
-    
-        public static Piece.Piece[,] InsufficientMaterialPosition = new Piece.Piece[,] 
-        {
-            {Empty, Empty, Empty, Empty, Empty, Empty, Empty, Empty},
-            {Empty, Empty, Empty, Empty, Empty, Empty, Empty, Empty},
-            {Empty, Empty, Empty, Empty, Empty, Empty, Empty, Empty},
-            {Empty, Empty, Empty, Empty, Empty, Empty, Empty, Empty},
-            {Empty, Empty, Empty, Empty, Empty, Empty, Empty, Empty},
-            {W_Knight, Empty, Empty, W_King, Empty, Empty, Empty, Empty},
-            {B_Bishop, Empty, Empty, Empty, Empty, Empty, Empty, Empty},
-            {Empty, Empty, Empty, Empty, B_King, Empty, Empty, Empty},
-        };
-        public static Board InsufficientMaterialBoard = Board.Constructor(InsufficientMaterialPosition, true, new bool[] {false, false}, new bool[] {false, false}, new int[] {8,8});
+        
     }
 }
