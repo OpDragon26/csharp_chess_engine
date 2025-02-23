@@ -16,6 +16,23 @@ namespace Piece
     {
         public PieceType Role = PieceType.Empty;
         public bool Color = false; // false = white (or empty), true = black
+        public int Value = 0;
+        public int LocalValue = 0;
+
+        static Dictionary<PieceType, int> Values = new Dictionary<PieceType, int>{
+            {PieceType.Pawn, 1},
+            {PieceType.Rook, 5},
+            {PieceType.Knight, 3},
+            {PieceType.Bishop, 3},
+            {PieceType.Queen, 9},
+            {PieceType.King, 0},
+            {PieceType.Empty, 0},
+        };
+
+        static Dictionary<bool, int> Multipliers = new Dictionary<bool, int>{
+            {false, 1},
+            {true, -1},
+        };
 
         public static Piece Constructor(PieceType role, bool color)
         {
@@ -23,6 +40,13 @@ namespace Piece
 
             NewPiece.Color = color;
             NewPiece.Role = role;
+            NewPiece.LocalValue = Values[role];
+            NewPiece.Value = Values[role];
+            if (role == PieceType.King)
+            {
+                NewPiece.Value = 10;
+            }
+            NewPiece.Value *= Multipliers[color];
 
             return NewPiece;
         }

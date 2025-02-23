@@ -2,7 +2,7 @@
 using Piece;
 
 // Board.Board PlayingBoard = Board.Presets.StartingBoard.DeepCopy();
-Board.Board PlayingBoard = TestCases.StalemateBoard.DeepCopy();
+Board.Board PlayingBoard = TestCases.InsufficientMaterialBoard.DeepCopy();
 
 // Move.Move.Constructor(new int[] {4,1},new int[] {4,3},Empty) -> e2-e4
 //PlayingBoard.MakeMove(Move.Move.FromString("e2-e4"), true);
@@ -15,8 +15,6 @@ PlayingBoard.PrintBoard(false);
 
 // outcome function: ongoing, white won, black won, draw ✓
 // stalemate ✓
-// draw by insufficient material
-// - material values to pieces
-// - if both sides have no pawns and material under 4, the game ends in a draw
+// draw by insufficient material ✓
 // 50 move rule
 // draw by threefold repetition

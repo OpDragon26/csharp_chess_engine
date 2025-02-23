@@ -197,6 +197,44 @@ namespace Board
             return new int[] {8,8};
         }
 
+        int[] LocalValue()
+        {
+            int White = 0;
+            int Black = 0;
+
+            for (int i = 0; i < 8; i++)
+            {
+                for (int j = 0; j < 8; j++)
+                {
+                    if (this.board[i,j].Color)
+                    {
+                        Black += this.board[i,j].LocalValue;
+                    }
+                    else
+                    {
+                        White += this.board[i,j].LocalValue;
+                    }
+                }
+            }
+
+            return new int[] {White, Black};
+        }
+
+        bool PawnsLeft()
+        {
+            for (int i = 0; i < 8; i++)
+            {
+                for (int j = 0; j < 8; j++)
+                {
+                    if (this.board[i,j].Role == PieceType.Pawn)
+                    {
+                        return true;
+                    }
+                }
+            }
+            return false;
+        }
+
         public Outcome Status()
         {
             if (MoveFinder.Search(this, Side).Length == 0)
@@ -210,6 +248,16 @@ namespace Board
                     return Outcome.Draw;
                 }
             }
+            else
+            {
+                int[] LocalValues = this.LocalValue();
+
+                if (LocalValues[0] < 4 && LocalValues[1] < 4 && !this.PawnsLeft())
+                {
+                    return Outcome.Draw;
+                }
+            }
+
             return Outcome.Ongoing;
         }
     }
@@ -333,5 +381,17 @@ namespace Board
         };
         public static Board StalemateBoard = Board.Constructor(StalematePosition, true, new bool[] {false, false}, new bool[] {false, false}, new int[] {8,8});
     
+        public static Piece.Piece[,] InsufficientMaterialPosition = new Piece.Piece[,] 
+        {
+            {Empty, Empty, Empty, Empty, Empty, Empty, Empty, Empty},
+            {Empty, Empty, Empty, Empty, Empty, Empty, Empty, Empty},
+            {Empty, Empty, Empty, Empty, Empty, Empty, Empty, Empty},
+            {Empty, Empty, Empty, Empty, Empty, Empty, Empty, Empty},
+            {Empty, Empty, Empty, Empty, Empty, Empty, Empty, Empty},
+            {W_Knight, Empty, Empty, W_King, Empty, Empty, Empty, Empty},
+            {B_Bishop, Empty, Empty, Empty, Empty, Empty, Empty, Empty},
+            {Empty, Empty, Empty, Empty, B_King, Empty, Empty, Empty},
+        };
+        public static Board InsufficientMaterialBoard = Board.Constructor(InsufficientMaterialPosition, true, new bool[] {false, false}, new bool[] {false, false}, new int[] {8,8});
     }
 }
