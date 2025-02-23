@@ -14,6 +14,8 @@ namespace Board
         public int[] EnpassantSquare = {8,8}; // file, rank  8,8 for no en passant
         public bool Side = false;
 
+        // 50 move rule
+        public int MoveChain = 0;
 
         public void PrintBoard(bool color)
         {
@@ -57,6 +59,15 @@ namespace Board
                 {
                     return false;
                 }
+            }
+
+            if (this.board[move.From[1],move.From[0]].Role == PieceType.Pawn || this.board[move.To[1],move.To[0]].Role != PieceType.Empty)
+            {
+                this.MoveChain = 0;
+            }
+            else if (this.Side == true)
+            {
+                this.MoveChain++;
             }
 
             this.board[move.To[1],move.To[0]] = this.board[move.From[1],move.From[0]];
@@ -147,13 +158,14 @@ namespace Board
             return true;
         }
 
-        public static Board Constructor(Piece.Piece[,] board, bool side, bool[] whiteCastle, bool[] blackCastle, int[] enpassantSquare)
+        public static Board Constructor(Piece.Piece[,] board, bool side, bool[] whiteCastle, bool[] blackCastle, int[] enpassantSquare, int moveChain)
         {
             Board NewBoard = new Board();
             NewBoard.board = board;
             NewBoard.Castling = new Dictionary<bool, bool[]> {{false, blackCastle},{true, whiteCastle}};
             NewBoard.EnpassantSquare = enpassantSquare;
             NewBoard.Side = side;
+            NewBoard.MoveChain = moveChain;
             return NewBoard;
         }
 
@@ -173,8 +185,10 @@ namespace Board
             Clone.Castling = new Dictionary<bool, bool[]> {
                 {false, new bool[] {this.Castling[false][0], this.Castling[false][1]}},
                 {true, new bool[] {this.Castling[true][0], this.Castling[true][1]}}};
+
             Clone.EnpassantSquare = new int[] {this.EnpassantSquare[0], this.EnpassantSquare[1]};
             Clone.Side = this.Side == true;
+            Clone.MoveChain = this.MoveChain;
             
             return Clone;
         }
@@ -248,6 +262,10 @@ namespace Board
                     return Outcome.Draw;
                 }
             }
+            else if (this.MoveChain > 49)
+            {
+                return Outcome.Draw;
+            }
             else
             {
                 int[] LocalValues = this.LocalValue();
@@ -274,7 +292,7 @@ namespace Board
             {B_Pawn, B_Pawn, B_Pawn, B_Pawn, B_Pawn, B_Pawn, B_Pawn, B_Pawn},
             {B_Rook, B_Knight, B_Bishop, B_Queen, B_King, B_Bishop, B_Knight, B_Rook},
         };
-        public static Board StartingBoard = Board.Constructor(StartingPosition, false, new bool[] {true,true}, new bool[] {true,true}, new int[] {8,8});
+        public static Board StartingBoard = Board.Constructor(StartingPosition, false, new bool[] {true,true}, new bool[] {true,true}, new int[] {8,8}, 0);
 
         internal static int[] WKStartPos = {0,4}; // file, rank
 
@@ -342,6 +360,6 @@ namespace Board
     }
     public static class TestCases
     {
-        
+
     }
 }
