@@ -48,7 +48,7 @@ namespace Board
                                 int[] TargetSquare = new int[] {pos[0] + PiecePattern.pattern[i,0] * (j + 1), pos[1] + PiecePattern.pattern[i,1] * (j + 1)};
                                 Piece.Piece TargetPiece = board.board[TargetSquare[1],TargetSquare[0]];
 
-                                if (TargetPiece == Empty)
+                                if (TargetPiece.Role == PieceType.Empty)
                                 {
                                     MoveList.Add(Move.Move.Constructor(pos, TargetSquare, Empty));
                                 }
@@ -116,7 +116,7 @@ namespace Board
                 Piece.Piece TargetPiece = board.board[TargetSquare[1],TargetSquare[0]];
                 bool SingleMove = false;
 
-                if (TargetPiece == Empty)
+                if (TargetPiece.Role == PieceType.Empty)
                 {
                     if (TargetSquare[1] == 0 || TargetSquare[1] == 7) // promotion
                     { 
@@ -190,6 +190,59 @@ namespace Board
 
             Move.Move[] Moves = (Move.Move[])MoveList.ToArray(typeof(Move.Move));
             return Moves;
+        }
+
+        public static bool Attacked(Board board, int[] pos, bool color) // color refers to the color that is attacking the square
+        {
+            for (int i = 0; i < 5; i++)
+            {
+                Pattern PiecePattern = Patterns.PiecePatterns[Patterns.CheckPiecess[i]];
+
+                if (PiecePattern.Repeat)
+                {
+                    for (int k = 0; k < PiecePattern.pattern.Length / 2; k++)
+                    {
+                        for (int j = 0; j < 8; j++)
+                        {
+                            if (ValidIndex(pos[0] + PiecePattern.pattern[k,0] * (j + 1)) && ValidIndex(pos[1] + PiecePattern.pattern[k,1] * (j + 1))) 
+                            {
+                                int[] TargetSquare = new int[] {pos[0] + PiecePattern.pattern[k,0] * (j + 1), pos[1] + PiecePattern.pattern[k,1] * (j + 1)};
+                                Piece.Piece TargetPiece = board.board[TargetSquare[1],TargetSquare[0]];
+
+                                if (TargetPiece.Color == color && TargetPiece.Role == Patterns.CheckPiecess[i])
+                                {
+                                    return true;
+                                }
+                                else if (TargetPiece.Role != PieceType.Empty)
+                                {
+                                    break;
+                                }
+                            }
+                            else
+                            {
+                                break;
+                            }
+                        }
+                    }
+                }
+                else
+                {
+                    for (int j = 0; j < PiecePattern.pattern.Length / 2; j++)
+                    {
+                        if (ValidIndex(pos[0] + PiecePattern.pattern[j,0]) && ValidIndex(pos[1] + PiecePattern.pattern[j,1])) {
+                            int[] TargetSquare = new int[] {pos[0] + PiecePattern.pattern[j,0], pos[1] + PiecePattern.pattern[j,1]};
+                            Piece.Piece TargetPiece = board.board[TargetSquare[1],TargetSquare[0]];
+
+                            if (TargetPiece.Color == color && TargetPiece.Role == Patterns.CheckPiecess[i])
+                            {
+                                return true;
+                            }
+                        }
+                    }
+                }
+            }
+
+            return false;
         }
 
         public static bool ValidIndex(int index)
@@ -327,6 +380,14 @@ namespace Board
                     {-1,-1}
                 })
             },
+        };
+
+        internal static PieceType[] CheckPiecess = {
+            PieceType.Knight,
+            PieceType.Bishop,
+            PieceType.Queen,
+            PieceType.Rook,
+            PieceType.King
         };
     }
 }

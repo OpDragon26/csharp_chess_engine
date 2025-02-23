@@ -3,9 +3,11 @@ using Piece;
 
 Board.Board PlayingBoard = Board.Board.Constructor(Board.Presets.StartingPosition, new bool[] {true,true}, new bool[] {true,true}, new int[] {8,8});
 // Move.Move.Constructor(new int[] {4,1},new int[] {4,3},Empty) -> e2-e4
-//PlayingBoard.MakeMove(Move.Move.FromString("e2-e4"));
-Move.Move[] Moves = MoveFinder.Search(PlayingBoard,true);
-PlayingBoard.MakeMove(Moves[0]);
+PlayingBoard.MakeMove(Move.Move.FromString("c2-c3"));
+// Move.Move[] Moves = MoveFinder.Search(PlayingBoard,true);
+//PlayingBoard.MakeMove(Moves[0]);
+Console.WriteLine(MoveFinder.Attacked(PlayingBoard, Board.Presets.ConvertSquare("b3", false), false));
+
 PlayingBoard.PrintBoard(false);
 
 // create an algorithm to find all legal moves 
