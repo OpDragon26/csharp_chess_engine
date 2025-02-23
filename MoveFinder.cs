@@ -194,7 +194,8 @@ namespace Board
 
         public static bool Attacked(Board board, int[] pos, bool color) // color refers to the color that is attacking the square
         {
-            for (int i = 0; i < 5; i++)
+            // check for pieces
+            for (int i = 0; i < 5; i++) 
             {
                 Pattern PiecePattern = Patterns.PiecePatterns[Patterns.CheckPiecess[i]];
 
@@ -242,6 +243,20 @@ namespace Board
                 }
             }
 
+            // check for pawns
+
+            int[,] CheckPattern = Patterns.PawnPatterns[!color].CapturePattern; // opposite pattern used for backwards direction
+            for (int i = 0; i < 2; i++)
+            {
+                int[] TargetSquare = new int[] {pos[0] + CheckPattern[i,1], pos[1] + CheckPattern[i,0]};
+                Piece.Piece TargetPiece = board.board[TargetSquare[1],TargetSquare[0]];
+
+                if (TargetPiece.Role == PieceType.Pawn && TargetPiece.Color == color)
+                {
+                    return true;
+                }
+            }
+            
             return false;
         }
 
