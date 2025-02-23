@@ -155,8 +155,8 @@ namespace Board
                 // captures
                 for (int i= 0; i < 2; i++)
                 {
-                    TargetSquare = new int[] {pos[0] + pawnPattern.CapturePattern[i,0], pos[1] + pawnPattern.CapturePattern[i,1]};
-                    if (ValidIndex(pos[0] + pawnPattern.CapturePattern[i,0]) && ValidIndex(pos[1] + pawnPattern.CapturePattern[i,1]))
+                    TargetSquare = new int[] {pos[0] + pawnPattern.CapturePattern[i,1], pos[1] + pawnPattern.CapturePattern[i,0]};
+                    if (ValidIndex(TargetSquare[0]) && ValidIndex(TargetSquare[1]))
                     {
                         TargetPiece = board.board[TargetSquare[1],TargetSquare[0]];
 
@@ -192,7 +192,7 @@ namespace Board
             for (int i = 0; i < MoveList.Count; i++)
             {
                 Board MoveBoard = board.DeepCopy();
-                MoveBoard.MakeMove((Move.Move)(MoveList[i] ?? throw new ArgumentException()));
+                MoveBoard.MakeMove((Move.Move)(MoveList[i] ?? throw new ArgumentException()), false);
 
                 if (!MoveBoard.KingInCheck(color))
                 {

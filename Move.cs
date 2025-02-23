@@ -68,5 +68,35 @@ namespace Move
 
             return NewMove;
         }
+
+        public bool InMovelist(Move[] MoveList)
+        {
+            for (int i = 0; i < MoveList.Length; i++)
+            {
+                if (MoveList[i].Equals(this))
+                {
+                    return true;
+                }
+            }
+
+            return false;
+        }
+
+        public override bool Equals(object? obj)
+        {
+            var item = obj as Move;
+
+            if (item == null)
+            {
+                return false;
+            }
+
+            return Enumerable.SequenceEqual(this.From, item.From) && Enumerable.SequenceEqual(this.To, item.To) && this.Promotion == item.Promotion;
+        }
+
+        public override int GetHashCode()
+        {
+            return this.To.GetHashCode();
+        }
     }
 }

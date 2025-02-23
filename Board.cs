@@ -12,6 +12,7 @@ namespace Board
         };
 
         public int[] EnpassantSquare = {8,8}; // file, rank  8,8 for no en passant
+        public bool Side = false;
 
 
         public void PrintBoard(bool color)
@@ -47,8 +48,17 @@ namespace Board
             Console.WriteLine(StringBoard);
         }
 
-        public void MakeMove(Move.Move move)
+        public bool MakeMove(Move.Move move, bool filter)
         {
+            if (filter)
+            {
+                Move.Move[] LegalMoves = MoveFinder.Search(this, this.Side);
+                if (!move.InMovelist(LegalMoves))
+                {
+                    return false;
+                }
+            }
+
             this.board[move.To[1],move.To[0]] = this.board[move.From[1],move.From[0]];
             if (move.Promotion != Empty)
             {
@@ -131,7 +141,10 @@ namespace Board
             else
             {
                 this.EnpassantSquare = new int[] {8,8};
-            } 
+            }
+
+            this.Side = !this.Side;
+            return true;
         }
 
         public static Board Constructor(Piece.Piece[,] board, bool[] whiteCastle, bool[] blackCastle, int[] enpassantSquare)
@@ -159,7 +172,9 @@ namespace Board
             Clone.Castling = new Dictionary<bool, bool[]> {
                 {false, new bool[] {this.Castling[false][0], this.Castling[false][1]}},
                 {true, new bool[] {this.Castling[true][0], this.Castling[true][1]}}};
-            Clone.EnpassantSquare = new int[] {};
+            Clone.EnpassantSquare = new int[] {this.EnpassantSquare[0], this.EnpassantSquare[1]};
+            Clone.Side = this.Side == true;
+            
             return Clone;
         }
 
