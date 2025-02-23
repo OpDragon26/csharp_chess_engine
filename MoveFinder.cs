@@ -95,10 +95,10 @@ namespace Board
                             if (i == 1)
                             {
                                 int[] LongCastleSkip = {pos[0] + Patterns.LongCastleSkip[0], pos[1] + Patterns.LongCastleSkip[1]};
-                                Castling = Castling && board.board[LongCastleSkip[1],LongCastleSkip[0]] == Empty;
+                                Castling = Castling && board.board[LongCastleSkip[1],LongCastleSkip[0]] == Empty && !Attacked(board, LongCastleSkip, !color);
                             }
 
-                            if (Castling)
+                            if (Castling && !board.KingInCheck(color) && !Attacked(board, SkipSquare, !color))
                             {
                                 MoveList.Add(Move.Move.Constructor(pos, TargetSquare, Empty));
                             }
