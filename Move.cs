@@ -52,10 +52,10 @@ namespace Move
             NewMove.From = ConvertSquare(MoveString[0], false);
             NewMove.To = ConvertSquare(MoveString[1], false);
 
-            Console.WriteLine(NewMove.From[0]);
-            Console.WriteLine(NewMove.From[1]);
-            Console.WriteLine(NewMove.To[0]);
-            Console.WriteLine(NewMove.To[1]);
+            //Console.WriteLine(NewMove.From[0]);
+            //Console.WriteLine(NewMove.From[1]);
+            //Console.WriteLine(NewMove.To[0]);
+            //Console.WriteLine(NewMove.To[1]);
 
             if (MoveString.Length == 2)
             {

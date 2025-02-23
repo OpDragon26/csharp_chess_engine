@@ -90,8 +90,7 @@ namespace Board
                         {
                             int[] TargetSquare = new int[] {pos[0] + Patterns.CastlingPattern.pattern[i,0], pos[1] + Patterns.CastlingPattern.pattern[i,1]};
                             int[] SkipSquare = new int[] {pos[0] + Patterns.SkipPattern.pattern[i,0], pos[1] + Patterns.SkipPattern.pattern[i,1]};
-                            bool Castling = board.board[TargetSquare[1],TargetSquare[0]] == Empty && board.board[SkipSquare[1],SkipSquare[0]] == Empty && board.Castling[color][i];
-                            
+                            bool Castling = board.Castling[color][i] && board.board[TargetSquare[1],TargetSquare[0]] == Empty && board.board[SkipSquare[1],SkipSquare[0]] == Empty;
 
                             if (i == 1)
                             {
@@ -138,6 +137,7 @@ namespace Board
                     else // simple move
                     {
                         MoveList.Add(Move.Move.Constructor(pos, TargetSquare, Empty));
+                        
                         SingleMove = true;
                     }
                 }
@@ -187,8 +187,20 @@ namespace Board
                     }
                 }
             }
+            ArrayList FileteredMoves = new ArrayList();
 
-            Move.Move[] Moves = (Move.Move[])MoveList.ToArray(typeof(Move.Move));
+            for (int i = 0; i < MoveList.Count; i++)
+            {
+                Board MoveBoard = board.DeepCopy();
+                MoveBoard.MakeMove((Move.Move)(MoveList[i] ?? throw new ArgumentException()));
+
+                if (!MoveBoard.KingInCheck(color))
+                {
+                    FileteredMoves.Add(MoveList[i]);
+                }
+            }
+
+            Move.Move[] Moves = (Move.Move[])FileteredMoves.ToArray(typeof(Move.Move));
             return Moves;
         }
 
@@ -249,11 +261,14 @@ namespace Board
             for (int i = 0; i < 2; i++)
             {
                 int[] TargetSquare = new int[] {pos[0] + CheckPattern[i,1], pos[1] + CheckPattern[i,0]};
-                Piece.Piece TargetPiece = board.board[TargetSquare[1],TargetSquare[0]];
-
-                if (TargetPiece.Role == PieceType.Pawn && TargetPiece.Color == color)
+                if (ValidIndex(TargetSquare[0]) && ValidIndex(TargetSquare[1]))
                 {
-                    return true;
+                    Piece.Piece TargetPiece = board.board[TargetSquare[1],TargetSquare[0]];
+
+                    if (TargetPiece.Role == PieceType.Pawn && TargetPiece.Color == color)
+                    {
+                        return true;
+                    }
                 }
             }
             

@@ -142,6 +142,44 @@ namespace Board
             NewBoard.EnpassantSquare = enpassantSquare;
             return NewBoard;
         }
+
+        public Board DeepCopy()
+        {
+            Board Clone = new Board();
+
+            Piece.Piece[,] CloneBoard = new Piece.Piece[8,8];
+            for (int i = 0; i < 8; i++)
+            {
+                for (int j = 0; j < 8; j++)
+                {
+                    CloneBoard[i,j] = Piece.Presets.Clone[this.board[i,j]];
+                }
+            }
+            Clone.board = CloneBoard;
+            Clone.Castling = new Dictionary<bool, bool[]> {
+                {false, new bool[] {this.Castling[false][0], this.Castling[false][1]}},
+                {true, new bool[] {this.Castling[true][0], this.Castling[true][1]}}};
+            Clone.EnpassantSquare = new int[] {};
+            return Clone;
+        }
+
+        public bool KingInCheck(bool color)
+        {
+            return MoveFinder.Attacked(this, this.KingPos(color), !color);
+        }
+
+        public int[] KingPos(bool color)
+        {
+            for (int i = 0; i < 8; i++)
+            {
+                for (int j = 0; j < 8; j++)
+                {
+                    if (this.board[i,j].Role == PieceType.King && this.board[i,j].Color == color)
+                    return new int[] {j,i};
+                }
+            }
+            return new int[] {8,8};
+        }
     }
 
     public static class Presets {

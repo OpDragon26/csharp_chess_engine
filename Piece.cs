@@ -60,5 +60,21 @@ namespace Piece
             {B_Queen, "♕"},
             {B_King, "♔"},
         };
+
+        public static Dictionary<Piece, Piece> Clone = new Dictionary<Piece, Piece>{
+            {Empty, Empty},
+            {W_Pawn, W_Pawn},
+            {W_Rook, W_Rook},
+            {W_Knight, W_Knight},
+            {W_Bishop, W_Bishop},
+            {W_Queen, W_Queen},
+            {W_King, W_King},
+            {B_Pawn, B_Pawn},
+            {B_Rook, B_Rook},
+            {B_Knight, B_Knight},
+            {B_Bishop, B_Bishop},
+            {B_Queen, B_Queen},
+            {B_King, B_King},
+        };
     }
 }
