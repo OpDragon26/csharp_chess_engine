@@ -147,12 +147,13 @@ namespace Board
             return true;
         }
 
-        public static Board Constructor(Piece.Piece[,] board, bool[] whiteCastle, bool[] blackCastle, int[] enpassantSquare)
+        public static Board Constructor(Piece.Piece[,] board, bool side, bool[] whiteCastle, bool[] blackCastle, int[] enpassantSquare)
         {
             Board NewBoard = new Board();
             NewBoard.board = board;
             NewBoard.Castling = new Dictionary<bool, bool[]> {{false, blackCastle},{true, whiteCastle}};
             NewBoard.EnpassantSquare = enpassantSquare;
+            NewBoard.Side = side;
             return NewBoard;
         }
 
@@ -195,6 +196,22 @@ namespace Board
             }
             return new int[] {8,8};
         }
+
+        public Outcome Status()
+        {
+            if (MoveFinder.Search(this, Side).Length == 0)
+            {
+                if (this.KingInCheck(Side))
+                {
+                    return Presets.SideOutcomes[!Side];
+                }
+                else
+                {
+                    return Outcome.Draw;
+                }
+            }
+            return Outcome.Ongoing;
+        }
     }
 
     public static class Presets {
@@ -209,7 +226,7 @@ namespace Board
             {B_Pawn, B_Pawn, B_Pawn, B_Pawn, B_Pawn, B_Pawn, B_Pawn, B_Pawn},
             {B_Rook, B_Knight, B_Bishop, B_Queen, B_King, B_Bishop, B_Knight, B_Rook},
         };
-        public static Board StartingBoard = Board.Constructor(StartingPosition, new bool[] {true,true}, new bool[] {true,true}, new int[] {8,8});
+        public static Board StartingBoard = Board.Constructor(StartingPosition, false, new bool[] {true,true}, new bool[] {true,true}, new int[] {8,8});
 
         internal static int[] WKStartPos = {0,4}; // file, rank
 
@@ -261,5 +278,60 @@ namespace Board
                 return new int[] {Int32.Parse(square[1].ToString()) - 1, FileIndex[square[0].ToString()]};
             }
         }
+
+        public static Dictionary<bool, Outcome> SideOutcomes = new Dictionary<bool, Outcome>{
+            {false, Outcome.White},
+            {true, Outcome.Black},
+        };
+    }
+
+    public enum Outcome
+    {
+        Ongoing,
+        White,
+        Black,
+        Draw
+    }
+    public static class TestCases
+    {
+        public static Piece.Piece[,] WhiteCheckmatePosition = new Piece.Piece[,] 
+        {
+            {W_King, Empty, Empty, Empty, Empty, Empty, Empty, Empty},
+            {Empty, Empty, Empty, Empty, Empty, Empty, Empty, Empty},
+            {Empty, Empty, Empty, Empty, Empty, Empty, Empty, Empty},
+            {Empty, Empty, Empty, Empty, Empty, Empty, Empty, Empty},
+            {Empty, Empty, Empty, Empty, Empty, Empty, Empty, Empty},
+            {Empty, Empty, Empty, Empty, Empty, Empty, Empty, Empty},
+            {W_Rook, Empty, Empty, Empty, Empty, Empty, Empty, Empty},
+            {W_Rook, Empty, Empty, Empty, B_King, Empty, Empty, Empty},
+        };
+        public static Board WhiteCheckmateBoard = Board.Constructor(WhiteCheckmatePosition, true, new bool[] {false, false}, new bool[] {false, false}, new int[] {8,8});
+
+        public static Piece.Piece[,] BlackCheckmatePosition = new Piece.Piece[,] 
+        {
+            {B_King, Empty, Empty, Empty, Empty, Empty, Empty, Empty},
+            {Empty, Empty, Empty, Empty, Empty, Empty, Empty, Empty},
+            {Empty, Empty, Empty, Empty, Empty, Empty, Empty, Empty},
+            {Empty, Empty, Empty, Empty, Empty, Empty, Empty, Empty},
+            {Empty, Empty, Empty, Empty, Empty, Empty, Empty, Empty},
+            {Empty, Empty, Empty, Empty, Empty, Empty, Empty, Empty},
+            {B_Rook, Empty, Empty, Empty, Empty, Empty, Empty, Empty},
+            {B_Rook, Empty, Empty, Empty, W_King, Empty, Empty, Empty},
+        };
+        public static Board BlackCheckmateBoard = Board.Constructor(BlackCheckmatePosition, false, new bool[] {false, false}, new bool[] {false, false}, new int[] {8,8});
+
+        public static Piece.Piece[,] StalematePosition = new Piece.Piece[,] 
+        {
+            {Empty, Empty, Empty, Empty, Empty, Empty, Empty, Empty},
+            {Empty, Empty, Empty, Empty, Empty, Empty, Empty, Empty},
+            {Empty, Empty, Empty, Empty, Empty, Empty, Empty, Empty},
+            {Empty, Empty, Empty, Empty, Empty, Empty, Empty, Empty},
+            {Empty, Empty, Empty, Empty, Empty, Empty, Empty, Empty},
+            {Empty, Empty, Empty, W_King, Empty, W_Queen, Empty, Empty},
+            {Empty, Empty, Empty, Empty, Empty, Empty, Empty, Empty},
+            {Empty, Empty, Empty, Empty, B_King, Empty, Empty, Empty},
+        };
+        public static Board StalemateBoard = Board.Constructor(StalematePosition, true, new bool[] {false, false}, new bool[] {false, false}, new int[] {8,8});
+    
     }
 }
