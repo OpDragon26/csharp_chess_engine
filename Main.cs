@@ -20,7 +20,7 @@ PlayingBoard.PrintBoard(false);
 // Create a node class that stores a board, and it's child nodes, and an evaluation ✓
 // Make the node be able to find all nodes reachable from itself and pass on the depth ✓
 // Make the node be able to find the best move availible
-// - Make nodes be able to evaluate their position
+// - Make nodes be able to evaluate their position ✓
 // - Make nodes be able to find their evaluation using that of their children and the active side of their boards
 // -- Make nodes be able to request their children's evaluations, until the final node which has no children and evaluates its position
 // Create a game class that can ask for moves and ask for a reply from another player or reply with a bot move

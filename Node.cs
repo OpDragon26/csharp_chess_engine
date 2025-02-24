@@ -46,5 +46,18 @@ namespace Node
                 }
             }
         }
+
+        public void Evaluate()
+        {
+            this.Eval = 0;
+
+            for (int i = 0; i < 8; i++)
+            {
+                for (int j = 0; j < 8; j++)
+                {
+                    this.Eval += this.board.board[i,j].Value;
+                }
+            }
+        }
     }    
 }
