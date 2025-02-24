@@ -1,25 +1,32 @@
 {
   "format": 1,
   "restore": {
-    "/home/mate/Documents/C#/csharp_chess_engine/Csharp.csproj": {}
+    "Z:\\Csharp\\csharp_chess_engine\\Csharp.csproj": {}
   },
   "projects": {
-    "/home/mate/Documents/C#/csharp_chess_engine/Csharp.csproj": {
+    "Z:\\Csharp\\csharp_chess_engine\\Csharp.csproj": {
       "version": "1.0.0",
       "restore": {
-        "projectUniqueName": "/home/mate/Documents/C#/csharp_chess_engine/Csharp.csproj",
+        "projectUniqueName": "Z:\\Csharp\\csharp_chess_engine\\Csharp.csproj",
         "projectName": "Csharp",
-        "projectPath": "/home/mate/Documents/C#/csharp_chess_engine/Csharp.csproj",
-        "packagesPath": "/home/mate/.nuget/packages/",
-        "outputPath": "/home/mate/Documents/C#/csharp_chess_engine/obj/",
+        "projectPath": "Z:\\Csharp\\csharp_chess_engine\\Csharp.csproj",
+        "packagesPath": "C:\\Users\\szalai.mate\\.nuget\\packages\\",
+        "outputPath": "Z:\\Csharp\\csharp_chess_engine\\obj\\",
         "projectStyle": "PackageReference",
+        "fallbackFolders": [
+          "C:\\Program Files (x86)\\Microsoft Visual Studio\\Shared\\NuGetPackages"
+        ],
         "configFilePaths": [
-          "/home/mate/.nuget/NuGet/NuGet.Config"
+          "C:\\Users\\szalai.mate\\AppData\\Roaming\\NuGet\\NuGet.Config",
+          "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.FallbackLocation.config",
+          "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.Offline.config"
         ],
         "originalTargetFrameworks": [
           "net8.0"
         ],
         "sources": {
+          "C:\\Program Files (x86)\\Microsoft SDKs\\NuGetPackages\\": {},
+          "C:\\Program Files\\dotnet\\library-packs": {},
           "https://api.nuget.org/v3/index.json": {}
         },
         "frameworks": {
@@ -32,6 +39,11 @@
           "warnAsError": [
             "NU1605"
           ]
+        },
+        "restoreAuditProperties": {
+          "enableAudit": "true",
+          "auditLevel": "low",
+          "auditMode": "direct"
         }
       },
       "frameworks": {
@@ -53,7 +65,7 @@
               "privateAssets": "all"
             }
           },
-          "runtimeIdentifierGraphPath": "/usr/lib/dotnet/sdk/8.0.112/PortableRuntimeIdentifierGraph.json"
+          "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\8.0.400/PortableRuntimeIdentifierGraph.json"
         }
       }
     }
