@@ -1,3 +1,4 @@
+using static HashCodeHelper.HashCodeHelper;
 using Piece;
 using static Piece.Presets;
 
@@ -16,6 +17,8 @@ namespace Board
 
         // 50 move rule
         public int MoveChain = 0;
+        public Dictionary<Board, int> Repetition = new Dictionary<Board, int>{};
+        public Outcome DeclaredOutcome = Outcome.Ongoing;
 
         public void PrintBoard(bool color)
         {
@@ -155,6 +158,9 @@ namespace Board
             }
 
             this.Side = !this.Side;
+            
+            this.AddSelf();
+
             return true;
         }
 
@@ -251,32 +257,57 @@ namespace Board
 
         public Outcome Status()
         {
-            if (MoveFinder.Search(this, Side).Length == 0)
+            if (this.DeclaredOutcome == Outcome.Ongoing)
             {
-                if (this.KingInCheck(Side))
+                if (MoveFinder.Search(this, Side).Length == 0)
                 {
-                    return Presets.SideOutcomes[!Side];
+                    if (this.KingInCheck(Side))
+                    {
+                        DeclaredOutcome = Presets.SideOutcomes[!Side];
+                    }
+                    else
+                    {
+                        DeclaredOutcome = Outcome.Draw;
+                    }
+                }
+                else if (this.MoveChain > 49 || this.Repetition.ContainsValue(3))
+                {
+                    DeclaredOutcome = Outcome.Draw;
                 }
                 else
                 {
-                    return Outcome.Draw;
+                    int[] LocalValues = this.LocalValue();
+
+                    if (LocalValues[0] < 4 && LocalValues[1] < 4 && !this.PawnsLeft())
+                    {
+                        DeclaredOutcome = Outcome.Draw;
+                    }
                 }
             }
-            else if (this.MoveChain > 49)
+            return DeclaredOutcome;
+        }
+
+        public override int GetHashCode()
+        {
+            int Hash = GetBoardHash(this.board);
+            Hash = Hash * 31 + this.Side.GetHashCode();
+            Hash = Hash * 31 + GetArrayHash(this.EnpassantSquare);
+            Hash = Hash * 31 + GetArrayHash(this.Castling[false]);
+            Hash = Hash * 31 + GetArrayHash(this.Castling[true]);
+
+            return Hash;
+        }
+
+        void AddSelf()
+        {
+            if (Repetition.ContainsKey(this))
             {
-                return Outcome.Draw;
+                Repetition[this]++;
             }
             else
             {
-                int[] LocalValues = this.LocalValue();
-
-                if (LocalValues[0] < 4 && LocalValues[1] < 4 && !this.PawnsLeft())
-                {
-                    return Outcome.Draw;
-                }
+                Repetition[this] = 1;
             }
-
-            return Outcome.Ongoing;
         }
     }
 

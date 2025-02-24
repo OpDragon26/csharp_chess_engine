@@ -94,9 +94,6 @@ namespace Move
             return Enumerable.SequenceEqual(this.From, item.From) && Enumerable.SequenceEqual(this.To, item.To) && this.Promotion == item.Promotion;
         }
 
-        public override int GetHashCode()
-        {
-            return this.To.GetHashCode();
-        }
+        public override int GetHashCode() => HashCode.Combine(this.From, this.To, this.Promotion);
     }
 }
