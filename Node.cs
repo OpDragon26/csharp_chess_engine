@@ -30,5 +30,21 @@ namespace Node
 
             this.ChildNodes = (Node[])NodeList.ToArray(typeof(Node));
         }
+
+        public void Branch(int Depth)
+        {
+            this.GenerateChildren();
+
+            if (Depth > 0)
+            {
+                if (this.ChildNodes.Length > 0)
+                {
+                    for (int i = 0; i < this.ChildNodes.Length; i++)
+                    {
+                        ChildNodes[i].Branch(Depth - 1);
+                    }
+                }
+            }
+        }
     }    
 }
