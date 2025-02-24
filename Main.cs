@@ -5,7 +5,7 @@ using static HashCodeHelper.HashCodeHelper;
 Board.Board PlayingBoard = Board.Presets.StartingBoard.DeepCopy();
 
 Node.Node TestNode = new Node.Node(PlayingBoard);
-TestNode.Branch(4);
+TestNode.Branch(3);
 //PlayingBoard = TestNode.ChildNodes[19].ChildNodes[15].board.DeepCopy();
 
 
