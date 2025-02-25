@@ -84,9 +84,9 @@ namespace Node
                 }
                 if (this.board.Side)
                 {
-                    return ChildEvalList.Max();
+                    return ChildEvalList.Min();
                 }
-                return ChildEvalList.Min();
+                return ChildEvalList.Max();
             }
 
             // If there are 0 child nodes, then calculate the eval of the board
@@ -110,9 +110,17 @@ namespace Node
 
                 int[] Evals = (int[])EvalList.ToArray(typeof(int));
 
-                var (Max, MaxIndex) = Evals.Select((n, i) => (n, i)).Max();
+                if (!this.board.Side)
+                {
+                    var (Max, MaxIndex) = Evals.Select((n, i) => (n, i)).Max();
+                    return Moves[MaxIndex];
+                }
+                else
+                {
+                    var (Min, MinIndex) = Evals.Select((n, i) => (n, i)).Min();
+                    return Moves[MinIndex];
+                }
 
-                return Moves[MaxIndex];
             }
 
             return new Move.Move();

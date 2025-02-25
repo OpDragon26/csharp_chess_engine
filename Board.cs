@@ -1,6 +1,7 @@
 using static HashCodeHelper.HashCodeHelper;
 using Piece;
 using static Piece.Presets;
+using System.Formats.Asn1;
 
 namespace Board
 {
@@ -19,6 +20,10 @@ namespace Board
         public int MoveChain = 0;
         public Dictionary<Board, int> Repetition = new Dictionary<Board, int>{};
         public Outcome DeclaredOutcome = Outcome.Ongoing;
+        public Dictionary<bool, int[]> KingPos = new Dictionary<bool, int[]>{
+            {true, new int[] {8,8}},
+            {false, new int[] {8,8}},
+        };
 
         public void PrintBoard(bool color)
         {
@@ -150,12 +155,18 @@ namespace Board
                 {
                     this.EnpassantSquare = new int[] {8,8};
                 }
-
+            }
+            else if (this.board[move.To[1],move.To[0]].Role == PieceType.King)
+            {
+                this.KingPos[this.board[move.To[1],move.To[0]].Color] = new int[] {move.To[0],move.To[1]};
             }
             else
             {
                 this.EnpassantSquare = new int[] {8,8};
             }
+
+            // changing kingpos
+
 
             this.Side = !this.Side;
             
@@ -172,6 +183,8 @@ namespace Board
             NewBoard.EnpassantSquare = enpassantSquare;
             NewBoard.Side = side;
             NewBoard.MoveChain = moveChain;
+            NewBoard.KingPos[false] = NewBoard.GetKingPos(false);
+            NewBoard.KingPos[true] = NewBoard.GetKingPos(true);
             return NewBoard;
         }
 
@@ -201,17 +214,25 @@ namespace Board
 
         public bool KingInCheck(bool color)
         {
-            return MoveFinder.Attacked(this, this.KingPos(color), !color);
+            return MoveFinder.Attacked(this, this.GetKingPos(color), !color);
         }
 
-        public int[] KingPos(bool color)
+        public int[] GetKingPos(bool color)
         {
+            if (this.KingPos[color][0] != 8)
+            {
+                return this.KingPos[color];
+            }
+
             for (int i = 0; i < 8; i++)
             {
                 for (int j = 0; j < 8; j++)
                 {
                     if (this.board[i,j].Role == PieceType.King && this.board[i,j].Color == color)
-                    return new int[] {j,i};
+                    {
+                        this.KingPos[color] = new int[] {j,i};
+                        return new int[] {j,i};
+                    }
                 }
             }
             return new int[] {8,8};
