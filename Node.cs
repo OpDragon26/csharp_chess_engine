@@ -12,7 +12,7 @@ namespace Node
             board = newBoard;
         }
 
-        public Move.Move[] GenerateChildren()
+        public Move.Move[] GenerateChildNodes()
         {
             ArrayList NodeList = new ArrayList();
 
@@ -27,17 +27,18 @@ namespace Node
 
                     NodeList.Add(new Node(MoveBoard));
                 }
+                this.ChildNodes = (Node[])NodeList.ToArray(typeof(Node));
+
                 return MoveList;
             }
-
-            this.ChildNodes = (Node[])NodeList.ToArray(typeof(Node));
+            this.ChildNodes = new Node[0]; 
 
             return new Move.Move[0];
         }
 
-        public void Branch(int Depth)
+        public void SearchBranches(int Depth)
         {
-            this.GenerateChildren();
+            this.GenerateChildNodes();
 
             if (Depth > 0)
             {
@@ -45,7 +46,7 @@ namespace Node
                 {
                     for (int i = 0; i < this.ChildNodes.Length; i++)
                     {
-                        ChildNodes[i].Branch(Depth - 1);
+                        ChildNodes[i].SearchBranches(Depth - 1);
                     }
                 }
             }
@@ -87,6 +88,11 @@ namespace Node
 
             // If there are 0 child nodes, then calculate the eval of the board
             return this.Evaluate();
+        }
+
+        public Move.Move BestMove()
+        {
+
         }
 
         int Evaluate()
