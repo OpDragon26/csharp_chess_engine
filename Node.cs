@@ -36,9 +36,12 @@ namespace Node
             return new Move.Move[0];
         }
 
-        public void SearchBranches(int Depth)
+        public void SearchBranches(int Depth, bool NewNodes)
         {
-            this.GenerateChildNodes();
+            if (NewNodes)
+            {
+                this.GenerateChildNodes();
+            }
 
             if (Depth > 0)
             {
@@ -46,7 +49,7 @@ namespace Node
                 {
                     for (int i = 0; i < this.ChildNodes.Length; i++)
                     {
-                        ChildNodes[i].SearchBranches(Depth - 1);
+                        ChildNodes[i].SearchBranches(Depth - 1, true);
                     }
                 }
             }
@@ -90,9 +93,29 @@ namespace Node
             return this.Evaluate();
         }
 
-        public Move.Move BestMove()
+        public Move.Move BestMove(int Depth)
         {
+            Move.Move[] Moves = GenerateChildNodes();
 
+            this.SearchBranches(Depth, false);
+
+            if (ChildNodes.Length != 0)
+            {
+                ArrayList EvalList = new ArrayList();
+
+                for (int i = 0; i < this.ChildNodes.Length; i++)
+                {
+                    EvalList.Add(ChildNodes[i].Evaluate());
+                }
+
+                int[] Evals = (int[])EvalList.ToArray(typeof(int));
+
+                var (Max, MaxIndex) = Evals.Select((n, i) => (n, i)).Max();
+
+                return Moves[MaxIndex];
+            }
+
+            return new Move.Move();
         }
 
         int Evaluate()

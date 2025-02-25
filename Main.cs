@@ -5,8 +5,10 @@ using static HashCodeHelper.HashCodeHelper;
 Board.Board PlayingBoard = Board.Presets.StartingBoard.DeepCopy();
 
 Node.Node TestNode = new Node.Node(PlayingBoard);
-TestNode.SearchBranches(2);
-Console.WriteLine(TestNode.GetEval());
+Move.Move move = TestNode.BestMove(2);
+PlayingBoard.MakeMove(move, false);
+//TestNode.SearchBranches(2, true);
+//Console.WriteLine(TestNode.GetEval());
 //PlayingBoard = TestNode.ChildNodes[19].ChildNodes[15].board.DeepCopy();
 
 
@@ -26,5 +28,7 @@ PlayingBoard.PrintBoard(false);
 // - Make nodes be able to evaluate their position ✓
 // - Make nodes be able to find their evaluation using that of their children and the active side of their boards ✓
 // -- Make nodes be able to request their children's evaluations, until the final node which has no children and evaluates its position ✓
+// - Pick the best move subjectively based on side
 // Optimize the method for finding checks, moves, and evaluating positions by storing the positions of the pieces separately from the boards
 // Create a game class that can ask for moves and ask for a reply from another player or reply with a bot move
+// Improve evaluation function
