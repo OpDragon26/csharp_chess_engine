@@ -4,9 +4,22 @@ using static HashCodeHelper.HashCodeHelper;
 
 Board.Board PlayingBoard = Board.Presets.StartingBoard.DeepCopy();
 
+int depth = 2;
+int repeat = 100;
+
 Node.Node TestNode = new Node.Node(PlayingBoard);
-Move.Move move = TestNode.BestMove(2);
+Move.Move move = TestNode.BestMove(depth);
 PlayingBoard.MakeMove(move, false);
+PlayingBoard.PrintBoard(false);
+
+for (int i = 0; i < repeat; i++)
+{
+    TestNode = new Node.Node(PlayingBoard);
+    move = TestNode.BestMove(depth);
+    PlayingBoard.MakeMove(move, false);
+    PlayingBoard.PrintBoard(false);
+}
+
 //TestNode.SearchBranches(2, true);
 //Console.WriteLine(TestNode.GetEval());
 //PlayingBoard = TestNode.ChildNodes[19].ChildNodes[15].board.DeepCopy();
@@ -17,8 +30,6 @@ PlayingBoard.MakeMove(move, false);
 // Move.Move[] Moves = MoveFinder.Search(PlayingBoard,false);
 // Move.Move[] Moves = MoveFinder.SearchPiece(PlayingBoard, PieceType.Pawn, false, Board.Presets.ConvertSquare("e4", false));
 // PlayingBoard.MakeMove(Moves[1], false);
-
-PlayingBoard.PrintBoard(false);
 
 // TODO:
 

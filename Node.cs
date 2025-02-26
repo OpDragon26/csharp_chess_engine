@@ -1,4 +1,5 @@
 using System.Collections;
+using System.Diagnostics.CodeAnalysis;
 using Board;
 using Weights;
 
@@ -78,7 +79,6 @@ namespace Node
             if (ChildNodes.Length != 0)
             {
                 float[] ChildEvalList = new float[ChildNodes.Length];
-
                 for (int i = 0; i < this.ChildNodes.Length; i++)
                 {
                     ChildEvalList[i] = ChildNodes[i].GetEval();
@@ -106,7 +106,7 @@ namespace Node
 
                 for (int i = 0; i < this.ChildNodes.Length; i++)
                 {
-                    EvalList.Add(ChildNodes[i].Evaluate());
+                    EvalList.Add(ChildNodes[i].GetEval());
                 }
 
                 float[] Evals = (float[])EvalList.ToArray(typeof(float));
@@ -114,11 +114,13 @@ namespace Node
                 if (!this.board.Side)
                 {
                     var (Max, MaxIndex) = Evals.Select((n, i) => (n, i)).Max();
+                    Console.WriteLine(Max);
                     return Moves[MaxIndex];
                 }
                 else
                 {
                     var (Min, MinIndex) = Evals.Select((n, i) => (n, i)).Min();
+                    Console.WriteLine(Min);
                     return Moves[MinIndex];
                 }
 
