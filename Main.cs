@@ -5,14 +5,14 @@ using static HashCodeHelper.HashCodeHelper;
 Board.Board PlayingBoard = Board.Presets.StartingBoard.DeepCopy();
 
 int depth = 2;
-int repeat = 100;
+
 
 Node.Node TestNode = new Node.Node(PlayingBoard);
 Move.Move move = TestNode.BestMove(depth);
 PlayingBoard.MakeMove(move, false);
 PlayingBoard.PrintBoard(false);
 
-for (int i = 0; i < repeat; i++)
+while (true)
 {
     TestNode = new Node.Node(PlayingBoard);
     move = TestNode.BestMove(depth);
@@ -23,7 +23,6 @@ for (int i = 0; i < repeat; i++)
 //TestNode.SearchBranches(2, true);
 //Console.WriteLine(TestNode.GetEval());
 //PlayingBoard = TestNode.ChildNodes[19].ChildNodes[15].board.DeepCopy();
-
 
 // Move.Move.Constructor(new int[] {4,1},new int[] {4,3},Empty) -> e2-e4
 // PlayingBoard.MakeMove(Move.Move.FromString("e2-e4"), true);
@@ -43,3 +42,4 @@ for (int i = 0; i < repeat; i++)
 // Optimize the method for finding checks, moves, and evaluating positions by storing the positions of the pieces separately from the boards *
 // Create a game class that can ask for moves and ask for a reply from another player or reply with a bot move
 // Improve evaluation function
+// Add alpha-beta pruning

@@ -159,6 +159,10 @@ namespace Board
             else if (this.board[move.To[1],move.To[0]].Role == PieceType.King)
             {
                 this.KingPos[this.board[move.To[1],move.To[0]].Color] = new int[] {move.To[0],move.To[1]};
+                this.Castling = new Dictionary<bool, bool[]> {
+                    {false, new bool[] {false, false}}, // Short, Long
+                    {true, new bool[] {false, false}},
+                };
             }
             else
             {
