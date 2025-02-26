@@ -43,3 +43,6 @@ while (true)
 // Create a game class that can ask for moves and ask for a reply from another player or reply with a bot move
 // Improve evaluation function
 // Add alpha-beta pruning
+
+// weight adjustments
+// Make rooks not like being on the square they land on when castling, prompting the engine to move them to the center first instead of locking them in with the other rook

@@ -114,19 +114,19 @@ namespace Board
                     this.board[Presets.BRLongCastleDest[0],Presets.BRLongCastleDest[1]] = B_Rook;
                 }
             }
-            else if (Enumerable.SequenceEqual(new int[] {move.To[1],move.To[0]}, Presets.WhiteRookHPos))
+            else if (Enumerable.SequenceEqual(new int[] {move.To[1],move.To[0]}, Presets.WhiteRookHPos) || Enumerable.SequenceEqual(new int[] {move.From[1],move.From[0]}, Presets.WhiteRookHPos))
             {
                 this.Castling[false][0] = false;
             }
-            else if (Enumerable.SequenceEqual(new int[] {move.To[1],move.To[0]}, Presets.WhiteRookAPos))
+            else if (Enumerable.SequenceEqual(new int[] {move.To[1],move.To[0]}, Presets.WhiteRookAPos) || Enumerable.SequenceEqual(new int[] {move.From[1],move.From[0]}, Presets.WhiteRookAPos))
             {
                 this.Castling[false][1] = false;
             }
-            else if (Enumerable.SequenceEqual(new int[] {move.To[1],move.To[0]}, Presets.BlackRookHPos))
+            else if (Enumerable.SequenceEqual(new int[] {move.To[1],move.To[0]}, Presets.BlackRookHPos) || Enumerable.SequenceEqual(new int[] {move.From[1],move.From[0]}, Presets.BlackRookHPos))
             {
                 this.Castling[true][0] = false;
             }
-            else if (Enumerable.SequenceEqual(new int[] {move.To[1],move.To[0]}, Presets.BlackRookAPos))
+            else if (Enumerable.SequenceEqual(new int[] {move.To[1],move.To[0]}, Presets.BlackRookAPos) || Enumerable.SequenceEqual(new int[] {move.From[1],move.From[0]}, Presets.BlackRookAPos))
             {
                 this.Castling[true][1] = false;
             }
@@ -159,10 +159,7 @@ namespace Board
             else if (this.board[move.To[1],move.To[0]].Role == PieceType.King)
             {
                 this.KingPos[this.board[move.To[1],move.To[0]].Color] = new int[] {move.To[0],move.To[1]};
-                this.Castling = new Dictionary<bool, bool[]> {
-                    {false, new bool[] {false, false}}, // Short, Long
-                    {true, new bool[] {false, false}},
-                };
+                this.Castling[this.board[move.To[1],move.To[0]].Color] = new bool[] {false, false};
             }
             else
             {
