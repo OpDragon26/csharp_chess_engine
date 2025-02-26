@@ -14,6 +14,12 @@ PlayingBoard.PrintBoard(false);
 
 while (true)
 {
+    if (TestNode.board.Status() != Outcome.Ongoing)
+    {
+        Console.WriteLine(TestNode.board.Status());
+        break;
+    }
+
     TestNode = new Node.Node(PlayingBoard);
     move = TestNode.BestMove(depth);
     PlayingBoard.MakeMove(move, false);
