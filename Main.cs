@@ -42,6 +42,9 @@ while (true)
 // Optimize the method for finding checks, moves, and evaluating positions by storing the positions of the pieces separately from the boards *
 // Create a game class that can ask for moves and ask for a reply from another player or reply with a bot move
 // Improve evaluation function
+// - Make king safety a priority
+// - Make the engine like pawn chains
+// - Make the engine want to keep its queen near the enemy king
 // Add alpha-beta pruning
 
 // weight adjustments
