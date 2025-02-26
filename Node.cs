@@ -109,7 +109,7 @@ namespace Node
                     EvalList.Add(ChildNodes[i].Evaluate());
                 }
 
-                int[] Evals = (int[])EvalList.ToArray(typeof(int));
+                float[] Evals = (float[])EvalList.ToArray(typeof(float));
 
                 if (!this.board.Side)
                 {
