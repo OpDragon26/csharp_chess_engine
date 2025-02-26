@@ -46,3 +46,4 @@ while (true)
 
 // weight adjustments
 // Make rooks not like being on the square they land on when castling, prompting the engine to move them to the center first instead of locking them in with the other rook
+// Decrease negative weights for pieces to avoid sacrifices instead of moving to less advantageous, safer squares

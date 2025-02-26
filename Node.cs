@@ -137,7 +137,7 @@ namespace Node
             {
                 for (int j = 0; j < 8; j++)
                 {
-                    Eval += this.board.board[i,j].Value * Weights.Weights.PieceWeights[this.board.board[i,j]][i,j] * Weights.Weights.WeightMultiplier;
+                    Eval += this.board.board[i,j].Value * Weights.Weights.PieceWeights[this.board.board[i,j]][i,j];
                 }
             }
 
