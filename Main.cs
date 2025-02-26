@@ -40,12 +40,14 @@ while (true)
 // -- Make nodes be able to request their children's evaluations, until the final node which has no children and evaluates its position ✓
 // - Pick the best move subjectively based on side ✓
 // Optimize the method for finding checks, moves, and evaluating positions by storing the positions of the pieces separately from the boards *
+// Fix false castling
 // Create a game class that can ask for moves and ask for a reply from another player or reply with a bot move
 // Improve evaluation function
 // - Make king safety a priority
 // - Make the engine like pawn chains
 // - Make the engine want to keep its queen near the enemy king
 // Add alpha-beta pruning
+// Keep calculating if there are captures availible in the current position
 
 // weight adjustments
 // Make rooks not like being on the square they land on when castling, prompting the engine to move them to the center first instead of locking them in with the other rook
