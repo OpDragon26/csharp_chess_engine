@@ -1,5 +1,6 @@
 using System.Collections;
 using Board;
+using Weights;
 
 namespace Node
 {
@@ -55,7 +56,7 @@ namespace Node
             }
         }
 
-        public int GetEval()
+        public float GetEval()
         {
             // If either side won or the game is a draw, return the respective values
             if (this.board.Status() == Outcome.Draw)
@@ -76,7 +77,7 @@ namespace Node
             // Black's advantage is represented with a negative value, so for black, the lowest value is the best
             if (ChildNodes.Length != 0)
             {
-                int[] ChildEvalList = new int[ChildNodes.Length];
+                float[] ChildEvalList = new float[ChildNodes.Length];
 
                 for (int i = 0; i < this.ChildNodes.Length; i++)
                 {
@@ -126,15 +127,15 @@ namespace Node
             return new Move.Move();
         }
 
-        int Evaluate()
+        float Evaluate()
         {
-            int Eval = 0;
+            float Eval = 0;
 
             for (int i = 0; i < 8; i++)
             {
                 for (int j = 0; j < 8; j++)
                 {
-                    Eval += this.board.board[i,j].Value;
+                    Eval += this.board.board[i,j].Value * Weights.Weights.PieceWeights[this.board.board[i,j]][i,j];
                 }
             }
 
