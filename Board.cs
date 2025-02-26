@@ -89,14 +89,14 @@ namespace Board
             this.board[move.From[1],move.From[0]] = Empty;
             
             // castling
-            if (Enumerable.SequenceEqual(new int[] {move.From[1],move.From[0]}, Presets.WKStartPos) || this.board[move.To[1],move.To[0]].Role == PieceType.King)
+            if (Enumerable.SequenceEqual(new int[] {move.From[1],move.From[0]}, Presets.WKStartPos) && this.board[move.To[1],move.To[0]].Role == PieceType.King)
             {
-                if (Enumerable.SequenceEqual(new int[] {move.To[1],move.To[0]}, Presets.WKShortCastlePos) || this.Castling[false][0])
+                if (Enumerable.SequenceEqual(new int[] {move.To[1],move.To[0]}, Presets.WKShortCastlePos) && this.Castling[false][0])
                 {
                     this.board[Presets.WRShortCastlePos[0],Presets.WRShortCastlePos[1]] = Empty;
                     this.board[Presets.WRShortCastleDest[0],Presets.WRShortCastleDest[1]] = W_Rook;
                 } 
-                else if (Enumerable.SequenceEqual(new int[] {move.To[1],move.To[0]}, Presets.WKLongCastlePos) || this.Castling[false][1])
+                else if (Enumerable.SequenceEqual(new int[] {move.To[1],move.To[0]}, Presets.WKLongCastlePos) && this.Castling[false][1])
                 {
                     this.board[Presets.WRLongCastlePos[0],Presets.WRLongCastlePos[1]] = Empty;
                     this.board[Presets.WRLongCastleDest[0],Presets.WRLongCastleDest[1]] = W_Rook;
@@ -104,14 +104,14 @@ namespace Board
                 this.Castling[false] = new bool[] {false, false};
 
             } 
-            else if (Enumerable.SequenceEqual(new int[] {move.From[1],move.From[0]}, Presets.BKStartPos) || this.board[move.To[1],move.To[0]].Role == PieceType.King)
+            else if (Enumerable.SequenceEqual(new int[] {move.From[1],move.From[0]}, Presets.BKStartPos) && this.board[move.To[1],move.To[0]].Role == PieceType.King)
             {
-                if (Enumerable.SequenceEqual(new int[] {move.To[1],move.To[0]}, Presets.BKShortCastlePos) || this.Castling[true][0])
+                if (Enumerable.SequenceEqual(new int[] {move.To[1],move.To[0]}, Presets.BKShortCastlePos) && this.Castling[true][0])
                 {
                     this.board[Presets.BRShortCastlePos[0],Presets.BRShortCastlePos[1]] = Empty;
                     this.board[Presets.BRShortCastleDest[0],Presets.BRShortCastleDest[1]] = B_Rook;
                 } 
-                else if (Enumerable.SequenceEqual(new int[] {move.To[1],move.To[0]}, Presets.BKLongCastlePos) || this.Castling[true][1])
+                else if (Enumerable.SequenceEqual(new int[] {move.To[1],move.To[0]}, Presets.BKLongCastlePos) && this.Castling[true][1])
                 {
                     this.board[Presets.BRLongCastlePos[0],Presets.BRLongCastlePos[1]] = Empty;
                     this.board[Presets.BRLongCastleDest[0],Presets.BRLongCastleDest[1]] = B_Rook;
