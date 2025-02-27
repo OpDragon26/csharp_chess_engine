@@ -24,6 +24,7 @@ namespace Board
             {true, new int[] {8,8}},
             {false, new int[] {8,8}},
         };
+        public Dictionary<bool, ArrayList> PiecePositions = new Dictionary<bool, ArrayList>{};
 
         public void PrintBoard(bool color)
         {
@@ -243,6 +244,24 @@ namespace Board
             return new int[] {8,8};
         }
 
+        public ArrayList GetPiecePositions(bool Side)
+        {
+            if (this.PiecePositions[Side].Count == 0)
+            {
+            for (int i = 0; i < 8; i++)
+                {
+                    for (int j = 0; j < 8; j++)
+                    {
+                        if (this.board[i,j].Color == Side)
+                        {
+                            this.PiecePositions[Side].Add(new int[] {j,i});
+                        }
+                    }
+                }
+            }
+            return this.PiecePositions[Side];
+        }
+
         int[] LocalValue()
         {
             int White = 0;
@@ -268,7 +287,7 @@ namespace Board
 
         bool PawnsLeft()
         {
-            for (int i = 0; i < 8; i++)
+            for (int i = 0; i < 8; i++) // unneccessary loop
             {
                 for (int j = 0; j < 8; j++)
                 {
