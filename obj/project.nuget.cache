@@ -1,8 +1,8 @@
 {
   "version": 2,
-  "dgSpecHash": "T8TU7/I0Hss=",
+  "dgSpecHash": "OUYs8WcWGcrPIpZSDqoxvsOaunTUtC4CgCQS/6W4XtL1SDz7JgQOY/33NyuWclev5hwC1r+Hja0I2YKGwB/EaA==",
   "success": true,
-  "projectFilePath": "Z:\\Csharp\\csharp_chess_engine\\Csharp.csproj",
+  "projectFilePath": "/home/mate/Documents/C#/csharp_chess_engine/Csharp.csproj",
   "expectedPackageFiles": [],
   "logs": []
 }

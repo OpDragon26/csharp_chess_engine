@@ -5,7 +5,7 @@ namespace Match
     public class Match
     {
         public bool PlayerSide = false;
-        public int Depth = 2;
+        public int Depth = 2; // 0 for pvp
         public Board.Board board = Board.Presets.StartingBoard.DeepCopy();
         static Dictionary<Outcome, string> Outcomes = new Dictionary<Outcome, string>{
             {Outcome.Black, "Black won. Game over."},
@@ -21,18 +21,7 @@ namespace Match
 
         public bool StatusTest()
         {
-            Outcome Status = board.Status();
-
-            if (Status == Outcome.Ongoing)
-            {
-                return true;
-            }
-            else
-            {
-                Console.WriteLine(Outcomes[Status]);
-
-                return false;
-            }
+            return board.Status() == Outcome.Ongoing;
         }
 
         public void MakeMove(string move)
@@ -42,8 +31,9 @@ namespace Match
                 try{
                     Move.Move TryMove = Move.Move.FromString(move);
 
-                    if (board.MakeMove(TryMove, true))
+                    if (board.MakeMove(TryMove, true) && this.Depth != 0)
                     {
+                        Console.Clear();
                         board.PrintBoard(PlayerSide);
                     }
                     else
@@ -72,8 +62,9 @@ namespace Match
         {
             while (StatusTest())
             {
-                if (board.Side == PlayerSide)
+                if (board.Side == PlayerSide || this.Depth == 0)
                 {
+                    Console.Clear();
                     board.PrintBoard(PlayerSide);
                     Console.WriteLine("Enter your move:");
                     string MoveString = Console.ReadLine() ?? "";
@@ -84,7 +75,9 @@ namespace Match
                     MakeBotMove();
                 }
             }
+            Console.Clear();
             board.PrintBoard(PlayerSide);
+            Console.WriteLine(Outcomes[this.board.Status()]);
         }
     }
 }
