@@ -1,8 +1,6 @@
 using static HashCodeHelper.HashCodeHelper;
 using Piece;
 using static Piece.Presets;
-using System.Collections;
-using System.Drawing;
 
 namespace Board
 {
