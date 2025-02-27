@@ -10,18 +10,17 @@ namespace Board
         {
             ArrayList MoveList = new ArrayList();
 
-            for (int i = 0; i < 8; i++)
+            for (int i = 0; i < board.PiecePositions[color].Count; i++)
             {
-                for (int j = 0; j < 8; j++)
-                {
-                    if (board.board[i,j].Color == color && board.board[i,j].Role != PieceType.Empty)
-                    {
-                        Move.Move[] PieceMoves = SearchPiece(board, board.board[i,j].Role, color, new int[] {j,i});
+                (int, int) coords = ((int, int))board.PiecePositions[color][i];
 
-                        for (int k = 0; k < PieceMoves.Length; k++)
-                        {
-                            MoveList.Add(PieceMoves[k]);
-                        }
+                if (board.board[coords.Item2,coords.Item1].Color == color && board.board[coords.Item2,coords.Item1].Role != PieceType.Empty)
+                {
+                    Move.Move[] PieceMoves = SearchPiece(board, board.board[coords.Item2,coords.Item1].Role, color, new int[] {coords.Item1,coords.Item2});
+
+                    for (int k = 0; k < PieceMoves.Length; k++)
+                    {
+                        MoveList.Add(PieceMoves[k]);
                     }
                 }
             }

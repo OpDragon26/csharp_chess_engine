@@ -139,12 +139,17 @@ namespace Node
         {
             float Eval = 0;
 
-            for (int i = 0; i < 8; i++)
+            for (int i = 0; i < board.PiecePositions[false].Count; i++)
             {
-                for (int j = 0; j < 8; j++)
-                {
-                    Eval += this.board.board[i,j].Value * Weights.Weights.PieceWeights[this.board.board[i,j]][i,j];
-                }
+                (int, int) coords = ((int, int))board.PiecePositions[false][i];
+
+                Eval += this.board.board[coords.Item2,coords.Item1].Value * Weights.Weights.PieceWeights[this.board.board[coords.Item2,coords.Item1]][coords.Item2,coords.Item1];
+            }
+            for (int i = 0; i < board.PiecePositions[true].Count; i++)
+            {
+                (int, int) coords = ((int, int))board.PiecePositions[true][i];
+
+                Eval += this.board.board[coords.Item2,coords.Item1].Value * Weights.Weights.PieceWeights[this.board.board[coords.Item2,coords.Item1]][coords.Item2,coords.Item1];
             }
 
             return Eval;

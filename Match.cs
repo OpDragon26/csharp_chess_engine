@@ -24,7 +24,7 @@ namespace Match
             return board.Status() == Outcome.Ongoing;
         }
 
-        public void MakeMove(string move)
+        public void MakeMove(string move, bool debug)
         {
             if (StatusTest())
             {
@@ -33,7 +33,10 @@ namespace Match
 
                     if (board.MakeMove(TryMove, true) && this.Depth != 0)
                     {
-                        Console.Clear();
+                        if (!debug)
+                        {
+                            Console.Clear();
+                        }
                         board.PrintBoard(PlayerSide);
                     }
                     else
@@ -58,24 +61,30 @@ namespace Match
             }
         }
 
-        public void Play()
+        public void Play(bool debug)
         {
             while (StatusTest())
             {
                 if (board.Side == PlayerSide || this.Depth == 0)
                 {
-                    Console.Clear();
+                    if (!debug)
+                    {
+                        Console.Clear();
+                    }
                     board.PrintBoard(PlayerSide);
                     Console.WriteLine("Enter your move:");
                     string MoveString = Console.ReadLine() ?? "";
-                    this.MakeMove(MoveString);
+                    this.MakeMove(MoveString, debug);
                 }
                 else
                 {
                     MakeBotMove();
                 }
             }
-            Console.Clear();
+            if (!debug)
+            {
+                Console.Clear();
+            }
             board.PrintBoard(PlayerSide);
             Console.WriteLine(Outcomes[this.board.Status()]);
         }

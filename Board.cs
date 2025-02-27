@@ -2,6 +2,7 @@ using static HashCodeHelper.HashCodeHelper;
 using Piece;
 using static Piece.Presets;
 using System.Collections;
+using System.Drawing;
 
 namespace Board
 {
@@ -24,7 +25,10 @@ namespace Board
             {true, new int[] {8,8}},
             {false, new int[] {8,8}},
         };
-        public Dictionary<bool, ArrayList> PiecePositions = new Dictionary<bool, ArrayList>{};
+        public Dictionary<bool, List<(int,int)>> PiecePositions = new Dictionary<bool, List<(int,int)>>{
+            {false, new List<(int,int)>()},
+            {true, new List<(int,int)>()},
+        };
 
         public void PrintBoard(bool color)
         {
@@ -69,6 +73,13 @@ namespace Board
                     return false;
                 }
             }
+
+            if (this.board[move.To[1],move.To[0]].Role != PieceType.Empty)
+            {
+                this.PiecePositions[this.board[move.To[1],move.To[0]].Color].Remove((move.To[0],move.To[1]));
+            }
+            this.PiecePositions[this.board[move.From[1],move.From[0]].Color].Remove((move.From[0],move.From[1]));
+            this.PiecePositions[this.board[move.From[1],move.From[0]].Color].Add((move.To[0],move.To[1]));
 
             if (this.board[move.From[1],move.From[0]].Role == PieceType.Pawn || this.board[move.To[1],move.To[0]].Role != PieceType.Empty)
             {
@@ -193,6 +204,8 @@ namespace Board
             NewBoard.MoveChain = moveChain;
             NewBoard.KingPos[false] = NewBoard.GetKingPos(false);
             NewBoard.KingPos[true] = NewBoard.GetKingPos(true);
+            NewBoard.PiecePositions[false] = NewBoard.GetPiecePositions(false);
+            NewBoard.PiecePositions[true] = NewBoard.GetPiecePositions(true);
             return NewBoard;
         }
 
@@ -216,7 +229,12 @@ namespace Board
             Clone.EnpassantSquare = new int[] {this.EnpassantSquare[0], this.EnpassantSquare[1]};
             Clone.Side = this.Side == true;
             Clone.MoveChain = this.MoveChain;
+
+            Clone.PiecePositions[false] = new List<(int, int)>(this.PiecePositions[false]);
+            Clone.PiecePositions[true] = new List<(int, int)>(this.PiecePositions[true]);
             
+            Clone.KingPos[false] = new int[] {this.KingPos[false][0],this.KingPos[false][1]};
+            Clone.KingPos[true] = new int[] {this.KingPos[true][0],this.KingPos[true][1]};
             return Clone;
         }
 
@@ -246,17 +264,17 @@ namespace Board
             return new int[] {8,8};
         }
 
-        public ArrayList GetPiecePositions(bool Side)
+        public List<(int,int)> GetPiecePositions(bool Side)
         {
             if (this.PiecePositions[Side].Count == 0)
             {
-            for (int i = 0; i < 8; i++)
+                for (int i = 0; i < 8; i++)
                 {
                     for (int j = 0; j < 8; j++)
                     {
-                        if (this.board[i,j].Color == Side)
+                        if (this.board[i,j].Color == Side && this.board[i,j].Role != PieceType.Empty)
                         {
-                            this.PiecePositions[Side].Add(new int[] {j,i});
+                            this.PiecePositions[Side].Add((j,i));
                         }
                     }
                 }
@@ -268,20 +286,17 @@ namespace Board
         {
             int White = 0;
             int Black = 0;
-
-            for (int i = 0; i < 8; i++)
+            for (int i = 0; i < PiecePositions[false].Count; i++)
             {
-                for (int j = 0; j < 8; j++)
-                {
-                    if (this.board[i,j].Color)
-                    {
-                        Black += this.board[i,j].LocalValue;
-                    }
-                    else
-                    {
-                        White += this.board[i,j].LocalValue;
-                    }
-                }
+                (int, int) coords = ((int, int))PiecePositions[false][i];
+
+                White += board[coords.Item2,coords.Item1].LocalValue;
+            }
+            for (int i = 0; i < PiecePositions[true].Count; i++)
+            {
+                (int, int) coords = ((int, int))PiecePositions[false][i];
+
+                Black += board[coords.Item2,coords.Item1].LocalValue;
             }
 
             return new int[] {White, Black};
@@ -289,16 +304,21 @@ namespace Board
 
         bool PawnsLeft()
         {
-            for (int i = 0; i < 8; i++) // unneccessary loop
+            for (int i = 0; i < PiecePositions[false].Count; i++)
             {
-                for (int j = 0; j < 8; j++)
-                {
-                    if (this.board[i,j].Role == PieceType.Pawn)
-                    {
-                        return true;
-                    }
-                }
+                (int, int) coords = ((int, int))PiecePositions[false][i];
+
+                if (board[coords.Item2,coords.Item1].Role == PieceType.Pawn)
+                return true;
             }
+            for (int i = 0; i < PiecePositions[true].Count; i++)
+            {
+                (int, int) coords = ((int, int))PiecePositions[false][i];
+
+                if (board[coords.Item2,coords.Item1].Role == PieceType.Pawn)
+                return true;
+            }
+
             return false;
         }
 

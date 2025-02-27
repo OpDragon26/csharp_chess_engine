@@ -1,9 +1,11 @@
-﻿using Board;
+﻿using System.Collections;
+using Board;
 using Piece;
 using static HashCodeHelper.HashCodeHelper;
 
-Match.Match match = new Match.Match(false, 0);
-match.Play();
+
+Match.Match match = new Match.Match(false, 2);
+match.Play(false);
 
 //TestNode.SearchBranches(2, true);
 //Console.WriteLine(TestNode.GetEval());
