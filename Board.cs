@@ -292,7 +292,7 @@ namespace Board
             }
             for (int i = 0; i < PiecePositions[true].Count; i++)
             {
-                (int, int) coords = ((int, int))PiecePositions[false][i];
+                (int, int) coords = ((int, int))PiecePositions[true][i];
 
                 Black += board[coords.Item2,coords.Item1].LocalValue;
             }
@@ -311,7 +311,7 @@ namespace Board
             }
             for (int i = 0; i < PiecePositions[true].Count; i++)
             {
-                (int, int) coords = ((int, int))PiecePositions[false][i];
+                (int, int) coords = ((int, int))PiecePositions[true][i];
 
                 if (board[coords.Item2,coords.Item1].Role == PieceType.Pawn)
                 return true;
