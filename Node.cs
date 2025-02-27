@@ -94,7 +94,7 @@ namespace Node
             return this.Evaluate();
         }
 
-        public Move.Move BestMove(int Depth)
+        public Move.Move BestMove(int Depth, bool PrintEval)
         {
             Move.Move[] Moves = GenerateChildNodes();
 
@@ -114,13 +114,19 @@ namespace Node
                 if (!this.board.Side)
                 {
                     var (Max, MaxIndex) = Evals.Select((n, i) => (n, i)).Max();
-                    Console.WriteLine(Max);
+                    if (PrintEval)
+                    {
+                        Console.WriteLine(Max);
+                    }
                     return Moves[MaxIndex];
                 }
                 else
                 {
                     var (Min, MinIndex) = Evals.Select((n, i) => (n, i)).Min();
-                    Console.WriteLine(Min);
+                    if (PrintEval)
+                    {
+                        Console.WriteLine(Min);
+                    }
                     return Moves[MinIndex];
                 }
 
