@@ -67,5 +67,23 @@ namespace Match
                 board.MakeMove(BotMove, false);
             }
         }
+
+        public void Play()
+        {
+            while (StatusTest())
+            {
+                if (board.Side == PlayerSide)
+                {
+                    board.PrintBoard(PlayerSide);
+                    Console.WriteLine("Enter your move:");
+                    string MoveString = Console.ReadLine() ?? "";
+                    this.MakeMove(MoveString);
+                }
+                else
+                {
+                    MakeBotMove();
+                }
+            }
+        }
     }
 }

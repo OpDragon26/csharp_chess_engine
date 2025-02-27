@@ -2,29 +2,8 @@
 using Piece;
 using static HashCodeHelper.HashCodeHelper;
 
-Board.Board PlayingBoard = Board.Presets.StartingBoard.DeepCopy();
-
-int depth = 2;
-
-
-Node.Node TestNode = new Node.Node(PlayingBoard);
-Move.Move move = TestNode.BestMove(depth);
-PlayingBoard.MakeMove(move, false);
-PlayingBoard.PrintBoard(false);
-
-while (true)
-{
-    if (TestNode.board.Status() != Outcome.Ongoing)
-    {
-        Console.WriteLine(TestNode.board.Status());
-        break;
-    }
-
-    TestNode = new Node.Node(PlayingBoard);
-    move = TestNode.BestMove(depth);
-    PlayingBoard.MakeMove(move, false);
-    PlayingBoard.PrintBoard(false);
-}
+Match.Match match = new Match.Match(false, 2);
+match.Play();
 
 //TestNode.SearchBranches(2, true);
 //Console.WriteLine(TestNode.GetEval());
@@ -47,7 +26,7 @@ while (true)
 // - Pick the best move subjectively based on side ✓
 // Optimize the method for finding checks, moves, and evaluating positions by storing the positions of the pieces separately from the boards *
 // Fix false castling ✓?
-// Create a game class that can ask for moves and ask for a reply from another player or reply with a bot move *
+// Create a game class that can ask for moves and ask for a reply from another player or reply with a bot move ✓
 // Improve evaluation function
 // - Make king safety a priority
 // - Make the engine like pawn chains
