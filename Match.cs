@@ -84,6 +84,7 @@ namespace Match
                     MakeBotMove();
                 }
             }
+            board.PrintBoard(PlayerSide);
         }
     }
 }

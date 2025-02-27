@@ -2,7 +2,7 @@
 using Piece;
 using static HashCodeHelper.HashCodeHelper;
 
-Match.Match match = new Match.Match(false, 2);
+Match.Match match = new Match.Match(true, 2);
 match.Play();
 
 //TestNode.SearchBranches(2, true);
