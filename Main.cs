@@ -27,8 +27,9 @@ match.Play();
 // Optimize the method for finding checks, moves, and evaluating positions by storing the positions of the pieces separately from the boards *
 // Fix false castling ✓?
 // Create a game class that can ask for moves and ask for a reply from another player or reply with a bot move ✓
-// Fix castling
+// Fix castling ✓?
 // Improve evaluation function
+// - Make weights additive instead of multiplicative
 // - Make king safety a priority
 // - Make the engine like pawn chains
 // - Make the engine want to keep its queen near the enemy king
