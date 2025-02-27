@@ -2,7 +2,7 @@
 using Piece;
 using static HashCodeHelper.HashCodeHelper;
 
-Match.Match match = new Match.Match(true, 2);
+Match.Match match = new Match.Match(false, 2);
 match.Play();
 
 //TestNode.SearchBranches(2, true);
@@ -31,6 +31,7 @@ match.Play();
 // - Make king safety a priority
 // - Make the engine like pawn chains
 // - Make the engine want to keep its queen near the enemy king
+// - Make the engine like open files
 // Add alpha-beta pruning
 // Keep calculating if there are captures availible in the current position
 
