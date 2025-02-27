@@ -4,8 +4,8 @@ using Piece;
 using static HashCodeHelper.HashCodeHelper;
 
 
-Match.Match match = new Match.Match(false, 2);
-match.Play(false);
+Match.Match match = new Match.Match(false, 2, false);
+match.Play();
 
 //TestNode.SearchBranches(2, true);
 //Console.WriteLine(TestNode.GetEval());

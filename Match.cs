@@ -12,11 +12,13 @@ namespace Match
             {Outcome.White, "White won. Game over."},
             {Outcome.Draw, "Game is a draw."}
         };
+        bool debug;
 
-        public Match(bool side, int depth)
+        public Match(bool side, int depth, bool debugMode)
         {
             PlayerSide = side;
             Depth = depth;
+            debug = debugMode;
         }
 
         public bool StatusTest()
@@ -24,7 +26,7 @@ namespace Match
             return board.Status() == Outcome.Ongoing;
         }
 
-        public void MakeMove(string move, bool debug)
+        public void MakeMove(string move)
         {
             if (StatusTest())
             {
@@ -61,7 +63,7 @@ namespace Match
             }
         }
 
-        public void Play(bool debug)
+        public void Play()
         {
             while (StatusTest())
             {
@@ -74,7 +76,7 @@ namespace Match
                     board.PrintBoard(PlayerSide);
                     Console.WriteLine("Enter your move:");
                     string MoveString = Console.ReadLine() ?? "";
-                    this.MakeMove(MoveString, debug);
+                    this.MakeMove(MoveString);
                 }
                 else
                 {

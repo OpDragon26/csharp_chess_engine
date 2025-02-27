@@ -41,10 +41,10 @@ namespace Piece
             NewPiece.Color = color;
             NewPiece.Role = role;
             NewPiece.LocalValue = Values[role];
-            NewPiece.Value = Values[role];
+            NewPiece.Value = Values[role] * 100;
             if (role == PieceType.King)
             {
-                NewPiece.Value = 10;
+                NewPiece.Value = 1000;
             }
             NewPiece.Value *= Multipliers[color];
 
