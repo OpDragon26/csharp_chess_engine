@@ -48,7 +48,7 @@ namespace Match
                 }
                 catch
                 {
-                    Console.WriteLine("Invalid move");
+                    Console.WriteLine("Invalid notation");
                 }
             }
         }
