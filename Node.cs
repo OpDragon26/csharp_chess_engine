@@ -1,4 +1,3 @@
-using System.Collections;
 using Board;
 
 namespace Node
@@ -93,7 +92,7 @@ namespace Node
             return Eval;
         }
 
-        // Alpha-beta pruning
+        // Alpha-beta pruning (no workies :( )
         public int Minimax(int Depth, int alpha, int beta)
         {
             if (Depth == 0)
