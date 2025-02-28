@@ -1,10 +1,4 @@
-﻿using System.Collections;
-using Board;
-using Piece;
-using static HashCodeHelper.HashCodeHelper;
-
-
-Match.Match match = new Match.Match(false, 2, false);
+﻿Match.Match match = new Match.Match(false, 2, false);
 match.Play();
 
 //TestNode.SearchBranches(2, true);

@@ -1,4 +1,3 @@
-using System.Collections;
 using Piece;
 using static Piece.Presets;
 
@@ -6,9 +5,9 @@ namespace Board
 {
     public static class MoveFinder
     {
-        public static Move.Move[] Search(Board board, bool color)
+        public static List<Move.Move> Search(Board board, bool color)
         {
-            ArrayList MoveList = new ArrayList();
+            List<Move.Move> MoveList = new List<Move.Move>();
 
             for (int i = 0; i < board.PiecePositions[color].Count; i++)
             {
@@ -16,22 +15,16 @@ namespace Board
 
                 if (board.board[coords.Item2,coords.Item1].Color == color && board.board[coords.Item2,coords.Item1].Role != PieceType.Empty)
                 {
-                    Move.Move[] PieceMoves = SearchPiece(board, board.board[coords.Item2,coords.Item1].Role, color, new int[] {coords.Item1,coords.Item2});
-
-                    for (int k = 0; k < PieceMoves.Length; k++)
-                    {
-                        MoveList.Add(PieceMoves[k]);
-                    }
+                    MoveList.AddRange(SearchPiece(board, board.board[coords.Item2,coords.Item1].Role, color, new int[] {coords.Item1,coords.Item2}));
                 }
             }
 
-            Move.Move[] Moves = (Move.Move[])MoveList.ToArray(typeof(Move.Move));
-            return Moves;
+            return MoveList;
         }
 
-        public static Move.Move[] SearchPiece(Board board, PieceType role, bool color, int[] pos)
+        public static List<Move.Move> SearchPiece(Board board, PieceType role, bool color, int[] pos)
         {
-            ArrayList MoveList = new ArrayList();
+           List<Move.Move> MoveList = new List<Move.Move>();
 
             if (role != PieceType.Pawn) {
                 Pattern PiecePattern = Patterns.PiecePatterns[role];
@@ -186,21 +179,19 @@ namespace Board
                     }
                 }
             }
-            ArrayList FileteredMoves = new ArrayList();
 
-            for (int i = 0; i < MoveList.Count; i++)
+            for (int i = MoveList.Count - 1; i >= 0; i--)
             {
                 Board MoveBoard = board.DeepCopy();
-                MoveBoard.MakeMove((Move.Move)(MoveList[i] ?? throw new ArgumentException()), false);
+                MoveBoard.MakeMove(MoveList[i], false);
 
-                if (!MoveBoard.KingInCheck(color))
+                if (MoveBoard.KingInCheck(color))
                 {
-                    FileteredMoves.Add(MoveList[i]);
+                    MoveList.RemoveAt(i);
                 }
             }
 
-            Move.Move[] Moves = (Move.Move[])FileteredMoves.ToArray(typeof(Move.Move));
-            return Moves;
+            return MoveList;
         }
 
         public static bool Attacked(Board board, int[] pos, bool color) // color refers to the color that is attacking the square

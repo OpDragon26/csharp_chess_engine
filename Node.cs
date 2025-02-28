@@ -6,34 +6,34 @@ namespace Node
     public class Node
     {
         public Board.Board board = new Board.Board();
-        public Node[] ChildNodes = new Node[] {};
+        public List<Node> ChildNodes = new List<Node>();
         public Node(Board.Board newBoard)
         {
             board = newBoard;
         }
 
-        public Move.Move[] GenerateChildNodes()
+        public List<Move.Move> GenerateChildNodes()
         {
-            ArrayList NodeList = new ArrayList();
+            List<Node> NodeList = new List<Node>();
 
             if (this.board.Status() == Outcome.Ongoing)
             {
-                Move.Move[] MoveList = MoveFinder.Search(board, board.Side);
+                List<Move.Move> MoveList = MoveFinder.Search(board, board.Side);
 
-                for (int i = 0; i < MoveList.Length; i++)
+                for (int i = 0; i < MoveList.Count; i++)
                 {
                     Board.Board MoveBoard = board.DeepCopy();
                     MoveBoard.MakeMove(MoveList[i], false);
 
                     NodeList.Add(new Node(MoveBoard));
                 }
-                this.ChildNodes = (Node[])NodeList.ToArray(typeof(Node));
+                this.ChildNodes = NodeList;
 
                 return MoveList;
             }
-            this.ChildNodes = new Node[0]; 
+            this.ChildNodes = new List<Node>(); 
 
-            return new Move.Move[0];
+            return new List<Move.Move>();
         }
 
         public void SearchBranches(int Depth, bool NewNodes)
@@ -45,9 +45,9 @@ namespace Node
 
             if (Depth > 0)
             {
-                if (this.ChildNodes.Length > 0)
+                if (this.ChildNodes.Count> 0)
                 {
-                    for (int i = 0; i < this.ChildNodes.Length; i++)
+                    for (int i = 0; i < this.ChildNodes.Count; i++)
                     {
                         ChildNodes[i].SearchBranches(Depth - 1, true);
                     }
@@ -74,10 +74,10 @@ namespace Node
             // If there are more child nodes, return the lowest or highest depending on whose move it is
             // If it's white's move, return the highest eval, because white would make the best move for them
             // Black's advantage is represented with a negative value, so for black, the lowest value is the best
-            if (ChildNodes.Length != 0)
+            if (ChildNodes.Count != 0)
             {
-                int[] ChildEvalList = new int[ChildNodes.Length];
-                for (int i = 0; i < this.ChildNodes.Length; i++)
+                int[] ChildEvalList = new int[ChildNodes.Count];
+                for (int i = 0; i < this.ChildNodes.Count; i++)
                 {
                     ChildEvalList[i] = ChildNodes[i].GetEval();
                 }
@@ -94,15 +94,15 @@ namespace Node
 
         public Move.Move BestMove(int Depth, bool PrintEval)
         {
-            Move.Move[] Moves = GenerateChildNodes();
+            List<Move.Move> Moves = GenerateChildNodes();
 
             this.SearchBranches(Depth, false);
 
-            if (ChildNodes.Length != 0)
+            if (ChildNodes.Count != 0)
             {
                 ArrayList EvalList = new ArrayList();
 
-                for (int i = 0; i < this.ChildNodes.Length; i++)
+                for (int i = 0; i < this.ChildNodes.Count; i++)
                 {
                     EvalList.Add(ChildNodes[i].GetEval());
                 }

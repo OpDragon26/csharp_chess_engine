@@ -69,9 +69,9 @@ namespace Move
             return NewMove;
         }
 
-        public bool InMovelist(Move[] MoveList)
+        public bool InMovelist(List<Move> MoveList)
         {
-            for (int i = 0; i < MoveList.Length; i++)
+            for (int i = 0; i < MoveList.Count; i++)
             {
                 if (MoveList[i].Equals(this))
                 {

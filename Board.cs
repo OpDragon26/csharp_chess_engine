@@ -65,7 +65,7 @@ namespace Board
         {
             if (filter)
             {
-                Move.Move[] LegalMoves = MoveFinder.Search(this, this.Side);
+                List<Move.Move> LegalMoves = MoveFinder.Search(this, this.Side);
                 if (!move.InMovelist(LegalMoves))
                 {
                     return false;
@@ -335,7 +335,7 @@ namespace Board
         {
             if (this.DeclaredOutcome == Outcome.Ongoing)
             {
-                if (MoveFinder.Search(this, Side).Length == 0)
+                if (MoveFinder.Search(this, Side).Count == 0)
                 {
                     if (this.KingInCheck(Side))
                     {
