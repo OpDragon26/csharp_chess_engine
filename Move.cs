@@ -32,20 +32,16 @@ namespace Move
             {"b",B_Bishop},
         };
 
-        public static Move Constructor(int[] from, int[] to, Piece.Piece promotion)
+        public Move(int[] from, int[] to, Piece.Piece promotion)
         {
-            Move NewMove = new Move();
-
-            NewMove.From = from;
-            NewMove.To = to;
-            NewMove.Promotion = promotion;
-
-            return NewMove;
+            From = from;
+            To = to;
+            Promotion = promotion;
         }
 
         public static Move FromString(string move) // Format: from-to(-promotion) a2-b1(-Q)
         {
-            Move NewMove = new Move();
+            Move NewMove = new Move(new int[] {8,8},new int[] {8,8}, Empty);
 
             string[] MoveString = move.Split("-");
 

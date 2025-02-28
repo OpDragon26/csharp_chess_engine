@@ -1,3 +1,4 @@
+using System.Diagnostics.CodeAnalysis;
 using Piece;
 using static Piece.Presets;
 
@@ -43,11 +44,11 @@ namespace Board
 
                                 if (TargetPiece.Role == PieceType.Empty)
                                 {
-                                    MoveList.Add(Move.Move.Constructor(pos, TargetSquare, Empty));
+                                    MoveList.Add(new Move.Move(pos, TargetSquare, Empty));
                                 }
                                 else if (TargetPiece.Color != color)
                                 {
-                                    MoveList.Add(Move.Move.Constructor(pos, TargetSquare, Empty));
+                                    MoveList.Add(new Move.Move(pos, TargetSquare, Empty));
                                     break;
                                 }
                                 else
@@ -72,7 +73,7 @@ namespace Board
 
                             if (TargetPiece == Empty || TargetPiece.Color != color)
                             {
-                                MoveList.Add(Move.Move.Constructor(pos, TargetSquare, Empty));
+                                MoveList.Add(new Move.Move(pos, TargetSquare, Empty));
                             }
                         }
                     }
@@ -93,7 +94,7 @@ namespace Board
 
                             if (Castling && !board.KingInCheck(color) && !Attacked(board, SkipSquare, !color))
                             {
-                                MoveList.Add(Move.Move.Constructor(pos, TargetSquare, Empty));
+                                MoveList.Add(new Move.Move(pos, TargetSquare, Empty));
                             }
                         }
                     }
@@ -114,22 +115,22 @@ namespace Board
                     { 
                         if (color)
                         {
-                            MoveList.Add(Move.Move.Constructor(pos, TargetSquare, B_Queen));
-                            MoveList.Add(Move.Move.Constructor(pos, TargetSquare, B_Rook));
-                            MoveList.Add(Move.Move.Constructor(pos, TargetSquare, B_Knight));
-                            MoveList.Add(Move.Move.Constructor(pos, TargetSquare, B_Bishop));
+                            MoveList.Add(new Move.Move(pos, TargetSquare, B_Queen));
+                            MoveList.Add(new Move.Move(pos, TargetSquare, B_Rook));
+                            MoveList.Add(new Move.Move(pos, TargetSquare, B_Knight));
+                            MoveList.Add(new Move.Move(pos, TargetSquare, B_Bishop));
                         }
                         else
                         {
-                            MoveList.Add(Move.Move.Constructor(pos, TargetSquare, W_Queen));
-                            MoveList.Add(Move.Move.Constructor(pos, TargetSquare, W_Rook));
-                            MoveList.Add(Move.Move.Constructor(pos, TargetSquare, W_Knight));
-                            MoveList.Add(Move.Move.Constructor(pos, TargetSquare, W_Bishop));
+                            MoveList.Add(new Move.Move(pos, TargetSquare, W_Queen));
+                            MoveList.Add(new Move.Move(pos, TargetSquare, W_Rook));
+                            MoveList.Add(new Move.Move(pos, TargetSquare, W_Knight));
+                            MoveList.Add(new Move.Move(pos, TargetSquare, W_Bishop));
                         }
                     }
                     else // simple move
                     {
-                        MoveList.Add(Move.Move.Constructor(pos, TargetSquare, Empty));
+                        MoveList.Add(new Move.Move(pos, TargetSquare, Empty));
                         
                         SingleMove = true;
                     }
@@ -142,7 +143,7 @@ namespace Board
 
                     if (TargetPiece == Empty)
                     {
-                        MoveList.Add(Move.Move.Constructor(pos, TargetSquare, Empty));
+                        MoveList.Add(new Move.Move(pos, TargetSquare, Empty));
                     }
                 }
                 // captures
@@ -159,22 +160,22 @@ namespace Board
                             { 
                                 if (color)
                                 {
-                                    MoveList.Add(Move.Move.Constructor(pos, TargetSquare, B_Queen));
-                                    MoveList.Add(Move.Move.Constructor(pos, TargetSquare, B_Rook));
-                                    MoveList.Add(Move.Move.Constructor(pos, TargetSquare, B_Knight));
-                                    MoveList.Add(Move.Move.Constructor(pos, TargetSquare, B_Bishop));
+                                    MoveList.Add(new Move.Move(pos, TargetSquare, B_Queen));
+                                    MoveList.Add(new Move.Move(pos, TargetSquare, B_Rook));
+                                    MoveList.Add(new Move.Move(pos, TargetSquare, B_Knight));
+                                    MoveList.Add(new Move.Move(pos, TargetSquare, B_Bishop));
                                 }
                                 else
                                 {
-                                    MoveList.Add(Move.Move.Constructor(pos, TargetSquare, W_Queen));
-                                    MoveList.Add(Move.Move.Constructor(pos, TargetSquare, W_Rook));
-                                    MoveList.Add(Move.Move.Constructor(pos, TargetSquare, W_Knight));
-                                    MoveList.Add(Move.Move.Constructor(pos, TargetSquare, W_Bishop));
+                                    MoveList.Add(new Move.Move(pos, TargetSquare, W_Queen));
+                                    MoveList.Add(new Move.Move(pos, TargetSquare, W_Rook));
+                                    MoveList.Add(new Move.Move(pos, TargetSquare, W_Knight));
+                                    MoveList.Add(new Move.Move(pos, TargetSquare, W_Bishop));
                                 }
                             }
                             else // simple move
                             {
-                                MoveList.Add(Move.Move.Constructor(pos, TargetSquare, Empty));
+                                MoveList.Add(new Move.Move(pos, TargetSquare, Empty));
                             }
                         }
                     }

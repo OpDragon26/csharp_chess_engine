@@ -1,4 +1,5 @@
 using Board;
+using static Piece.Presets;
 
 namespace Match
 {
@@ -64,12 +65,14 @@ namespace Match
                 board.MakeMove(BotMove, false);
                 return BotMove;
             }
-            return new Move.Move();
+            return new Move.Move(new int[] {8,8},new int[] {8,8}, Empty);
+
         }
 
         public void Play()
         {
-            Move.Move BotMove = new Move.Move();
+            Move.Move BotMove = new Move.Move(new int[] {8,8},new int[] {8,8}, Empty);
+
             while (StatusTest())
             {
                 if (board.Side == PlayerSide || this.Depth == 0)
