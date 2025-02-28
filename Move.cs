@@ -95,5 +95,11 @@ namespace Move
         }
 
         public override int GetHashCode() => HashCode.Combine(this.From, this.To, this.Promotion);
+
+        public static string[] Files = {"a","b","c","d","e","f","g","h"};
+        public string Notate()
+        {
+            return Files[From[0]] + (From[1] + 1).ToString() + "-" + Files[To[0]] + (To[1] + 1).ToString();
+        }
     }
 }

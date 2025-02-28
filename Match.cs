@@ -12,13 +12,15 @@ namespace Match
             {Outcome.White, "White won. Game over."},
             {Outcome.Draw, "Game is a draw."}
         };
-        bool debug;
+        bool Debug;
+        bool Notate;
 
-        public Match(bool side, int depth, bool debugMode)
+        public Match(bool side, int depth, bool debug, bool notateMoves)
         {
             PlayerSide = side;
             Depth = depth;
-            debug = debugMode;
+            Debug = debug;
+            Notate = notateMoves;
         }
 
         public bool StatusTest()
@@ -35,7 +37,7 @@ namespace Match
 
                     if (board.MakeMove(TryMove, true) && this.Depth != 0)
                     {
-                        if (!debug)
+                        if (!Debug)
                         {
                             Console.Clear();
                         }
@@ -53,37 +55,42 @@ namespace Match
             }
         }
 
-        public void MakeBotMove()
+        public Move.Move MakeBotMove()
         {
             if (StatusTest())
             {
                 Node.Node node = new Node.Node(this.board);
                 Move.Move BotMove = node.BestMove(this.Depth, false);
                 board.MakeMove(BotMove, false);
+                return BotMove;
             }
+            return new Move.Move();
         }
 
         public void Play()
         {
+            Move.Move BotMove = new Move.Move();
             while (StatusTest())
             {
                 if (board.Side == PlayerSide || this.Depth == 0)
                 {
-                    if (!debug)
+                    if (!Debug)
                     {
                         Console.Clear();
                     }
                     board.PrintBoard(PlayerSide);
+                    if (Notate)
+                        Console.WriteLine(BotMove.Notate());
                     Console.WriteLine("Enter your move:");
                     string MoveString = Console.ReadLine() ?? "";
                     this.MakeMove(MoveString);
                 }
                 else
                 {
-                    MakeBotMove();
+                    BotMove = MakeBotMove();
                 }
             }
-            if (!debug)
+            if (!Debug)
             {
                 Console.Clear();
             }
