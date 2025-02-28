@@ -107,7 +107,7 @@ namespace Node
                 return 0;
 
             List<Move.Move> MoveList = MoveFinder.Search(board, board.Side);
-            if (board.Side)
+            if (!board.Side)
             {
                 int MaxEval = -1000000;
 

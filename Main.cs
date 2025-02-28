@@ -17,7 +17,7 @@ match.Play();
 // Fix false castling ✓?
 // Fix castling ✓?
 // Improve evaluation function
-// - Make weights additive instead of multiplicative
+// - Make weights additive instead of multiplicative ✓
 // - Make king safety a priority
 // - Make the engine like pawn chains
 // - Make the engine want to keep its queen near the enemy king
