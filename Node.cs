@@ -69,7 +69,7 @@ namespace Node
 
             }
 
-            return new Move.Move();
+            return new Move.Move(new int[] {8,8}, new int[] {8,8}, Piece.Presets.Empty);
         }
 
         int StaticEvaluate()

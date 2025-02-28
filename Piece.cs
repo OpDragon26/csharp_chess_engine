@@ -20,12 +20,12 @@ namespace Piece
         public int LocalValue = 0;
 
         static Dictionary<PieceType, int> Values = new Dictionary<PieceType, int>{
-            {PieceType.Pawn, 1},
-            {PieceType.Rook, 5},
-            {PieceType.Knight, 3},
-            {PieceType.Bishop, 3},
-            {PieceType.Queen, 9},
-            {PieceType.King, 0},
+            {PieceType.Pawn, 100},
+            {PieceType.Rook, 500},
+            {PieceType.Knight, 300},
+            {PieceType.Bishop, 300},
+            {PieceType.Queen, 900},
+            {PieceType.King, 1000},
             {PieceType.Empty, 0},
         };
 
@@ -34,40 +34,32 @@ namespace Piece
             {true, -1},
         };
 
-        public static Piece Constructor(PieceType role, bool color)
+        public Piece(PieceType role, bool color)
         {
-            Piece NewPiece = new Piece();
-
-            NewPiece.Color = color;
-            NewPiece.Role = role;
-            NewPiece.LocalValue = Values[role];
-            NewPiece.Value = Values[role] * 100;
-            if (role == PieceType.King)
-            {
-                NewPiece.Value = 1000;
-            }
-            NewPiece.Value *= Multipliers[color];
-
-            return NewPiece;
+            Color = color;
+            Role = role;
+            LocalValue = Values[role];
+            Value = Values[role] * 100;
+            Value *= Multipliers[color];
         }
 
     }
 
     public static class Presets
     {
-        public static Piece Empty = Piece.Constructor(PieceType.Empty, false);
-        public static Piece W_Pawn = Piece.Constructor(PieceType.Pawn, false);
-        public static Piece W_Rook = Piece.Constructor(PieceType.Rook, false);
-        public static Piece W_Knight = Piece.Constructor(PieceType.Knight, false);
-        public static Piece W_Bishop = Piece.Constructor(PieceType.Bishop, false);
-        public static Piece W_Queen = Piece.Constructor(PieceType.Queen, false);
-        public static Piece W_King = Piece.Constructor(PieceType.King, false);
-        public static Piece B_Pawn = Piece.Constructor(PieceType.Pawn, true);
-        public static Piece B_Rook = Piece.Constructor(PieceType.Rook, true);
-        public static Piece B_Knight = Piece.Constructor(PieceType.Knight, true);
-        public static Piece B_Bishop = Piece.Constructor(PieceType.Bishop, true);
-        public static Piece B_Queen = Piece.Constructor(PieceType.Queen, true);
-        public static Piece B_King = Piece.Constructor(PieceType.King, true);
+        public static Piece Empty = new Piece(PieceType.Empty, false);
+        public static Piece W_Pawn = new Piece(PieceType.Pawn, false);
+        public static Piece W_Rook = new Piece(PieceType.Rook, false);
+        public static Piece W_Knight = new Piece(PieceType.Knight, false);
+        public static Piece W_Bishop = new Piece(PieceType.Bishop, false);
+        public static Piece W_Queen = new Piece(PieceType.Queen, false);
+        public static Piece W_King = new Piece(PieceType.King, false);
+        public static Piece B_Pawn = new Piece(PieceType.Pawn, true);
+        public static Piece B_Rook = new Piece(PieceType.Rook, true);
+        public static Piece B_Knight = new Piece(PieceType.Knight, true);
+        public static Piece B_Bishop = new Piece(PieceType.Bishop, true);
+        public static Piece B_Queen = new Piece(PieceType.Queen, true);
+        public static Piece B_King = new Piece(PieceType.King, true);
 
         public static Dictionary<Piece, string> PieceString = new Dictionary<Piece, string>{
             {Empty, " "},
