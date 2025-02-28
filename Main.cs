@@ -1,4 +1,4 @@
-﻿Match.Match match = new Match.Match(false, 2, false);
+﻿Match.Match match = new Match.Match(true, 3, false);
 match.Play();
 
 //TestNode.SearchBranches(2, true);

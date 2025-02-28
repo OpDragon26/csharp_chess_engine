@@ -36,82 +36,22 @@ namespace Node
             return new List<Move.Move>();
         }
 
-        public void SearchBranches(int Depth, bool NewNodes)
-        {
-            if (NewNodes)
-            {
-                this.GenerateChildNodes();
-            }
-
-            if (Depth > 0)
-            {
-                if (this.ChildNodes.Count> 0)
-                {
-                    for (int i = 0; i < this.ChildNodes.Count; i++)
-                    {
-                        ChildNodes[i].SearchBranches(Depth - 1, true);
-                    }
-                }
-            }
-        }
-
-        public int GetEval()
-        {
-            // If either side won or the game is a draw, return the respective values
-            if (this.board.Status() == Outcome.Draw)
-            {
-                return 0;
-            }
-            if (this.board.Status() == Outcome.White)
-            {
-                return 10000;
-            }
-            if (this.board.Status() == Outcome.Black)
-            {
-                return -10000;
-            }
-
-            // If there are more child nodes, return the lowest or highest depending on whose move it is
-            // If it's white's move, return the highest eval, because white would make the best move for them
-            // Black's advantage is represented with a negative value, so for black, the lowest value is the best
-            if (ChildNodes.Count != 0)
-            {
-                int[] ChildEvalList = new int[ChildNodes.Count];
-                for (int i = 0; i < this.ChildNodes.Count; i++)
-                {
-                    ChildEvalList[i] = ChildNodes[i].GetEval();
-                }
-                if (this.board.Side)
-                {
-                    return ChildEvalList.Min();
-                }
-                return ChildEvalList.Max();
-            }
-
-            // If there are 0 child nodes, then calculate the eval of the board
-            return this.Evaluate();
-        }
-
         public Move.Move BestMove(int Depth, bool PrintEval)
         {
             List<Move.Move> Moves = GenerateChildNodes();
 
-            this.SearchBranches(Depth, false);
-
             if (ChildNodes.Count != 0)
             {
-                ArrayList EvalList = new ArrayList();
+                List<int> EvalList = new List<int>();
 
                 for (int i = 0; i < this.ChildNodes.Count; i++)
                 {
-                    EvalList.Add(ChildNodes[i].GetEval());
+                    EvalList.Add(ChildNodes[i].Minimax(Depth, -1000000, 1000000));
                 }
-
-                int[] Evals = (int[])EvalList.ToArray(typeof(int));
 
                 if (!this.board.Side)
                 {
-                    var (Max, MaxIndex) = Evals.Select((n, i) => (n, i)).Max();
+                    var (Max, MaxIndex) = EvalList.Select((n, i) => (n, i)).Max();
                     if (PrintEval)
                     {
                         Console.WriteLine(Max);
@@ -120,7 +60,7 @@ namespace Node
                 }
                 else
                 {
-                    var (Min, MinIndex) = Evals.Select((n, i) => (n, i)).Min();
+                    var (Min, MinIndex) = EvalList.Select((n, i) => (n, i)).Min();
                     if (PrintEval)
                     {
                         Console.WriteLine(Min);
@@ -133,7 +73,7 @@ namespace Node
             return new Move.Move();
         }
 
-        int Evaluate()
+        int StaticEvaluate()
         {
             int Eval = 0;
 
@@ -151,6 +91,65 @@ namespace Node
             }
 
             return Eval;
+        }
+
+        // Alpha-beta pruning
+        public int Minimax(int Depth, int alpha, int beta)
+        {
+            if (Depth == 0)
+            return this.StaticEvaluate();
+
+            Outcome Status = board.Status();
+            if (Status == Outcome.White)
+                return 1000000;
+            if (Status == Outcome.Black)
+                return -1000000;
+            if (Status == Outcome.Draw)
+                return 0;
+
+            List<Move.Move> MoveList = MoveFinder.Search(board, board.Side);
+            if (board.Side)
+            {
+                int MaxEval = -1000000;
+
+                for (int i = 0; i < MoveList.Count; i++)
+                {
+                    // Generate child node
+                    Board.Board MoveBoard = this.board.DeepCopy();
+                    MoveBoard.MakeMove(MoveList[i], false);
+                    Node Child = new Node(MoveBoard);
+
+                    // Finding eval
+                    int Eval = Child.Minimax(Depth - 1, alpha, beta);
+                    MaxEval = Math.Max(MaxEval, Eval);
+                    alpha = Math.Max(alpha, Eval);
+
+                    if (beta <= alpha) break;
+                }
+
+                return MaxEval;
+            }
+            else
+            {
+                int MinEval = 1000000;
+
+                for (int i = 0; i < MoveList.Count; i++)
+                {
+                    // Generate child node
+                    Board.Board MoveBoard = this.board.DeepCopy();
+                    MoveBoard.MakeMove(MoveList[i], false);
+                    Node Child = new Node(MoveBoard);
+
+                    // Finding eval
+                    int Eval = Child.Minimax(Depth - 1, alpha, beta);
+                    MinEval= Math.Min(MinEval, Eval);
+                    beta = Math.Min(beta, Eval);
+
+                    if (beta <= alpha) break;
+                }
+
+                return MinEval;
+            }
         }
     }
 }
