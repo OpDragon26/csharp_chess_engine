@@ -69,6 +69,11 @@ namespace Move
             return NewMove;
         }
 
+        public int Value(Board.Board board)
+        {
+            return board.board[To[1],To[0]].LocalValue - board.board[From[1],From[0]].LocalValue;
+        }
+
         public bool InMovelist(List<Move> MoveList)
         {
             for (int i = 0; i < MoveList.Count; i++)

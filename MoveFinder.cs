@@ -19,6 +19,7 @@ namespace Board
                 }
             }
 
+            MoveList.Sort((x,y) => x.Value(board).CompareTo(y.Value(board))); // Sorts the moves based on the value that has been attributed to the move
             return MoveList;
         }
 
