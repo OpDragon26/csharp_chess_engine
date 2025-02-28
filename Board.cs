@@ -105,6 +105,8 @@ namespace Board
                 {
                     this.board[Presets.WRShortCastlePos[0],Presets.WRShortCastlePos[1]] = Empty;
                     this.board[Presets.WRShortCastleDest[0],Presets.WRShortCastleDest[1]] = W_Rook;
+                    this.PiecePositions[false].Add((Presets.WRShortCastleDest[1],Presets.WRShortCastleDest[0]));
+                    this.PiecePositions[false].Remove((Presets.WRShortCastlePos[1],Presets.WRShortCastlePos[0]));
                     this.Castling[false] = new bool[] {false, false};
 
                 } 
@@ -112,6 +114,8 @@ namespace Board
                 {
                     this.board[Presets.WRLongCastlePos[0],Presets.WRLongCastlePos[1]] = Empty;
                     this.board[Presets.WRLongCastleDest[0],Presets.WRLongCastleDest[1]] = W_Rook;
+                    this.PiecePositions[false].Add((Presets.WRLongCastleDest[1],Presets.WRLongCastleDest[0]));
+                    this.PiecePositions[false].Remove((Presets.WRLongCastlePos[1],Presets.WRLongCastlePos[0]));
                     this.Castling[false] = new bool[] {false, false};
                 }
             } 
@@ -121,12 +125,16 @@ namespace Board
                 {
                     this.board[Presets.BRShortCastlePos[0],Presets.BRShortCastlePos[1]] = Empty;
                     this.board[Presets.BRShortCastleDest[0],Presets.BRShortCastleDest[1]] = B_Rook;
+                    this.PiecePositions[false].Add((Presets.BRShortCastleDest[1],Presets.BRShortCastleDest[0]));
+                    this.PiecePositions[false].Remove((Presets.BRShortCastlePos[1],Presets.BRShortCastlePos[0]));
                     this.Castling[true] = new bool[] {false, false};
                 } 
                 else if (Enumerable.SequenceEqual(new int[] {move.To[1],move.To[0]}, Presets.BKLongCastlePos) && this.Castling[true][1])
                 {
                     this.board[Presets.BRLongCastlePos[0],Presets.BRLongCastlePos[1]] = Empty;
                     this.board[Presets.BRLongCastleDest[0],Presets.BRLongCastleDest[1]] = B_Rook;
+                    this.PiecePositions[false].Add((Presets.BRLongCastleDest[1],Presets.BRLongCastleDest[0]));
+                    this.PiecePositions[false].Remove((Presets.BRLongCastlePos[1],Presets.BRLongCastlePos[0]));
                     this.Castling[true] = new bool[] {false, false};
                 }
             }
@@ -156,10 +164,12 @@ namespace Board
                 {
                     if (this.board[move.To[1] + 1,move.To[0]].Role == PieceType.Pawn)
                     {
+                        this.PiecePositions[this.board[move.To[1] + 1,move.To[0]].Color].Remove((move.To[0],move.To[1] + 1));
                         this.board[move.To[1] + 1,move.To[0]] = Empty;
                     }
                     else if (this.board[move.To[1] - 1,move.To[0]].Role == PieceType.Pawn)
                     {
+                        this.PiecePositions[this.board[move.To[1] - 1,move.To[0]].Color].Remove((move.To[0],move.To[1] - 1));
                         this.board[move.To[1] - 1,move.To[0]] = Empty;
                     }
                 }
@@ -176,6 +186,7 @@ namespace Board
             {
                 this.KingPos[this.board[move.To[1],move.To[0]].Color] = new int[] {move.To[0],move.To[1]};
                 this.Castling[this.board[move.To[1],move.To[0]].Color] = new bool[] {false, false};
+                this.EnpassantSquare = new int[] {8,8};
             }
             else
             {
