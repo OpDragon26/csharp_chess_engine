@@ -41,30 +41,46 @@ namespace Node
 
             if (ChildNodes.Count != 0)
             {
-                List<int> EvalList = new List<int>();
-
-                for (int i = 0; i < this.ChildNodes.Count; i++)
-                {
-                    EvalList.Add(ChildNodes[i].Minimax(Depth, -1000000, 1000000));
-                }
-
                 if (!this.board.Side)
                 {
-                    var (Max, MaxIndex) = EvalList.Select((n, i) => (n, i)).Max();
+                    // White (maximising player)
+
+                    int MaxEval = -1_000_000;
+                    int index = 0;
+                    Parallel.For(0,this.ChildNodes.Count, delegate(int i)
+                    {
+                        int Eval = ChildNodes[i].Minimax(Depth, -1_000_000, 1_000_000);
+                        if (Eval > MaxEval)
+                        {
+                            MaxEval = Eval;
+                            index = i;
+                        }
+                    });
                     if (PrintEval)
                     {
-                        Console.WriteLine(Max);
+                        Console.WriteLine(MaxEval);
                     }
-                    return Moves[MaxIndex];
+                    return Moves[index];
                 }
                 else
                 {
-                    var (Min, MinIndex) = EvalList.Select((n, i) => (n, i)).Min();
+                    // Black
+                    int MinEval = 1_000_000;
+                    int index = 0;
+                    Parallel.For(0,this.ChildNodes.Count, delegate(int i)
+                    {
+                        int Eval = ChildNodes[i].Minimax(Depth, -1_000_000, 1_000_000);
+                        if (Eval < MinEval)
+                        {
+                            MinEval = Eval;
+                            index = i;
+                        }
+                    });
                     if (PrintEval)
                     {
-                        Console.WriteLine(Min);
+                        Console.WriteLine(MinEval);
                     }
-                    return Moves[MinIndex];
+                    return Moves[index];
                 }
 
             }
@@ -100,16 +116,16 @@ namespace Node
 
             Outcome Status = board.Status();
             if (Status == Outcome.White)
-                return 1000000;
+                return 1_000_000;
             if (Status == Outcome.Black)
-                return -1000000;
+                return -1_000_000;
             if (Status == Outcome.Draw)
                 return 0;
 
             List<Move.Move> MoveList = MoveFinder.Search(board, board.Side);
             if (!board.Side)
             {
-                int MaxEval = -1000000;
+                int MaxEval = -1_000_000;
 
                 for (int i = 0; i < MoveList.Count; i++)
                 {
@@ -130,7 +146,7 @@ namespace Node
             }
             else
             {
-                int MinEval = 1000000;
+                int MinEval = 1_000_000;
 
                 for (int i = 0; i < MoveList.Count; i++)
                 {

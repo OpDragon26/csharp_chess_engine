@@ -39,8 +39,7 @@ namespace Piece
             Color = color;
             Role = role;
             LocalValue = Values[role];
-            Value = Values[role] * 100;
-            Value *= Multipliers[color];
+            Value = Values[role] * Multipliers[color];
         }
 
     }

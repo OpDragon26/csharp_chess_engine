@@ -354,7 +354,7 @@ namespace Board
                 {
                     int[] LocalValues = this.LocalValue();
 
-                    if (LocalValues[0] < 4 && LocalValues[1] < 4 && !this.PawnsLeft())
+                    if (LocalValues[0] < 1400 && LocalValues[1] < 1400 && !this.PawnsLeft())
                     {
                         DeclaredOutcome = Outcome.Draw;
                     }

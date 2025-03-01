@@ -67,7 +67,7 @@ namespace Move
 
         public int Value(Board.Board board)
         {
-            return board.board[To[1],To[0]].LocalValue - board.board[From[1],From[0]].LocalValue + Weights.Weights.PieceWeights[board.board[From[1],From[0]]][To[1],To[0]];
+            return board.board[To[1],To[0]].LocalValue + Weights.Weights.PieceWeights[board.board[From[1],From[0]]][To[1],To[0]];
         }
 
         public bool InMovelist(List<Move> MoveList)
