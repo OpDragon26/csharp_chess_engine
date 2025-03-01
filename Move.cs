@@ -102,9 +102,5 @@ namespace Move
         {
             return Files[From[0]] + (From[1] + 1).ToString() + "-" + Files[To[0]] + (To[1] + 1).ToString();
         }
-        public bool IsCapture(Board.Board board)
-        {
-            return board.board[To[1],To[0]].Role != Piece.PieceType.Empty;
-        }
     }
 }
