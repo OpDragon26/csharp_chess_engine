@@ -1,4 +1,4 @@
-﻿Match.Match match = new Match.Match(side: true, depth: 4, debug: false, notateMoves: false);
+﻿Match.Match match = new Match.Match(side: true, depth: 3, debug: false, notateMoves: false);
 match.Play();
 
 //TestNode.SearchBranches(2, true);
@@ -18,14 +18,12 @@ match.Play();
 // Fix castling ✓?
 // Improve evaluation function
 // - Make weights additive instead of multiplicative ✓
+// - And endgame weight tables
 // - Make king safety a priority
 // - Make the engine like pawn chains
 // - Make the engine want to keep its queen near the enemy king
 // - Make the engine like open files
-// Add alpha-beta pruning
-// Add move ordering
-// Keep calculating if there are captures availible in the current position
-
-// weight adjustments
-// Make rooks not like being on the square they land on when castling, prompting the engine to move them to the center first instead of locking them in with the other rook
-// Decrease negative weights for pieces to avoid sacrifices instead of moving to less advantageous, safer squares
+// Add alpha-beta pruning ✓
+// Add move ordering ✓
+// Keep calculating if there are captures availible in the current position ✓
+// Add a transposition table

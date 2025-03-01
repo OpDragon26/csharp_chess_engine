@@ -134,8 +134,14 @@ namespace Node
                     MoveBoard.MakeMove(MoveList[i], false);
                     Node Child = new Node(MoveBoard);
 
+
                     // Finding eval
-                    int Eval = Child.Minimax(Depth - 1, alpha, beta);
+                    int Eval;
+                    if (Depth == 1 && MoveList[i].IsCapture(board))
+                        Eval = Child.Minimax(Depth, alpha, beta);
+                    else
+                        Eval = Child.Minimax(Depth - 1, alpha, beta);
+                        
                     MaxEval = Math.Max(MaxEval, Eval);
                     alpha = Math.Max(alpha, Eval);
 
@@ -156,7 +162,11 @@ namespace Node
                     Node Child = new Node(MoveBoard);
 
                     // Finding eval
-                    int Eval = Child.Minimax(Depth - 1, alpha, beta);
+                    int Eval;
+                    if (Depth == 1 && MoveList[i].IsCapture(board))
+                        Eval = Child.Minimax(Depth, alpha, beta);
+                    else
+                        Eval = Child.Minimax(Depth - 1, alpha, beta);
                     MinEval= Math.Min(MinEval, Eval);
                     beta = Math.Min(beta, Eval);
 
