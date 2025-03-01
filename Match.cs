@@ -7,7 +7,7 @@ namespace Match
     {
         public bool PlayerSide = false;
         public int Depth = 2; // 0 for pvp
-        public Board.Board board = Board.Presets.StartingBoard.DeepCopy();
+        public Board.Board board = Presets.StartingBoard.DeepCopy();
         static Dictionary<Outcome, string> Outcomes = new Dictionary<Outcome, string>{
             {Outcome.Black, "Black won. Game over."},
             {Outcome.White, "White won. Game over."},
@@ -54,6 +54,11 @@ namespace Match
                     Console.WriteLine("Invalid notation");
                 }
             }
+        }
+
+        public bool PlayMove(Move.Move move)
+        {
+            return board.MakeMove(move, true);
         }
 
         public Move.Move MakeBotMove()
