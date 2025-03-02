@@ -4,7 +4,7 @@ using Piece;
 
 public class PieceScript : MonoBehaviour
 {
-    private int TextureIndex = 0;
+    private int TextureIndex;
     public Sprite[] Textures = new Sprite[13];
     public SpriteRenderer SpriteRenderer;
     
@@ -19,7 +19,7 @@ namespace PieceInfo
 {
     static class PieceInfo
     {
-        public static Dictionary<Piece.Piece, int> PieceTextures = new Dictionary<Piece.Piece, int>
+        public static readonly Dictionary<Piece.Piece, int> PieceTextures = new Dictionary<Piece.Piece, int>
         {
             { Presets.Empty, 0 },
             { Presets.B_Pawn, 1 },
