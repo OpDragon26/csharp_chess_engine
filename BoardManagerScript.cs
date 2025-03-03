@@ -51,8 +51,9 @@ public class BoardManagerScript : MonoBehaviour
             break;
             
             case  BmStatus.PlayerTurn:
+                // true if the move was legal and it was made on the board
                 bool MoveMade = match.MakeMove(new Move.Move(new [] {Selected.Item1, Selected.Item2}, new [] {Moved.Item1, Moved.Item2}, Piece.Presets.Empty));
-
+                
                 Selected = (8, 8);
                 Moved = (8, 8);
 
@@ -60,21 +61,22 @@ public class BoardManagerScript : MonoBehaviour
                 {
                     UpdatePieceTextures();
 
-                    Status = BmStatus.BotTurn;
+                    Status = BmStatus.BotTurn; // switch to the bot's turn
                 }
                 else
                 {
-                    Status = BmStatus.Idle;
+                    Status = BmStatus.Idle; // Keep waiting
                 }
 
             break;
 
             case BmStatus.BotTurn:
+                // Make the bot's move
                 match.MakeBotMove();
                 
                 UpdatePieceTextures();
                 
-                Status = BmStatus.Idle;
+                Status = BmStatus.Idle; // Wait for a player move
 
             break;
         }
@@ -86,7 +88,7 @@ public class BoardManagerScript : MonoBehaviour
         {
             for (int j = 0; j < 8; j++)
             {
-                (int,int) coords = BoardManagerInfo.BoardManagerInfo.Switch((i, j), !match.PlayerSide, false);
+                (int,int) coords = BoardManagerInfo.BoardManagerInfo.Switch((i, j), !match.PlayerSide, false); // The *magic function* requires the opposite side for some reason
                 
                 PieceScripts[i,j].UpdateTexture(match.board.board[coords.Item1, coords.Item2]);
             }
