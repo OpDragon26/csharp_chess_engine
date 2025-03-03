@@ -27,6 +27,4 @@ public class BoardBuilderScript : MonoBehaviour
             transform.position = new Vector3(0, transform.position.y - 5, 0);
         }
     }
-    
-    
 }

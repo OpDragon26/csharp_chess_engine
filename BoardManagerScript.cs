@@ -1,5 +1,4 @@
-using System.Threading;
-using Board;
+using BoardManagerInfo;
 using Piece;
 using UnityEngine;
 
@@ -16,9 +15,12 @@ public class BoardManagerScript : MonoBehaviour
     PieceScript[,] PieceScripts = new PieceScript[8, 8];
     OverlayScript[,] OverlayScripts = new OverlayScript[8, 8];
 
-    public Match.Match match = new Match.Match(false, 3, false, false);
+    public Match.Match match = new Match.Match(false, 2, false, false);
+
+    public BmStatus Status = BmStatus.Idle;
     
     (int,int) Selected = (0,0);
+    (int, int) Moved = (0,0);
     
     // Start is called once before the first execution of Update after the MonoBehaviour is created
     void Start()
@@ -43,7 +45,39 @@ public class BoardManagerScript : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
-        
+        switch (Status)
+        {
+            case  BmStatus.Idle:
+            break;
+            
+            case  BmStatus.PlayerTurn:
+                bool MoveMade = match.MakeMove(new Move.Move(new [] {Selected.Item1, Selected.Item2}, new [] {Moved.Item1, Moved.Item2}, Piece.Presets.Empty));
+
+                Selected = (8, 8);
+                Moved = (8, 8);
+
+                if (MoveMade)
+                {
+                    UpdatePieceTextures();
+
+                    Status = BmStatus.BotTurn;
+                }
+                else
+                {
+                    Status = BmStatus.Idle;
+                }
+
+            break;
+
+            case BmStatus.BotTurn:
+                match.MakeBotMove();
+                
+                UpdatePieceTextures();
+                
+                Status = BmStatus.Idle;
+
+            break;
+        }
     }
 
     void UpdatePieceTextures()
@@ -61,66 +95,50 @@ public class BoardManagerScript : MonoBehaviour
 
     public void Click((int,int) coords)
     {
-        (int,int) Ocoords = BoardManagerInfo.BoardManagerInfo.Switch(coords, match.PlayerSide, false);
-        
-        if (match.board.board[Ocoords.Item2, Ocoords.Item1].Role != PieceType.Empty &&
-            match.board.board[Ocoords.Item2, Ocoords.Item1].Color == match.PlayerSide)
+        if (match.PlayerSide == match.board.Side)
         {
-            // Update the texture of the overlays
-            int set = 1 - OverlayScripts[coords.Item2, coords.Item1].TextureIndex;
+            (int,int) ocoords = BoardManagerInfo.BoardManagerInfo.Switch(coords, match.PlayerSide, false); 
+            // Get the piece using objective coords - match.match.board[ocoords.Item2, coords.Item1]
+        
+            if (match.board.board[ocoords.Item2, ocoords.Item1].Role != PieceType.Empty &&
+                match.board.board[ocoords.Item2, ocoords.Item1].Color == match.PlayerSide)
+            {
+                // Update the texture of the overlays
+                int set = 1 - OverlayScripts[coords.Item2, coords.Item1].TextureIndex;
 
-            for (int i = 0; i < 8; i++)
-            {
-                for (int j = 0; j < 8; j++)
+                for (int i = 0; i < 8; i++)
                 {
-                    OverlayScripts[i, j].UpdateTexture(0);
+                    for (int j = 0; j < 8; j++)
+                    {
+                        OverlayScripts[i, j].UpdateTexture(0);
+                    }
                 }
-            }
         
-            OverlayScripts[coords.Item2, coords.Item1].UpdateTexture(set);
+                OverlayScripts[coords.Item2, coords.Item1].UpdateTexture(set);
         
-            // Get the piece using objective coords - match.match.board[Ocoords.Item2, coords.Item1]
-        
-            Debug.Log(match.board.board[Ocoords.Item2, Ocoords.Item1].Role);
-            Debug.Log(match.board.board[Ocoords.Item2, Ocoords.Item1].Color);
+                Debug.Log(match.board.board[ocoords.Item2, ocoords.Item1].Role);
+                Debug.Log(match.board.board[ocoords.Item2, ocoords.Item1].Color);
 
-            if (Selected == Ocoords)
-            {
-                Selected = (8,8);
-            }
-        
-            Selected = Ocoords;
-        }
-        else
-        {
-            for (int i = 0; i < 8; i++)
-            {
-                for (int j = 0; j < 8; j++)
+                if (Selected == ocoords)
                 {
-                    OverlayScripts[i, j].UpdateTexture(0);
+                    Selected = (8,8);
                 }
+        
+                Selected = ocoords;
             }
+            else
+            {
+                for (int i = 0; i < 8; i++)
+                {
+                    for (int j = 0; j < 8; j++)
+                    {
+                        OverlayScripts[i, j].UpdateTexture(0);
+                    }
+                }
+
+                Moved = ocoords;
             
-            // If the selected square isn't occupied by a friendly piece, attempt to move to that square
-            // If the move was successful, attempt a bot move
-
-            bool MoveMade = match.MakeMove(new Move.Move(new[] {Selected.Item1, Selected.Item2}, new[] {Ocoords.Item1, Ocoords.Item2}, Piece.Presets.Empty));
-            UpdatePieceTextures();
-
-            if (match.board.Status() != Outcome.Ongoing)
-            {
-                Application.Quit();
-            }
-
-            if (MoveMade)
-            {
-                match.MakeBotMove();
-                UpdatePieceTextures();
-                
-                if (match.board.Status() != Outcome.Ongoing)
-                {
-                    Application.Quit();
-                }
+                Status = BmStatus.PlayerTurn;
             }
         }
     }
@@ -146,5 +164,17 @@ namespace BoardManagerInfo
                 return (coords.Item1, 7 - coords.Item2);
             }
         }
+    }
+
+    public enum BmStatus
+    {
+        Idle,
+        PlayerTurn,
+        BotTurn,
+        WaitingForPromotion,
+        PromotionQueen,
+        PromotionRook,
+        PromotionBishop,
+        PromotionKnight,
     }
 }
