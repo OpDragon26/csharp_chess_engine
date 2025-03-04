@@ -3,10 +3,9 @@ using Piece;
 using UnityEngine;
 
 // Todo:
-// Add promotion
-// - fix promotion error
-// fix phantom rook when castling
-
+// Add quiescence search
+// - Add QuiescenceSearch function in MoveFinder
+// - Add a MinimaxQuiescence function
 
 public class BoardManagerScript : MonoBehaviour
 {
@@ -255,7 +254,7 @@ namespace BoardManagerInfo
             }
         }
 
-        static public bool PromotionSquare((int,int) coords, bool perspective)
+        public static bool PromotionSquare((int,int) coords, bool perspective)
         {
             Debug.Log(coords);
 
