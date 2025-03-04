@@ -3,7 +3,10 @@ using Piece;
 using UnityEngine;
 
 // Todo:
-// Add castling
+// Add promotion
+// - fix promotion error
+// fix phantom rook when castling
+
 
 public class BoardManagerScript : MonoBehaviour
 {
@@ -14,6 +17,11 @@ public class BoardManagerScript : MonoBehaviour
     SquareScript[,] SquareScripts = new SquareScript[8, 8];
     PieceScript[,] PieceScripts = new PieceScript[8, 8];
     OverlayScript[,] OverlayScripts = new OverlayScript[8, 8];
+    
+    GameObject PromotionSelection;
+
+    public bool Side;
+    public int Depth = 2;
 
     public Match.Match match = new Match.Match(false, 2, false, false);
 
@@ -21,10 +29,24 @@ public class BoardManagerScript : MonoBehaviour
     
     (int,int) Selected = (0,0);
     (int, int) Moved = (0,0);
+
+    private Piece.Piece PromotionPiece = Presets.Empty;
+    private bool Frozen;
     
     // Start is called once before the first execution of Update after the MonoBehaviour is created
     void Start()
     {
+        PromotionSelection = GameObject.FindGameObjectWithTag("Promotion");
+        PromotionSelection.SetActive(false);
+
+        match.PlayerSide = Side;
+        match.Depth = Depth;
+
+        if (Side)
+        {
+            Status = BmStatus.BotTurn;
+        }
+        
         for (int i = 0; i < 8; i++)
         {
             for (int j = 0; j < 8; j++)
@@ -48,16 +70,28 @@ public class BoardManagerScript : MonoBehaviour
         switch (Status)
         {
             case  BmStatus.Idle:
+                Frozen = false;
             break;
             
             case  BmStatus.PlayerTurn:
+                Frozen = false;
+
+                if (match.board.board[Selected.Item2, Selected.Item1].Role == PieceType.Pawn && BoardManagerInfo.BoardManagerInfo.PromotionSquare(Moved, match.PlayerSide) && PromotionPiece == Presets.Empty)
+                {
+                    PromotionSelection.SetActive(true);
+
+                    Status = BmStatus.WaitingForPromotion;
+                    break;
+                }
+                
                 // true if the move was legal and it was made on the board
-                bool MoveMade = match.MakeMove(new Move.Move(new [] {Selected.Item1, Selected.Item2}, new [] {Moved.Item1, Moved.Item2}, Piece.Presets.Empty));
+                bool moveMade = match.MakeMove(new Move.Move(new [] {Selected.Item1, Selected.Item2}, new [] {Moved.Item1, Moved.Item2}, PromotionPiece));
+                PromotionPiece = Presets.Empty;
                 
                 Selected = (8, 8);
                 Moved = (8, 8);
 
-                if (MoveMade)
+                if (moveMade)
                 {
                     UpdatePieceTextures();
 
@@ -71,6 +105,9 @@ public class BoardManagerScript : MonoBehaviour
             break;
 
             case BmStatus.BotTurn:
+                Frozen = false;
+
+                Debug.Log("Bot move");
                 // Make the bot's move
                 match.MakeBotMove();
                 
@@ -78,6 +115,57 @@ public class BoardManagerScript : MonoBehaviour
                 
                 Status = BmStatus.Idle; // Wait for a player move
 
+            break;
+            
+            case BmStatus.WaitingForPromotion:
+                Frozen = true;
+            break;
+            
+            case BmStatus.PromotionQueen:
+                Frozen = false;
+
+                if (match.PlayerSide)
+                    PromotionPiece = Presets.B_Queen;
+                else
+                    PromotionPiece = Presets.W_Queen;
+                Status = BmStatus.PlayerTurn;
+            break;
+            
+            case BmStatus.PromotionRook:
+                Frozen = false;
+
+                if (match.PlayerSide)
+                    PromotionPiece = Presets.B_Rook;
+                else
+                    PromotionPiece = Presets.W_Rook;
+                Status = BmStatus.PlayerTurn;
+            break;
+            
+            case BmStatus.PromotionBishop:
+                Frozen = false;
+
+                if (match.PlayerSide)
+                    PromotionPiece = Presets.B_Bishop;
+                else
+                    PromotionPiece = Presets.W_Bishop;
+                Status = BmStatus.PlayerTurn;
+            break;
+            
+            case BmStatus.PromotionKnight:
+                Frozen = false;
+
+                if (match.PlayerSide)
+                    PromotionPiece = Presets.B_Knight;
+                else
+                    PromotionPiece = Presets.W_Knight;
+                Status = BmStatus.PlayerTurn;
+            break;
+            
+            case BmStatus.PromotionEmpty:
+                Frozen = false;
+
+                PromotionPiece = Presets.B_King;
+                Status = BmStatus.PlayerTurn;
             break;
         }
     }
@@ -97,7 +185,7 @@ public class BoardManagerScript : MonoBehaviour
 
     public void Click((int,int) coords)
     {
-        if (match.PlayerSide == match.board.Side)
+        if (match.PlayerSide == match.board.Side && !Frozen)
         {
             (int,int) ocoords = BoardManagerInfo.BoardManagerInfo.Switch(coords, match.PlayerSide, false); 
             // Get the piece using objective coords - match.match.board[ocoords.Item2, coords.Item1]
@@ -125,7 +213,7 @@ public class BoardManagerScript : MonoBehaviour
                 {
                     Selected = (8,8);
                 }
-        
+                
                 Selected = ocoords;
             }
             else
@@ -166,6 +254,20 @@ namespace BoardManagerInfo
                 return (coords.Item1, 7 - coords.Item2);
             }
         }
+
+        static public bool PromotionSquare((int,int) coords, bool perspective)
+        {
+            Debug.Log(coords);
+
+            if (perspective)
+            {
+                return coords.Item2 == 0;
+            }
+            else
+            {
+                return coords.Item2 == 7;
+            }
+        }
     }
 
     public enum BmStatus
@@ -178,5 +280,6 @@ namespace BoardManagerInfo
         PromotionRook,
         PromotionBishop,
         PromotionKnight,
+        PromotionEmpty
     }
 }
