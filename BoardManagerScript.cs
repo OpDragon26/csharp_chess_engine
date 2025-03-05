@@ -7,6 +7,8 @@ using UnityEngine.UI;
 // Add quiescence search
 // - Add QuiescenceSearch function in MoveFinder
 // - Add a MinimaxQuiescence function
+// Add endgame tables
+// Add opening book
 
 public class BoardManagerScript : MonoBehaviour
 {
