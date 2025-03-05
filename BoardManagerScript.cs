@@ -231,6 +231,23 @@ public class BoardManagerScript : MonoBehaviour
             }
         }
     }
+
+    public void Reset(bool color)
+    {
+        Selected = (0, 0);
+        Moved = (0, 0);
+        
+        PromotionPiece = Presets.Empty;
+
+        if (color)
+            Status = BmStatus.BotTurn;
+        else
+            Status = BmStatus.Idle;
+        
+        match = new Match.Match(color, Depth, false, false);
+        
+        UpdatePieceTextures();
+    }
 }
 
 namespace BoardManagerInfo
