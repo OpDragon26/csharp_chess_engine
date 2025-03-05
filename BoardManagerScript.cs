@@ -1,6 +1,7 @@
 using BoardManagerInfo;
 using Piece;
 using UnityEngine;
+using UnityEngine.UI;
 
 // Todo:
 // Add quiescence search
@@ -31,6 +32,8 @@ public class BoardManagerScript : MonoBehaviour
 
     private Piece.Piece PromotionPiece = Presets.Empty;
     private bool Frozen;
+
+    public Text DepthLabel;
     
     // Start is called once before the first execution of Update after the MonoBehaviour is created
     void Start()
@@ -61,6 +64,8 @@ public class BoardManagerScript : MonoBehaviour
         }
         
         UpdatePieceTextures();
+        
+        DepthLabel.text = "Depth: " + match.Depth.ToString();
     }
 
     // Update is called once per frame
@@ -247,6 +252,26 @@ public class BoardManagerScript : MonoBehaviour
         match = new Match.Match(color, Depth, false, false);
         
         UpdatePieceTextures();
+    }
+
+    public void DepthIncrease()
+    {
+        if (match.Depth < 10)
+        {
+            match.Depth++;
+            Depth++;
+            DepthLabel.text = "Depth: " + match.Depth.ToString();
+        }
+    }
+
+    public void DepthDecrease()
+    {
+        if (match.Depth > 0)
+        {
+            match.Depth--;
+            Depth--;
+            DepthLabel.text = "Depth: " + match.Depth.ToString();
+        }
     }
 }
 
