@@ -106,9 +106,6 @@ namespace Node
         // Alpha-beta pruning (no workies :( )
         public int Minimax(int Depth, int alpha, int beta)
         {
-            if (Depth == 0)
-            return this.StaticEvaluate();
-
             Outcome Status = board.Status();
             if (Status == Outcome.White)
                 return 1_000_000;
@@ -116,6 +113,58 @@ namespace Node
                 return -1_000_000;
             if (Status == Outcome.Draw)
                 return 0;
+
+            if (Depth == 0)
+            {
+                List<Move.Move> QuiescenceList = MoveFinder.QuiescenceSearch(board, board.Side)
+
+                if (QuiescenceList.Count == 0)
+                    return this.StaticEvaluate();
+
+                if (!board.Side)
+                {
+                    int MaxEval = -1_000_000;
+
+                    for (int i = 0; i < QuiescenceList.Count; i++)
+                    {
+                        // Generate child node
+                        Board.Board MoveBoard = this.board.DeepCopy();
+                        MoveBoard.MakeMove(QuiescenceList[i], false);
+                        Node Child = new Node(MoveBoard);
+
+
+                        // Finding eval
+                        int Eval = Child.Minimax(0, alpha, beta);
+                        MaxEval = Math.Max(MaxEval, Eval);
+                        alpha = Math.Max(alpha, Eval);
+
+                        if (beta <= alpha) break;
+                    }
+
+                    return MaxEval;
+                }
+                else
+                {
+                    int MinEval = 1_000_000;
+
+                    for (int i = 0; i < QuiescenceList.Count; i++)
+                    {
+                        // Generate child node
+                        Board.Board MoveBoard = this.board.DeepCopy();
+                        MoveBoard.MakeMove(QuiescenceList[i], false);
+                        Node Child = new Node(MoveBoard);
+
+                        // Finding eval
+                        int Eval = Child.Minimax(0, alpha, beta);
+                        MinEval= Math.Min(MinEval, Eval);
+                        beta = Math.Min(beta, Eval);
+
+                        if (beta <= alpha) break;
+                    }
+                    return MinEval;
+                }     
+            }
+
 
             List<Move.Move> MoveList = MoveFinder.Search(board, board.Side);
             if (!board.Side)
