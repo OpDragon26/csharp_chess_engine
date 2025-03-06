@@ -103,7 +103,6 @@ namespace Node
             return Eval;
         }
 
-        // Alpha-beta pruning (no workies :( )
         public int Minimax(int Depth, int alpha, int beta)
         {
             Outcome Status = board.Status();
