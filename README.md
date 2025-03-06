@@ -1,1 +1,1 @@
-An attempt at creating a primitive chess engine in C#
+A primitive chess engine written in C#
