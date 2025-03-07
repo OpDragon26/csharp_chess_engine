@@ -303,7 +303,7 @@ namespace Board
 
         public (Outcome, List<Move.Move>) Status()
         {
-            List<Move.Move> moveList = MoveFinder.Search(this, Side, false);
+            List<Move.Move> moveList = MoveFinder.Search(this, Side, true);
             if (this.DeclaredOutcome == Outcome.Ongoing)
             {
                 if (moveList.Count == 0)
