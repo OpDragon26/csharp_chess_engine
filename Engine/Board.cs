@@ -207,7 +207,9 @@ namespace Board
 
             Clone.EnpassantSquare = new[] {this.EnpassantSquare[0], this.EnpassantSquare[1]};
             Clone.Side = this.Side == true;
+            
             Clone.MoveChain = this.MoveChain;
+            Clone.Repetition = this.Repetition.ToDictionary(entry => entry.Key, entry => entry.Value);
 
             Clone.PiecePositions[false] = new List<(int, int)>(this.PiecePositions[false]);
             Clone.PiecePositions[true] = new List<(int, int)>(this.PiecePositions[true]);
