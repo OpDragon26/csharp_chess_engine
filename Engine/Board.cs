@@ -19,10 +19,10 @@ namespace Board
         public bool Side;
 
         // 50 move rule
-        public int MoveChain;
-        public Dictionary<Board, int> Repetition =  new Dictionary<Board, int>();
-        public Outcome DeclaredOutcome = Outcome.Ongoing;
-        public Dictionary<bool, int[]> KingPos = new Dictionary<bool, int[]>{
+        private int MoveChain;
+        private Dictionary<int, int> Repetition =  new Dictionary<int, int>();
+        private Outcome DeclaredOutcome = Outcome.Ongoing;
+        private Dictionary<bool, int[]> KingPos = new Dictionary<bool, int[]>{
             {true, new[] {8,8}},
             {false, new[] {8,8}},
         };
@@ -30,6 +30,8 @@ namespace Board
             {false, new List<(int,int)>()},
             {true, new List<(int,int)>()},
         };
+
+        private ReverseMove LastMove;
 
         public bool MakeMove(Move.Move move, bool filter)
         {
@@ -173,6 +175,11 @@ namespace Board
             return true;
         }
 
+        public void UnmakeMove()
+        {
+            
+        }
+
         public static Board Constructor(Piece.Piece[,] board, bool side, bool[] whiteCastle, bool[] blackCastle, int[] enpassantSquare, int moveChain)
         {
             Board NewBoard = new Board();
@@ -209,7 +216,7 @@ namespace Board
             Clone.Side = this.Side == true;
             
             Clone.MoveChain = this.MoveChain;
-            Clone.Repetition = this.Repetition.ToDictionary(entry => entry.Key, entry => entry.Value);
+            Clone.Repetition = new Dictionary<int, int>(this.Repetition);
 
             Clone.PiecePositions[false] = new List<(int, int)>(this.PiecePositions[false]);
             Clone.PiecePositions[true] = new List<(int, int)>(this.PiecePositions[true]);
@@ -349,13 +356,13 @@ namespace Board
 
         void AddSelf()
         {
-            if (Repetition.ContainsKey(this))
+            if (Repetition.ContainsKey(this.GetHashCode()))
             {
-                Repetition[this]++;
+                Repetition[this.GetHashCode()]++;
             }
             else
             {
-                Repetition[this] = 1;
+                Repetition[this.GetHashCode()] = 1;
             }
         }
     }
@@ -439,11 +446,21 @@ namespace Board
         Draw
     }
     
-    public class MoveUnmake
+    public class ReverseMove
     {
         public ((int, int),(int,int)) OriginMove;
         public ((int, int),(int,int)) ExtraMove;
+        public Piece.Piece CapturedPiece;
         public bool Promotion;
+        public (int, int) Enpassant;
 
+        public ReverseMove(((int, int),(int,int)) originMove, ((int, int),(int,int)) extraMove, Piece.Piece capturedPiece, bool promotion, (int, int) enpassant)
+        {
+            OriginMove = originMove;
+            ExtraMove = extraMove;
+            CapturedPiece = capturedPiece;
+            Promotion = promotion;
+            Enpassant = enpassant;
+        }
     }
 }
