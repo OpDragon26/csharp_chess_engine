@@ -31,7 +31,7 @@ namespace Piece
             {PieceType.Empty, 0},
         };
 
-        static Dictionary<bool, int> Multipliers = new Dictionary<bool, int>{
+        static Dictionary<bool, int> Multiplier = new Dictionary<bool, int>{
             {false, 1},
             {true, -1},
         };
@@ -41,7 +41,7 @@ namespace Piece
             Color = color;
             Role = role;
             LocalValue = Values[role];
-            Value = Values[role] * Multipliers[color];
+            Value = Values[role] * Multiplier[color];
         }
 
     }

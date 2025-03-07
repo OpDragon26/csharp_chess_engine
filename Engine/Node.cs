@@ -88,17 +88,33 @@ namespace Node
         {
             int Eval = 0;
 
-            for (int i = 0; i < board.PiecePositions[false].Count; i++)
+            if (!board.Endgame())
             {
-                (int, int) coords = board.PiecePositions[false][i];
+                for (int i = 0; i < board.PiecePositions[false].Count; i++)
+                {
+                    (int, int) coords = board.PiecePositions[false][i];
+                    Eval += this.board.board[coords.Item2,coords.Item1].Value + Weights.Weights.PieceWeights[this.board.board[coords.Item2,coords.Item1]][coords.Item2,coords.Item1] * Weights.Weights.Multipliers[false];
 
-                Eval += this.board.board[coords.Item2,coords.Item1].Value + Weights.Weights.PieceWeights[this.board.board[coords.Item2,coords.Item1]][coords.Item2,coords.Item1] * Weights.Weights.Multipliers[false];
+                }
+                for (int i = 0; i < board.PiecePositions[true].Count; i++)
+                {
+                    (int, int) coords = board.PiecePositions[true][i];
+                    Eval += this.board.board[coords.Item2,coords.Item1].Value + Weights.Weights.PieceWeights[this.board.board[coords.Item2,coords.Item1]][coords.Item2,coords.Item1] * Weights.Weights.Multipliers[true];
+                }
             }
-            for (int i = 0; i < board.PiecePositions[true].Count; i++)
+            else
             {
-                (int, int) coords = board.PiecePositions[true][i];
+                for (int i = 0; i < board.PiecePositions[false].Count; i++)
+                {
+                    (int, int) coords = board.PiecePositions[false][i];
+                    Eval += this.board.board[coords.Item2,coords.Item1].Value + Weights.Weights.EndgameWeights[this.board.board[coords.Item2,coords.Item1]][coords.Item2,coords.Item1] * Weights.Weights.Multipliers[false];
 
-                Eval += this.board.board[coords.Item2,coords.Item1].Value + Weights.Weights.PieceWeights[this.board.board[coords.Item2,coords.Item1]][coords.Item2,coords.Item1] * Weights.Weights.Multipliers[true];
+                }
+                for (int i = 0; i < board.PiecePositions[true].Count; i++)
+                {
+                    (int, int) coords = board.PiecePositions[true][i];
+                    Eval += this.board.board[coords.Item2,coords.Item1].Value + Weights.Weights.EndgameWeights[this.board.board[coords.Item2,coords.Item1]][coords.Item2,coords.Item1] * Weights.Weights.Multipliers[true];
+                }
             }
 
             return Eval;

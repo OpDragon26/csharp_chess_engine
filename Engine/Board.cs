@@ -363,6 +363,26 @@ namespace Board
             return false;
         }
 
+        public bool Endgame()
+        {
+            int Total = 0;
+            
+            for (int i = 0; i < PiecePositions[false].Count; i++)
+            {
+                (int, int) coords = PiecePositions[false][i];
+
+                Total += board[coords.Item2,coords.Item1].LocalValue;
+            }
+            for (int i = 0; i < PiecePositions[true].Count; i++)
+            {
+                (int, int) coords = PiecePositions[true][i];
+
+                Total += board[coords.Item2,coords.Item1].LocalValue;
+            }
+
+            return Total < 3600;
+        }
+
         public (Outcome, List<Move.Move>) Status()
         {
             List<Move.Move> moveList = MoveFinder.Search(this, Side, true);
