@@ -22,7 +22,6 @@ namespace Board
         // 50 move rule
         public int MoveChain;
         public Dictionary<Board, int> Repetition =  new Dictionary<Board, int>();
-        public Dictionary<Board, int> Repetition;
         public Outcome DeclaredOutcome = Outcome.Ongoing;
         public Dictionary<bool, int[]> KingPos = new Dictionary<bool, int[]>{
             {true, new[] {8,8}},
