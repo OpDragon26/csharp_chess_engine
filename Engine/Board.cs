@@ -33,7 +33,7 @@ namespace Board
 
         private ReverseMove LastMove;
 
-        public bool MakeMove(Move.Move move, bool filter)
+        public bool MakeMove(Move.Move move, bool filter, bool generateReverse)
         {
             if (filter)
             {
@@ -43,7 +43,8 @@ namespace Board
                     return false;
                 }
             }
-
+             
+            // local variables storing data that is accessed over and over
             (int, int) MoveTo = (move.To[0],move.To[1]);
             (int, int) MoveFrom = (move.From[0], move.From[1]);
             Piece.Piece OriginPiece = this.board[move.From[1],move.From[0]];
@@ -51,10 +52,15 @@ namespace Board
             bool OriginColor = OriginPiece.Color;
             bool TargetColor = TargetPiece.Color;
             
+            // Local variables to store all the data that will be required to generate the ReverseMove
+            ((int, int), (int, int)) extraMove = ((8, 8), (8, 8));
+            (int, int) enpassant = (8,8);
+            int moveChain = this.MoveChain;
+            int[] prevEnpassant = new[] {this.EnpassantSquare[0], this.EnpassantSquare[1]};
+            
+            
             if (TargetPiece.Role != PieceType.Empty)
-            {
                 this.PiecePositions[TargetColor].Remove(MoveTo);
-            }
             
             this.PiecePositions[OriginColor].Remove(MoveFrom);
             this.PiecePositions[OriginColor].Add(MoveFrom);
@@ -83,6 +89,7 @@ namespace Board
                     this.PiecePositions[false].Remove((Presets.WRShortCastlePos[1],Presets.WRShortCastlePos[0]));
                     this.Castling[false] = new[] {false, false};
 
+                    extraMove = ((Presets.WRShortCastlePos[1],Presets.WRShortCastlePos[0]), (Presets.WRShortCastleDest[1],Presets.WRShortCastleDest[0]));
                 } 
                 else if (Enumerable.SequenceEqual(new[] {move.To[1],move.To[0]}, Presets.WKLongCastlePos) && this.Castling[false][1])
                 {
@@ -91,6 +98,8 @@ namespace Board
                     this.PiecePositions[false].Add((Presets.WRLongCastleDest[1],Presets.WRLongCastleDest[0]));
                     this.PiecePositions[false].Remove((Presets.WRLongCastlePos[1],Presets.WRLongCastlePos[0]));
                     this.Castling[false] = new[] {false, false};
+                    
+                    extraMove = ((Presets.WRLongCastlePos[1],Presets.WRLongCastlePos[0]), (Presets.WRLongCastleDest[1],Presets.WRLongCastleDest[0]));
                 }
             } 
             else if (Enumerable.SequenceEqual(new[] {move.From[1],move.From[0]}, Presets.BKStartPos) && OriginPiece.Role == PieceType.King)
@@ -102,6 +111,8 @@ namespace Board
                     this.PiecePositions[true].Add((Presets.BRShortCastleDest[1],Presets.BRShortCastleDest[0]));
                     this.PiecePositions[true].Remove((Presets.BRShortCastlePos[1],Presets.BRShortCastlePos[0]));
                     this.Castling[true] = new[] {false, false};
+                    
+                    extraMove = ((Presets.BRShortCastlePos[1],Presets.BRShortCastlePos[0]), (Presets.BRShortCastleDest[1],Presets.BRShortCastleDest[0]));
                 } 
                 else if (Enumerable.SequenceEqual(new[] {move.To[1],move.To[0]}, Presets.BKLongCastlePos) && this.Castling[true][1])
                 {
@@ -110,6 +121,8 @@ namespace Board
                     this.PiecePositions[true].Add((Presets.BRLongCastleDest[1],Presets.BRLongCastleDest[0]));
                     this.PiecePositions[true].Remove((Presets.BRLongCastlePos[1],Presets.BRLongCastlePos[0]));
                     this.Castling[true] = new[] {false, false};
+                    
+                    extraMove = ((Presets.BRLongCastlePos[1],Presets.BRLongCastlePos[0]), (Presets.BRLongCastlePos[1],Presets.BRLongCastlePos[0]));
                 }
             }
             // Remove castling rights
@@ -156,8 +169,8 @@ namespace Board
             else
                 this.EnpassantSquare = new[] {8,8};
             
-            
-            // LastMove = new ReverseMove();
+            if (generateReverse)
+                LastMove = new ReverseMove((MoveFrom, MoveTo), extraMove, TargetPiece, move.Promotion != Empty, enpassant, prevEnpassant, moveChain);
             
             this.Side = !this.Side;
             
@@ -444,14 +457,18 @@ namespace Board
         public Piece.Piece CapturedPiece;
         public bool Promotion;
         public (int, int) Enpassant;
+        public int[] PrevEnpassant;
+        public int MoveChain;
 
-        public ReverseMove(((int, int),(int,int)) originMove, ((int, int),(int,int)) extraMove, Piece.Piece capturedPiece, bool promotion, (int, int) enpassant)
+        public ReverseMove(((int, int),(int,int)) originMove, ((int, int),(int,int)) extraMove, Piece.Piece capturedPiece, bool promotion, (int, int) enpassant, int[] prevEnpassant,  int moveChain)
         {
             OriginMove = originMove;
             ExtraMove = extraMove;
             CapturedPiece = capturedPiece;
             Promotion = promotion;
             Enpassant = enpassant;
+            MoveChain = moveChain;
+            PrevEnpassant = prevEnpassant;
         }
     }
 }

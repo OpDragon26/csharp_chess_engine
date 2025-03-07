@@ -27,7 +27,7 @@ namespace Node
                 for (int i = 0; i < MoveList.Count; i++)
                 {
                     Board.Board MoveBoard = board.DeepCopy();
-                    MoveBoard.MakeMove(MoveList[i], false);
+                    MoveBoard.MakeMove(MoveList[i], false, false);
 
                     NodeList.Add(new Node(MoveBoard));
                 }
@@ -126,7 +126,7 @@ namespace Node
                 {
                     // Generate child node
                     Board.Board MoveBoard = this.board.DeepCopy();
-                    MoveBoard.MakeMove(MoveList[i], false);
+                    MoveBoard.MakeMove(MoveList[i], false, false);
                     Node Child = new Node(MoveBoard);
 
 
@@ -148,7 +148,7 @@ namespace Node
                 {
                     // Generate child node
                     Board.Board MoveBoard = this.board.DeepCopy();
-                    MoveBoard.MakeMove(MoveList[i], false);
+                    MoveBoard.MakeMove(MoveList[i], false, false);
                     Node Child = new Node(MoveBoard);
 
                     // Finding eval
