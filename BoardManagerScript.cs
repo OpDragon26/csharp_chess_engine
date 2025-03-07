@@ -5,6 +5,7 @@ using UnityEngine;
 using UnityEngine.UI;
 
 // Todo:
+// Add Zobrist hashing
 // Add quiescence search
 // - Add QuiescenceSearch function in MoveFinder
 // - Add a MinimaxQuiescence function

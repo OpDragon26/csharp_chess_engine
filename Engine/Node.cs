@@ -1,7 +1,7 @@
 using Board;
 using System.Collections.Generic;
-using System.Threading.Tasks;
 using System;
+using UnityEngine;
 
 namespace Node
 {
@@ -42,46 +42,62 @@ namespace Node
 
         public Move.Move BestMove(int Depth)
         {
-            List<Move.Move> Moves = GenerateChildNodes();
-
-            if (ChildNodes.Count != 0)
+            List<Move.Move> MoveList = board.Status().Item2;
+            Dictionary<int, Move.Move> MoveDict = new Dictionary<int,  Move.Move>();
+            
+            int alpha = -1_000_000;
+            int beta  = 1_000_000;
+            
+            if (!this.board.Side)
             {
-                if (!this.board.Side)
-                {
-                    // White (maximising player)
+                // White (maximising player)
+                int MaxEval = -1_000_000;
 
-                    int MaxEval = -1_000_000;
-                    int index = 0;
-                    Parallel.For(0,this.ChildNodes.Count, delegate(int i)
-                    {
-                        int Eval = ChildNodes[i].Minimax(Depth, -1_000_000, 1_000_000);
-                        if (Eval > MaxEval)
-                        {
-                            MaxEval = Eval;
-                            index = i;
-                        }
-                    });
-                    return Moves[index];
-                }
-                else
+                for (int i = 0; i < MoveList.Count; i++)
                 {
-                    // Black
-                    int MinEval = 1_000_000;
-                    int index = 0;
-                    Parallel.For(0,this.ChildNodes.Count, delegate(int i)
-                    {
-                        int Eval = ChildNodes[i].Minimax(Depth, -1_000_000, 1_000_000);
-                        if (Eval < MinEval)
-                        {
-                            MinEval = Eval;
-                            index = i;
-                        }
-                    });
-                    return Moves[index];
+                    // Generate child node
+                    Board.Board MoveBoard = this.board.DeepCopy();
+                    MoveBoard.MakeMove(MoveList[i], false, false);
+                    Node Child = new Node(MoveBoard);
+
+                    // Finding eval
+                    int Eval = Child.Minimax(Depth, alpha, beta);
+                    MaxEval = Math.Max(MaxEval, Eval);
+                    alpha = Math.Max(alpha, Eval);
+
+                    if (!MoveDict.ContainsKey(Eval))
+                        MoveDict.Add(Eval, MoveList[i]);
+                    
+                    if (beta <= alpha) break;
                 }
+
+                return MoveDict[MaxEval];
             }
+            else 
+            {
+                // Black
+                int MinEval = 1_000_000;
+                
+                for (int i = 0; i < MoveList.Count; i++)
+                {
+                    // Generate child node
+                    Board.Board MoveBoard = this.board.DeepCopy();
+                    MoveBoard.MakeMove(MoveList[i], false, false);
+                    Node Child = new Node(MoveBoard);
 
-            return new Move.Move(new[] {8,8}, new[] {8,8}, Piece.Presets.Empty, 0);
+                    // Finding eval
+                    int Eval = Child.Minimax(Depth, alpha, beta);
+                    MinEval= Math.Min(MinEval, Eval);
+                    beta = Math.Min(beta, Eval);
+                    
+                    if (!MoveDict.ContainsKey(Eval))
+                        MoveDict.Add(Eval, MoveList[i]);
+
+                    if (beta <= alpha) break;
+                }
+
+                return MoveDict[MinEval];
+            }
         }
 
         int StaticEvaluate()
@@ -104,6 +120,8 @@ namespace Node
             }
             else
             {
+                Debug.Log("Endgame");
+
                 for (int i = 0; i < board.PiecePositions[false].Count; i++)
                 {
                     (int, int) coords = board.PiecePositions[false][i];
