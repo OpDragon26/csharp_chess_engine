@@ -1,14 +1,13 @@
 using Board;
 using System.Collections.Generic;
 using System.Threading.Tasks;
-using static System.Math;
 using System;
 
 namespace Node
 {
     public class Node
     {
-        public Board.Board board = new Board.Board();
+        public Board.Board board;
         public List<Node> ChildNodes = new List<Node>();
         public Node(Board.Board newBoard)
         {
@@ -21,7 +20,7 @@ namespace Node
 
             if (this.board.Status() == Outcome.Ongoing)
             {
-                List<Move.Move> MoveList = MoveFinder.Search(board, board.Side);
+                List<Move.Move> MoveList = MoveFinder.Search(board, board.Side, false);
 
                 for (int i = 0; i < MoveList.Count; i++)
                 {
@@ -39,7 +38,7 @@ namespace Node
             return new List<Move.Move>();
         }
 
-        public Move.Move BestMove(int Depth, bool PrintEval)
+        public Move.Move BestMove(int Depth)
         {
             List<Move.Move> Moves = GenerateChildNodes();
 
@@ -80,7 +79,7 @@ namespace Node
                 }
             }
 
-            return new Move.Move(new int[] {8,8}, new int[] {8,8}, Piece.Presets.Empty);
+            return new Move.Move(new[] {8,8}, new[] {8,8}, Piece.Presets.Empty, 0);
         }
 
         int StaticEvaluate()
@@ -89,13 +88,13 @@ namespace Node
 
             for (int i = 0; i < board.PiecePositions[false].Count; i++)
             {
-                (int, int) coords = ((int, int))board.PiecePositions[false][i];
+                (int, int) coords = board.PiecePositions[false][i];
 
                 Eval += this.board.board[coords.Item2,coords.Item1].Value + Weights.Weights.PieceWeights[this.board.board[coords.Item2,coords.Item1]][coords.Item2,coords.Item1] * Weights.Weights.Multipliers[false];
             }
             for (int i = 0; i < board.PiecePositions[true].Count; i++)
             {
-                (int, int) coords = ((int, int))board.PiecePositions[true][i];
+                (int, int) coords = board.PiecePositions[true][i];
 
                 Eval += this.board.board[coords.Item2,coords.Item1].Value + Weights.Weights.PieceWeights[this.board.board[coords.Item2,coords.Item1]][coords.Item2,coords.Item1] * Weights.Weights.Multipliers[true];
             }
@@ -116,7 +115,7 @@ namespace Node
             if (Depth == 0) 
                 return this.StaticEvaluate();
 
-            List<Move.Move> MoveList = MoveFinder.Search(board, board.Side);
+            List<Move.Move> MoveList = MoveFinder.Search(board, board.Side, true);
             if (!board.Side)
             {
                 int MaxEval = -1_000_000;

@@ -93,7 +93,7 @@ public class BoardManagerScript : MonoBehaviour
                 }
                 
                 // true if the move was legal and it was made on the board
-                bool moveMade = match.MakeMove(new Move.Move(new [] {Selected.Item1, Selected.Item2}, new [] {Moved.Item1, Moved.Item2}, PromotionPiece));
+                bool moveMade = match.MakeMove(new Move.Move(new [] {Selected.Item1, Selected.Item2}, new [] {Moved.Item1, Moved.Item2}, PromotionPiece, 0));
                 PromotionPiece = Presets.Empty;
                 
                 Selected = (8, 8);

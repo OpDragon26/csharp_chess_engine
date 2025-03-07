@@ -40,11 +40,11 @@ namespace Match
             if (StatusTest())
             {
                 Node.Node node = new Node.Node(this.board);
-                Move.Move BotMove = node.BestMove(this.Depth, false);
+                Move.Move BotMove = node.BestMove(this.Depth);
                 board.MakeMove(BotMove, false);
                 return BotMove;
             }
-            return new Move.Move(new int[] {8,8},new int[] {8,8}, Empty);
+            return new Move.Move(new int[] {8,8},new int[] {8,8}, Empty, 0);
         }
     }
 }

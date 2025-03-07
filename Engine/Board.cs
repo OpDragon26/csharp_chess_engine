@@ -12,20 +12,20 @@ namespace Board
     {
         public Piece.Piece[,] board = new Piece.Piece[8,8];
         public Dictionary<bool, bool[]> Castling = new Dictionary<bool, bool[]> {
-            {false, new bool[] {true, true}}, // Short, Long
-            {true, new bool[] {true, true}},
+            {false, new [] {true, true}}, // Short, Long
+            {true, new [] {true, true}},
         };
 
         public int[] EnpassantSquare = {8,8}; // file, rank  8,8 for no en passant
-        public bool Side = false;
+        public bool Side;
 
         // 50 move rule
-        public int MoveChain = 0;
-        public Dictionary<Board, int> Repetition = new Dictionary<Board, int>{};
+        public int MoveChain;
+        public Dictionary<Board, int> Repetition;
         public Outcome DeclaredOutcome = Outcome.Ongoing;
         public Dictionary<bool, int[]> KingPos = new Dictionary<bool, int[]>{
-            {true, new int[] {8,8}},
-            {false, new int[] {8,8}},
+            {true, new[] {8,8}},
+            {false, new[] {8,8}},
         };
         public Dictionary<bool, List<(int,int)>> PiecePositions = new Dictionary<bool, List<(int,int)>>{
             {false, new List<(int,int)>()},
@@ -36,7 +36,7 @@ namespace Board
         {
             if (filter)
             {
-                List<Move.Move> LegalMoves = MoveFinder.Search(this, this.Side);
+                List<Move.Move> LegalMoves = MoveFinder.Search(this, this.Side, false);
                 if (!move.InMovelist(LegalMoves))
                 {
                     return false;
@@ -54,7 +54,7 @@ namespace Board
             {
                 this.MoveChain = 0;
             }
-            else if (this.Side == true)
+            else if (this.Side)
             {
                 this.MoveChain++;
             }
@@ -70,58 +70,58 @@ namespace Board
             this.board[move.From[1],move.From[0]] = Empty;
             
             // castling
-            if (Enumerable.SequenceEqual(new int[] {move.From[1],move.From[0]}, Presets.WKStartPos) && this.board[move.To[1],move.To[0]].Role == PieceType.King)
+            if (Enumerable.SequenceEqual(new[] {move.From[1],move.From[0]}, Presets.WKStartPos) && this.board[move.To[1],move.To[0]].Role == PieceType.King)
             {
-                if (Enumerable.SequenceEqual(new int[] {move.To[1],move.To[0]}, Presets.WKShortCastlePos) && this.Castling[false][0])
+                if (Enumerable.SequenceEqual(new[] {move.To[1],move.To[0]}, Presets.WKShortCastlePos) && this.Castling[false][0])
                 {
                     this.board[Presets.WRShortCastlePos[0],Presets.WRShortCastlePos[1]] = Empty;
                     this.board[Presets.WRShortCastleDest[0],Presets.WRShortCastleDest[1]] = W_Rook;
                     this.PiecePositions[false].Add((Presets.WRShortCastleDest[1],Presets.WRShortCastleDest[0]));
                     this.PiecePositions[false].Remove((Presets.WRShortCastlePos[1],Presets.WRShortCastlePos[0]));
-                    this.Castling[false] = new bool[] {false, false};
+                    this.Castling[false] = new[] {false, false};
 
                 } 
-                else if (Enumerable.SequenceEqual(new int[] {move.To[1],move.To[0]}, Presets.WKLongCastlePos) && this.Castling[false][1])
+                else if (Enumerable.SequenceEqual(new[] {move.To[1],move.To[0]}, Presets.WKLongCastlePos) && this.Castling[false][1])
                 {
                     this.board[Presets.WRLongCastlePos[0],Presets.WRLongCastlePos[1]] = Empty;
                     this.board[Presets.WRLongCastleDest[0],Presets.WRLongCastleDest[1]] = W_Rook;
                     this.PiecePositions[false].Add((Presets.WRLongCastleDest[1],Presets.WRLongCastleDest[0]));
                     this.PiecePositions[false].Remove((Presets.WRLongCastlePos[1],Presets.WRLongCastlePos[0]));
-                    this.Castling[false] = new bool[] {false, false};
+                    this.Castling[false] = new[] {false, false};
                 }
             } 
-            else if (Enumerable.SequenceEqual(new int[] {move.From[1],move.From[0]}, Presets.BKStartPos) && this.board[move.To[1],move.To[0]].Role == PieceType.King)
+            else if (Enumerable.SequenceEqual(new[] {move.From[1],move.From[0]}, Presets.BKStartPos) && this.board[move.To[1],move.To[0]].Role == PieceType.King)
             {
-                if (Enumerable.SequenceEqual(new int[] {move.To[1],move.To[0]}, Presets.BKShortCastlePos) && this.Castling[true][0])
+                if (Enumerable.SequenceEqual(new[] {move.To[1],move.To[0]}, Presets.BKShortCastlePos) && this.Castling[true][0])
                 {
                     this.board[Presets.BRShortCastlePos[0],Presets.BRShortCastlePos[1]] = Empty;
                     this.board[Presets.BRShortCastleDest[0],Presets.BRShortCastleDest[1]] = B_Rook;
                     this.PiecePositions[true].Add((Presets.BRShortCastleDest[1],Presets.BRShortCastleDest[0]));
                     this.PiecePositions[true].Remove((Presets.BRShortCastlePos[1],Presets.BRShortCastlePos[0]));
-                    this.Castling[true] = new bool[] {false, false};
+                    this.Castling[true] = new[] {false, false};
                 } 
-                else if (Enumerable.SequenceEqual(new int[] {move.To[1],move.To[0]}, Presets.BKLongCastlePos) && this.Castling[true][1])
+                else if (Enumerable.SequenceEqual(new[] {move.To[1],move.To[0]}, Presets.BKLongCastlePos) && this.Castling[true][1])
                 {
                     this.board[Presets.BRLongCastlePos[0],Presets.BRLongCastlePos[1]] = Empty;
                     this.board[Presets.BRLongCastleDest[0],Presets.BRLongCastleDest[1]] = B_Rook;
                     this.PiecePositions[true].Add((Presets.BRLongCastleDest[1],Presets.BRLongCastleDest[0]));
                     this.PiecePositions[true].Remove((Presets.BRLongCastlePos[1],Presets.BRLongCastlePos[0]));
-                    this.Castling[true] = new bool[] {false, false};
+                    this.Castling[true] = new[] {false, false};
                 }
             }
-            else if (Enumerable.SequenceEqual(new int[] {move.To[1],move.To[0]}, Presets.WhiteRookHPos) || Enumerable.SequenceEqual(new int[] {move.From[1],move.From[0]}, Presets.WhiteRookHPos))
+            else if (Enumerable.SequenceEqual(new[] {move.To[1],move.To[0]}, Presets.WhiteRookHPos) || Enumerable.SequenceEqual(new[] {move.From[1],move.From[0]}, Presets.WhiteRookHPos))
             {
                 this.Castling[false][0] = false;
             }
-            else if (Enumerable.SequenceEqual(new int[] {move.To[1],move.To[0]}, Presets.WhiteRookAPos) || Enumerable.SequenceEqual(new int[] {move.From[1],move.From[0]}, Presets.WhiteRookAPos))
+            else if (Enumerable.SequenceEqual(new[] {move.To[1],move.To[0]}, Presets.WhiteRookAPos) || Enumerable.SequenceEqual(new[] {move.From[1],move.From[0]}, Presets.WhiteRookAPos))
             {
                 this.Castling[false][1] = false;
             }
-            else if (Enumerable.SequenceEqual(new int[] {move.To[1],move.To[0]}, Presets.BlackRookHPos) || Enumerable.SequenceEqual(new int[] {move.From[1],move.From[0]}, Presets.BlackRookHPos))
+            else if (Enumerable.SequenceEqual(new[] {move.To[1],move.To[0]}, Presets.BlackRookHPos) || Enumerable.SequenceEqual(new[] {move.From[1],move.From[0]}, Presets.BlackRookHPos))
             {
                 this.Castling[true][0] = false;
             }
-            else if (Enumerable.SequenceEqual(new int[] {move.To[1],move.To[0]}, Presets.BlackRookAPos) || Enumerable.SequenceEqual(new int[] {move.From[1],move.From[0]}, Presets.BlackRookAPos))
+            else if (Enumerable.SequenceEqual(new[] {move.To[1],move.To[0]}, Presets.BlackRookAPos) || Enumerable.SequenceEqual(new[] {move.From[1],move.From[0]}, Presets.BlackRookAPos))
             {
                 this.Castling[true][1] = false;
             }
@@ -146,22 +146,22 @@ namespace Board
                 }
                 else if (RankDistance == 2 || RankDistance == -2)
                 {
-                    this.EnpassantSquare = new int[] {move.From[0], move.To[1] + (RankDistance / 2)};
+                    this.EnpassantSquare = new[] {move.From[0], move.To[1] + (RankDistance / 2)};
                 }
                 else
                 {
-                    this.EnpassantSquare = new int[] {8,8};
+                    this.EnpassantSquare = new[] {8,8};
                 }
             }
             else if (this.board[move.To[1],move.To[0]].Role == PieceType.King)
             {
-                this.KingPos[this.board[move.To[1],move.To[0]].Color] = new int[] {move.To[0],move.To[1]};
-                this.Castling[this.board[move.To[1],move.To[0]].Color] = new bool[] {false, false};
-                this.EnpassantSquare = new int[] {8,8};
+                this.KingPos[this.board[move.To[1],move.To[0]].Color] = new[] {move.To[0],move.To[1]};
+                this.Castling[this.board[move.To[1],move.To[0]].Color] = new[] {false, false};
+                this.EnpassantSquare = new[] {8,8};
             }
             else
             {
-                this.EnpassantSquare = new int[] {8,8};
+                this.EnpassantSquare = new[] {8,8};
             }
 
             // changing kingpos
@@ -203,18 +203,18 @@ namespace Board
             }
             Clone.board = CloneBoard;
             Clone.Castling = new Dictionary<bool, bool[]> {
-                {false, new bool[] {this.Castling[false][0], this.Castling[false][1]}},
-                {true, new bool[] {this.Castling[true][0], this.Castling[true][1]}}};
+                {false, new[] {this.Castling[false][0], this.Castling[false][1]}},
+                {true, new[] {this.Castling[true][0], this.Castling[true][1]}}};
 
-            Clone.EnpassantSquare = new int[] {this.EnpassantSquare[0], this.EnpassantSquare[1]};
+            Clone.EnpassantSquare = new[] {this.EnpassantSquare[0], this.EnpassantSquare[1]};
             Clone.Side = this.Side == true;
             Clone.MoveChain = this.MoveChain;
 
             Clone.PiecePositions[false] = new List<(int, int)>(this.PiecePositions[false]);
             Clone.PiecePositions[true] = new List<(int, int)>(this.PiecePositions[true]);
             
-            Clone.KingPos[false] = new int[] {this.KingPos[false][0],this.KingPos[false][1]};
-            Clone.KingPos[true] = new int[] {this.KingPos[true][0],this.KingPos[true][1]};
+            Clone.KingPos[false] = new[] {this.KingPos[false][0],this.KingPos[false][1]};
+            Clone.KingPos[true] = new[] {this.KingPos[true][0],this.KingPos[true][1]};
             return Clone;
         }
 
@@ -236,30 +236,30 @@ namespace Board
                 {
                     if (this.board[i,j].Role == PieceType.King && this.board[i,j].Color == color)
                     {
-                        this.KingPos[color] = new int[] {j,i};
-                        return new int[] {j,i};
+                        this.KingPos[color] = new[] {j,i};
+                        return new[] {j,i};
                     }
                 }
             }
-            return new int[] {8,8};
+            return new[] {8,8};
         }
 
-        public List<(int,int)> GetPiecePositions(bool Side)
+        public List<(int,int)> GetPiecePositions(bool side)
         {
-            if (this.PiecePositions[Side].Count == 0)
+            if (this.PiecePositions[side].Count == 0)
             {
                 for (int i = 0; i < 8; i++)
                 {
                     for (int j = 0; j < 8; j++)
                     {
-                        if (this.board[i,j].Color == Side && this.board[i,j].Role != PieceType.Empty)
+                        if (this.board[i,j].Color == side && this.board[i,j].Role != PieceType.Empty)
                         {
-                            this.PiecePositions[Side].Add((j,i));
+                            this.PiecePositions[side].Add((j,i));
                         }
                     }
                 }
             }
-            return this.PiecePositions[Side];
+            return this.PiecePositions[side];
         }
 
         int[] LocalValue()
@@ -268,35 +268,35 @@ namespace Board
             int Black = 0;
             for (int i = 0; i < PiecePositions[false].Count; i++)
             {
-                (int, int) coords = ((int, int))PiecePositions[false][i];
+                (int, int) coords = PiecePositions[false][i];
 
                 White += board[coords.Item2,coords.Item1].LocalValue;
             }
             for (int i = 0; i < PiecePositions[true].Count; i++)
             {
-                (int, int) coords = ((int, int))PiecePositions[true][i];
+                (int, int) coords = PiecePositions[true][i];
 
                 Black += board[coords.Item2,coords.Item1].LocalValue;
             }
 
-            return new int[] {White, Black};
+            return new[] {White, Black};
         }
 
         bool PawnsLeft()
         {
             for (int i = 0; i < PiecePositions[false].Count; i++)
             {
-                (int, int) coords = ((int, int))PiecePositions[false][i];
+                (int, int) coords = PiecePositions[false][i];
 
                 if (board[coords.Item2,coords.Item1].Role == PieceType.Pawn)
-                return true;
+                    return true;
             }
             for (int i = 0; i < PiecePositions[true].Count; i++)
             {
-                (int, int) coords = ((int, int))PiecePositions[true][i];
+                (int, int) coords = PiecePositions[true][i];
 
                 if (board[coords.Item2,coords.Item1].Role == PieceType.Pawn)
-                return true;
+                    return true;
             }
 
             return false;
@@ -306,7 +306,7 @@ namespace Board
         {
             if (this.DeclaredOutcome == Outcome.Ongoing)
             {
-                if (MoveFinder.Search(this, Side).Count == 0)
+                if (MoveFinder.Search(this, Side, false).Count == 0)
                 {
                     if (this.KingInCheck(Side))
                     {
@@ -370,7 +370,7 @@ namespace Board
             {B_Pawn, B_Pawn, B_Pawn, B_Pawn, B_Pawn, B_Pawn, B_Pawn, B_Pawn},
             {B_Rook, B_Knight, B_Bishop, B_Queen, B_King, B_Bishop, B_Knight, B_Rook},
         };
-        public static Board StartingBoard = Board.Constructor(StartingPosition, false, new bool[] {true,true}, new bool[] {true,true}, new int[] {8,8}, 0);
+        public static Board StartingBoard = Board.Constructor(StartingPosition, false, new[] {true,true}, new[] {true,true}, new[] {8,8}, 0);
 
         internal static int[] WKStartPos = {0,4}; // file, rank
 
@@ -417,9 +417,9 @@ namespace Board
         {
             if (!reverse)
             {
-                return new int[] {FileIndex[square[0].ToString()], Int32.Parse(square[1].ToString()) - 1};
+                return new[] {FileIndex[square[0].ToString()], Int32.Parse(square[1].ToString()) - 1};
             } else {
-                return new int[] {Int32.Parse(square[1].ToString()) - 1, FileIndex[square[0].ToString()]};
+                return new[] {Int32.Parse(square[1].ToString()) - 1, FileIndex[square[0].ToString()]};
             }
         }
 
