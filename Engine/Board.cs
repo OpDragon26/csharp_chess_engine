@@ -436,8 +436,12 @@ namespace Board
         Black,
         Draw
     }
-    public static class TestCases
+    
+    public class MoveUnmake
     {
+        public ((int, int),(int,int)) OriginMove;
+        public ((int, int),(int,int)) ExtraMove;
+        public bool Promotion;
 
     }
 }
