@@ -44,34 +44,36 @@ namespace Board
                 }
             }
 
-            if (this.board[move.To[1],move.To[0]].Role != PieceType.Empty)
+            (int, int) MoveTo = (move.To[0],move.To[1]);
+            (int, int) MoveFrom = (move.From[0], move.From[1]);
+            Piece.Piece OriginPiece = this.board[move.From[1],move.From[0]];
+            Piece.Piece TargetPiece = this.board[move.To[1],move.To[0]];
+            bool OriginColor = OriginPiece.Color;
+            bool TargetColor = TargetPiece.Color;
+            
+            if (TargetPiece.Role != PieceType.Empty)
             {
-                this.PiecePositions[this.board[move.To[1],move.To[0]].Color].Remove((move.To[0],move.To[1]));
+                this.PiecePositions[TargetColor].Remove(MoveTo);
             }
-            this.PiecePositions[this.board[move.From[1],move.From[0]].Color].Remove((move.From[0],move.From[1]));
-            this.PiecePositions[this.board[move.From[1],move.From[0]].Color].Add((move.To[0],move.To[1]));
+            
+            this.PiecePositions[OriginColor].Remove(MoveFrom);
+            this.PiecePositions[OriginColor].Add(MoveFrom);
 
-            if (this.board[move.From[1],move.From[0]].Role == PieceType.Pawn || this.board[move.To[1],move.To[0]].Role != PieceType.Empty)
-            {
+            if (OriginPiece.Role == PieceType.Pawn || TargetPiece.Role != PieceType.Empty)
                 this.MoveChain = 0;
-            }
-            else if (this.Side)
-            {
+            else if (this.Side) 
                 this.MoveChain++;
-            }
+            
 
             if (move.Promotion != Empty)
-            {
                 this.board[move.To[1],move.To[0]] = move.Promotion;
-            }
             else
-            {
-                this.board[move.To[1],move.To[0]] = this.board[move.From[1],move.From[0]];
-            }
+                this.board[move.To[1],move.To[0]] = OriginPiece;
+            
             this.board[move.From[1],move.From[0]] = Empty;
             
             // castling
-            if (Enumerable.SequenceEqual(new[] {move.From[1],move.From[0]}, Presets.WKStartPos) && this.board[move.To[1],move.To[0]].Role == PieceType.King)
+            if (Enumerable.SequenceEqual(new[] {move.From[1],move.From[0]}, Presets.WKStartPos) && OriginPiece.Role == PieceType.King)
             {
                 if (Enumerable.SequenceEqual(new[] {move.To[1],move.To[0]}, Presets.WKShortCastlePos) && this.Castling[false][0])
                 {
@@ -91,7 +93,7 @@ namespace Board
                     this.Castling[false] = new[] {false, false};
                 }
             } 
-            else if (Enumerable.SequenceEqual(new[] {move.From[1],move.From[0]}, Presets.BKStartPos) && this.board[move.To[1],move.To[0]].Role == PieceType.King)
+            else if (Enumerable.SequenceEqual(new[] {move.From[1],move.From[0]}, Presets.BKStartPos) && OriginPiece.Role == PieceType.King)
             {
                 if (Enumerable.SequenceEqual(new[] {move.To[1],move.To[0]}, Presets.BKShortCastlePos) && this.Castling[true][0])
                 {
@@ -110,25 +112,19 @@ namespace Board
                     this.Castling[true] = new[] {false, false};
                 }
             }
+            // Remove castling rights
             else if (Enumerable.SequenceEqual(new[] {move.To[1],move.To[0]}, Presets.WhiteRookHPos) || Enumerable.SequenceEqual(new[] {move.From[1],move.From[0]}, Presets.WhiteRookHPos))
-            {
                 this.Castling[false][0] = false;
-            }
             else if (Enumerable.SequenceEqual(new[] {move.To[1],move.To[0]}, Presets.WhiteRookAPos) || Enumerable.SequenceEqual(new[] {move.From[1],move.From[0]}, Presets.WhiteRookAPos))
-            {
                 this.Castling[false][1] = false;
-            }
             else if (Enumerable.SequenceEqual(new[] {move.To[1],move.To[0]}, Presets.BlackRookHPos) || Enumerable.SequenceEqual(new[] {move.From[1],move.From[0]}, Presets.BlackRookHPos))
-            {
                 this.Castling[true][0] = false;
-            }
             else if (Enumerable.SequenceEqual(new[] {move.To[1],move.To[0]}, Presets.BlackRookAPos) || Enumerable.SequenceEqual(new[] {move.From[1],move.From[0]}, Presets.BlackRookAPos))
-            {
                 this.Castling[true][1] = false;
-            }
+            
 
             // en passant (Holy Hell!)
-            if (this.board[move.To[1],move.To[0]].Role == PieceType.Pawn)
+            if (OriginPiece.Role == PieceType.Pawn)
             {
                 int RankDistance = move.From[1] - move.To[1];
 
@@ -145,29 +141,24 @@ namespace Board
                         this.board[move.To[1] - 1,move.To[0]] = Empty;
                     }
                 }
-                else if (RankDistance == 2 || RankDistance == -2)
-                {
+                else if (RankDistance == 2 || RankDistance == -2) // if the pawn made 2 moves forward, set EnpassantSquare
                     this.EnpassantSquare = new[] {move.From[0], move.To[1] + (RankDistance / 2)};
-                }
                 else
-                {
                     this.EnpassantSquare = new[] {8,8};
-                }
+                
             }
-            else if (this.board[move.To[1],move.To[0]].Role == PieceType.King)
+            else if (OriginPiece.Role == PieceType.King) // Changing KingPos
             {
-                this.KingPos[this.board[move.To[1],move.To[0]].Color] = new[] {move.To[0],move.To[1]};
-                this.Castling[this.board[move.To[1],move.To[0]].Color] = new[] {false, false};
+                this.KingPos[OriginColor] = new[] {move.To[0],move.To[1]};
+                this.Castling[OriginColor] = new[] {false, false};
                 this.EnpassantSquare = new[] {8,8};
             }
             else
-            {
                 this.EnpassantSquare = new[] {8,8};
-            }
-
-            // changing kingpos
-
-
+            
+            
+            // LastMove = new ReverseMove();
+            
             this.Side = !this.Side;
             
             this.AddSelf();
