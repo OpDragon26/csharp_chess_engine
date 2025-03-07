@@ -27,7 +27,7 @@ namespace Match
 
         public bool StatusTest()
         {
-            return board.Status() == Outcome.Ongoing;
+            return board.Status().Item1 == Outcome.Ongoing;
         }
 
         public bool MakeMove(Move.Move move)

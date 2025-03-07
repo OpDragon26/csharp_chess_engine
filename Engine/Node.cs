@@ -18,9 +18,11 @@ namespace Node
         {
             List<Node> NodeList = new List<Node>();
 
-            if (this.board.Status() == Outcome.Ongoing)
+            (Outcome, List<Move.Move>) outcome = this.board.Status();
+            
+            if (outcome.Item1 == Outcome.Ongoing)
             {
-                List<Move.Move> MoveList = MoveFinder.Search(board, board.Side, false);
+                List<Move.Move> MoveList = outcome.Item2;
 
                 for (int i = 0; i < MoveList.Count; i++)
                 {
@@ -104,18 +106,18 @@ namespace Node
 
         public int Minimax(int Depth, int alpha, int beta)
         {
-            Outcome Status = board.Status();
-            if (Status == Outcome.White)
+            (Outcome, List<Move.Move>) Status = board.Status();
+            if (Status.Item1 == Outcome.White)
                 return 1_000_000;
-            if (Status == Outcome.Black)
+            if (Status.Item1 == Outcome.Black)
                 return -1_000_000;
-            if (Status == Outcome.Draw)
+            if (Status.Item1 == Outcome.Draw)
                 return 0;
 
             if (Depth == 0) 
                 return this.StaticEvaluate();
 
-            List<Move.Move> MoveList = MoveFinder.Search(board, board.Side, true);
+            List<Move.Move> MoveList = Status.Item2;
             if (!board.Side)
             {
                 int MaxEval = -1_000_000;

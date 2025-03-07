@@ -2,7 +2,6 @@ using static HashCodeHelper.HashCodeHelper;
 using Piece;
 using static Piece.Presets;
 using System.Collections.Generic;
-using System.Collections;
 using System;
 using System.Linq;
 
@@ -302,11 +301,12 @@ namespace Board
             return false;
         }
 
-        public Outcome Status()
+        public (Outcome, List<Move.Move>) Status()
         {
+            List<Move.Move> moveList = MoveFinder.Search(this, Side, false);
             if (this.DeclaredOutcome == Outcome.Ongoing)
             {
-                if (MoveFinder.Search(this, Side, false).Count == 0)
+                if (moveList.Count == 0)
                 {
                     if (this.KingInCheck(Side))
                     {
@@ -331,7 +331,7 @@ namespace Board
                     }
                 }
             }
-            return DeclaredOutcome;
+            return (DeclaredOutcome,  moveList);
         }
 
         public override int GetHashCode()

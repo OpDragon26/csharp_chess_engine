@@ -69,7 +69,7 @@ public class BoardManagerScript : MonoBehaviour
         
         UpdatePieceTextures();
         
-        DepthLabel.text = "Depth: " + match.Depth.ToString();
+        DepthLabel.text = "Depth: " + (match.Depth + 1).ToString();
     }
 
     // Update is called once per frame
@@ -260,11 +260,11 @@ public class BoardManagerScript : MonoBehaviour
 
     public void DepthIncrease()
     {
-        if (match.Depth < 10)
+        if (match.Depth < 9)
         {
             match.Depth++;
             Depth++;
-            DepthLabel.text = "Depth: " + match.Depth.ToString();
+            DepthLabel.text = "Depth: " + (match.Depth + 1).ToString();
         }
     }
 
@@ -274,7 +274,7 @@ public class BoardManagerScript : MonoBehaviour
         {
             match.Depth--;
             Depth--;
-            DepthLabel.text = "Depth: " + match.Depth.ToString();
+            DepthLabel.text = "Depth: " + (match.Depth + 1).ToString();
         }
     }
 }
