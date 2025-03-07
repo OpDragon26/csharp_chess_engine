@@ -121,14 +121,13 @@ namespace Node
             if (!board.Side)
             {
                 int MaxEval = -1_000_000;
-
+                
                 for (int i = 0; i < MoveList.Count; i++)
                 {
                     // Generate child node
                     Board.Board MoveBoard = this.board.DeepCopy();
                     MoveBoard.MakeMove(MoveList[i], false, false);
                     Node Child = new Node(MoveBoard);
-
 
                     // Finding eval
                     int Eval = Child.Minimax(Depth - 1, alpha, beta);
@@ -143,7 +142,7 @@ namespace Node
             else
             {
                 int MinEval = 1_000_000;
-
+                
                 for (int i = 0; i < MoveList.Count; i++)
                 {
                     // Generate child node

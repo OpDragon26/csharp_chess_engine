@@ -1,6 +1,5 @@
 using BoardManagerInfo;
 using Piece;
-using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -26,6 +25,7 @@ public class BoardManagerScript : MonoBehaviour
 
     public bool Side;
     public int Depth = 2;
+    public bool DebugMode;
 
     public Match.Match match = new Match.Match(false, 2, false, false);
 
@@ -70,111 +70,124 @@ public class BoardManagerScript : MonoBehaviour
         UpdatePieceTextures();
         
         DepthLabel.text = "Depth: " + (match.Depth + 1).ToString();
+        
+        if (DebugMode)
+        {
+            match.board.MakeMove(Move.Move.FromString("g1-f3"), false, true);
+            match.board.UnmakeMove();
+            match.board.MakeMove(Move.Move.FromString("g1-f3"), false, true);
+            UpdatePieceTextures();
+        }
     }
 
     // Update is called once per frame
     void Update()
     {
-        switch (Status)
-        {
-            case  BmStatus.Idle:
-                Frozen = false;
-            break;
-            
-            case  BmStatus.PlayerTurn:
-                Frozen = false;
-
-                if (match.board.board[Selected.Item2, Selected.Item1].Role == PieceType.Pawn && BoardManagerInfo.BoardManagerInfo.PromotionSquare(Moved, match.PlayerSide) && PromotionPiece == Presets.Empty)
-                {
-                    PromotionSelection.SetActive(true);
-
-                    Status = BmStatus.WaitingForPromotion;
-                    break;
-                }
+        if (!DebugMode)
+        { 
+            switch (Status)
+            {
+                case  BmStatus.Idle:
+                    Frozen = false;
+                break;
                 
-                // true if the move was legal and it was made on the board
-                bool moveMade = match.MakeMove(new Move.Move(new [] {Selected.Item1, Selected.Item2}, new [] {Moved.Item1, Moved.Item2}, PromotionPiece, 0));
-                PromotionPiece = Presets.Empty;
-                
-                Selected = (8, 8);
-                Moved = (8, 8);
+                case  BmStatus.PlayerTurn:
+                    Frozen = false;
 
-                if (moveMade)
-                {
+                    if (match.board.board[Selected.Item2, Selected.Item1].Role == PieceType.Pawn && BoardManagerInfo.BoardManagerInfo.PromotionSquare(Moved, match.PlayerSide) && PromotionPiece == Presets.Empty)
+                    {
+                        PromotionSelection.SetActive(true);
+
+                        Status = BmStatus.WaitingForPromotion;
+                        break;
+                    }
+                    
+                    // true if the move was legal and it was made on the board
+                    bool moveMade = match.MakeMove(new Move.Move(new [] {Selected.Item1, Selected.Item2}, new [] {Moved.Item1, Moved.Item2}, PromotionPiece, 0));
+                    PromotionPiece = Presets.Empty;
+                    
+                    Selected = (8, 8);
+                    Moved = (8, 8);
+
+                    if (moveMade)
+                    {
+                        UpdatePieceTextures();
+
+                        Status = BmStatus.BotTurn; // switch to the bot's turn
+                        Debug.Log("Move successful");
+                    }
+                    else
+                    {
+                        Status = BmStatus.Idle; // Keep waiting
+                        Debug.Log("Move failed");
+                    }
+
+                break;
+
+                case BmStatus.BotTurn:
+                    Frozen = false;
+
+                    Debug.Log("Bot move");
+                    // Make the bot's move
+                    match.MakeBotMove();
+                    
                     UpdatePieceTextures();
+                    
+                    Status = BmStatus.Idle; // Wait for a player move
 
-                    Status = BmStatus.BotTurn; // switch to the bot's turn
-                }
-                else
-                {
-                    Status = BmStatus.Idle; // Keep waiting
-                }
-
-            break;
-
-            case BmStatus.BotTurn:
-                Frozen = false;
-
-                Debug.Log("Bot move");
-                // Make the bot's move
-                match.MakeBotMove();
+                break;
                 
-                UpdatePieceTextures();
+                case BmStatus.WaitingForPromotion:
+                    Frozen = true;
+                break;
                 
-                Status = BmStatus.Idle; // Wait for a player move
+                case BmStatus.PromotionQueen:
+                    Frozen = false;
 
-            break;
-            
-            case BmStatus.WaitingForPromotion:
-                Frozen = true;
-            break;
-            
-            case BmStatus.PromotionQueen:
-                Frozen = false;
+                    if (match.PlayerSide)
+                        PromotionPiece = Presets.B_Queen;
+                    else
+                        PromotionPiece = Presets.W_Queen;
+                    Status = BmStatus.PlayerTurn;
+                break;
+                
+                case BmStatus.PromotionRook:
+                    Frozen = false;
 
-                if (match.PlayerSide)
-                    PromotionPiece = Presets.B_Queen;
-                else
-                    PromotionPiece = Presets.W_Queen;
-                Status = BmStatus.PlayerTurn;
-            break;
-            
-            case BmStatus.PromotionRook:
-                Frozen = false;
+                    if (match.PlayerSide)
+                        PromotionPiece = Presets.B_Rook;
+                    else
+                        PromotionPiece = Presets.W_Rook;
+                    Status = BmStatus.PlayerTurn;
+                break;
+                
+                case BmStatus.PromotionBishop:
+                    Frozen = false;
 
-                if (match.PlayerSide)
-                    PromotionPiece = Presets.B_Rook;
-                else
-                    PromotionPiece = Presets.W_Rook;
-                Status = BmStatus.PlayerTurn;
-            break;
-            
-            case BmStatus.PromotionBishop:
-                Frozen = false;
+                    if (match.PlayerSide)
+                        PromotionPiece = Presets.B_Bishop;
+                    else
+                        PromotionPiece = Presets.W_Bishop;
+                    Status = BmStatus.PlayerTurn;
+                break;
+                
+                case BmStatus.PromotionKnight:
+                    Frozen = false;
 
-                if (match.PlayerSide)
-                    PromotionPiece = Presets.B_Bishop;
-                else
-                    PromotionPiece = Presets.W_Bishop;
-                Status = BmStatus.PlayerTurn;
-            break;
-            
-            case BmStatus.PromotionKnight:
-                Frozen = false;
+                    if (match.PlayerSide)
+                        PromotionPiece = Presets.B_Knight;
+                    else
+                        PromotionPiece = Presets.W_Knight;
+                    Status = BmStatus.PlayerTurn;
+                break;
+                
+                case BmStatus.PromotionEmpty:
+                    Frozen = false;
 
-                if (match.PlayerSide)
-                    PromotionPiece = Presets.B_Knight;
-                else
-                    PromotionPiece = Presets.W_Knight;
-                Status = BmStatus.PlayerTurn;
-            break;
-            
-            case BmStatus.PromotionEmpty:
-                Frozen = false;
-
-                PromotionPiece = Presets.B_King;
-                Status = BmStatus.PlayerTurn;
-            break;
+                    PromotionPiece = Presets.B_King;
+                    Status = BmStatus.PlayerTurn;
+                break;
+            }
         }
     }
 

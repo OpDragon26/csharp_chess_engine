@@ -4,6 +4,7 @@ using static Piece.Presets;
 using System.Collections.Generic;
 using System;
 using System.Linq;
+using UnityEngine;
 
 namespace Board
 {
@@ -56,14 +57,18 @@ namespace Board
             ((int, int), (int, int)) extraMove = ((8, 8), (8, 8));
             (int, int) enpassant = (8,8);
             int moveChain = this.MoveChain;
-            int[] prevEnpassant = new[] {this.EnpassantSquare[0], this.EnpassantSquare[1]};
+            int[] prevEnpassant = this.EnpassantSquare;
+            bool[] whiteCastle = this.Castling[false];
+            bool[] blackCastle = this.Castling[true];
+            int[] wKingPos =  this.KingPos[false];
+            int[] bKingPos = this.KingPos[true];
             
             
             if (TargetPiece.Role != PieceType.Empty)
                 this.PiecePositions[TargetColor].Remove(MoveTo);
             
             this.PiecePositions[OriginColor].Remove(MoveFrom);
-            this.PiecePositions[OriginColor].Add(MoveFrom);
+            this.PiecePositions[OriginColor].Add(MoveTo);
 
             if (OriginPiece.Role == PieceType.Pawn || TargetPiece.Role != PieceType.Empty)
                 this.MoveChain = 0;
@@ -147,11 +152,13 @@ namespace Board
                     {
                         this.PiecePositions[this.board[move.To[1] + 1,move.To[0]].Color].Remove((move.To[0],move.To[1] + 1));
                         this.board[move.To[1] + 1,move.To[0]] = Empty;
+                        enpassant = (move.To[1] + 1,move.To[0]);
                     }
                     else if (this.board[move.To[1] - 1,move.To[0]].Role == PieceType.Pawn)
                     {
                         this.PiecePositions[this.board[move.To[1] - 1,move.To[0]].Color].Remove((move.To[0],move.To[1] - 1));
                         this.board[move.To[1] - 1,move.To[0]] = Empty;
+                        enpassant = (move.To[1] - 1,move.To[0]);
                     }
                 }
                 else if (RankDistance == 2 || RankDistance == -2) // if the pawn made 2 moves forward, set EnpassantSquare
@@ -170,7 +177,7 @@ namespace Board
                 this.EnpassantSquare = new[] {8,8};
             
             if (generateReverse)
-                LastMove = new ReverseMove((MoveFrom, MoveTo), extraMove, TargetPiece, move.Promotion != Empty, enpassant, prevEnpassant, moveChain);
+                LastMove = new ReverseMove((MoveFrom, MoveTo), extraMove, TargetPiece, move.Promotion != Empty, enpassant, prevEnpassant, moveChain, whiteCastle, blackCastle, wKingPos, bKingPos);
             
             this.Side = !this.Side;
             
@@ -179,9 +186,51 @@ namespace Board
             return true;
         }
 
+        private static Dictionary<bool, Piece.Piece> Pawns = new Dictionary<bool, Piece.Piece>
+        {
+            {false, W_Pawn},
+            {true, B_Pawn}
+        };
         public void UnmakeMove()
         {
+            // Unmaking the original move
+            if (LastMove.Promotion)
+                this.board[LastMove.OriginMove.Item1.Item2, LastMove.OriginMove.Item1.Item1] = Pawns[!this.Side];
+            else
+                this.board[LastMove.OriginMove.Item1.Item2, LastMove.OriginMove.Item1.Item1] = this.board[LastMove.OriginMove.Item2.Item2, LastMove.OriginMove.Item2.Item1];
+            this.PiecePositions[!this.Side].Add(LastMove.OriginMove.Item1);
             
+            this.board[LastMove.OriginMove.Item2.Item2, LastMove.OriginMove.Item2.Item1] = LastMove.CapturedPiece;
+            this.PiecePositions[this.Side].Remove(LastMove.OriginMove.Item2);
+            
+            
+            // unmaking the extra move, if there is one
+            if (LastMove.ExtraMove.Item1.Item1 != 8)
+            {
+                this.board[LastMove.ExtraMove.Item1.Item2, LastMove.ExtraMove.Item1.Item1] = this.board[LastMove.ExtraMove.Item2.Item2, LastMove.ExtraMove.Item2.Item1];
+                this.board[LastMove.ExtraMove.Item2.Item2, LastMove.ExtraMove.Item2.Item1] = Empty;
+                
+                this.PiecePositions[!this.Side].Add(LastMove.ExtraMove.Item1);
+                this.PiecePositions[!this.Side].Remove(LastMove.ExtraMove.Item2);
+            }
+            
+            // if there was an en passant capture, put the pawn back
+            if (LastMove.Enpassant.Item1 != 8)
+            {
+                this.board[LastMove.Enpassant.Item2, LastMove.Enpassant.Item1] = Pawns[this.Side];
+                this.PiecePositions[this.Side].Add(LastMove.Enpassant);
+            }
+            
+            this.MoveChain = LastMove.MoveChain;
+            this.EnpassantSquare = new[] {LastMove.PrevEnpassant[0], LastMove.PrevEnpassant[1]};
+
+            this.Castling[false] = new[] { LastMove.WhiteCastle[0], LastMove.WhiteCastle[1] };
+            this.Castling[true] = new[] { LastMove.BlackCastle[0], LastMove.BlackCastle[1] };
+            
+            this.KingPos[false] =  new[] { LastMove.WKingPos[0], LastMove.WKingPos[1] };
+            this.KingPos[true] =  new[] { LastMove.BKingPos[0], LastMove.BKingPos[1] };
+
+            Side = !Side;
         }
 
         public static Board Constructor(Piece.Piece[,] board, bool side, bool[] whiteCastle, bool[] blackCastle, int[] enpassantSquare, int moveChain)
@@ -459,8 +508,12 @@ namespace Board
         public (int, int) Enpassant;
         public int[] PrevEnpassant;
         public int MoveChain;
-
-        public ReverseMove(((int, int),(int,int)) originMove, ((int, int),(int,int)) extraMove, Piece.Piece capturedPiece, bool promotion, (int, int) enpassant, int[] prevEnpassant,  int moveChain)
+        public bool[] WhiteCastle;
+        public bool[] BlackCastle;
+        public int[] WKingPos;
+        public int[] BKingPos;
+        
+        public ReverseMove(((int, int),(int,int)) originMove, ((int, int),(int,int)) extraMove, Piece.Piece capturedPiece, bool promotion, (int, int) enpassant, int[] prevEnpassant,  int moveChain, bool[] whiteCastle, bool[] blackCastle, int[] wKingPos, int[] bKingPos)
         {
             OriginMove = originMove;
             ExtraMove = extraMove;
@@ -469,6 +522,10 @@ namespace Board
             Enpassant = enpassant;
             MoveChain = moveChain;
             PrevEnpassant = prevEnpassant;
+            WhiteCastle = whiteCastle;
+            BlackCastle = blackCastle;
+            WKingPos = wKingPos;
+            BKingPos = bKingPos;
         }
     }
 }

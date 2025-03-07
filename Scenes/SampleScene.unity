@@ -1367,6 +1367,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   Side: 0
   Depth: 2
+  DebugMode: 0
   Status: 0
   DepthLabel: {fileID: 980157037}
 --- !u!4 &816662428

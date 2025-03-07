@@ -189,15 +189,11 @@ namespace Board
             }
             
             Board MoveBoard = board.DeepCopy();
-
             for (int i = MoveList.Count - 1; i >= 0; i--)
             {
                 MoveBoard.MakeMove(MoveList[i], false, true);
-
                 if (MoveBoard.KingInCheck(color))
-                {
                     MoveList.RemoveAt(i);
-                }
                 
                 MoveBoard.UnmakeMove();
             }
