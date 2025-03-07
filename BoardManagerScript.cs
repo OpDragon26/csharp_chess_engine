@@ -10,7 +10,7 @@ using UnityEngine.UI;
 // - Add a MinimaxQuiescence function
 // Add endgame tables
 // Add opening book
-// 2 158
+// 2229
 
 public class BoardManagerScript : MonoBehaviour
 {
