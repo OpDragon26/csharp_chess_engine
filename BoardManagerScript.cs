@@ -1,5 +1,6 @@
 using BoardManagerInfo;
 using Piece;
+using Unity.VisualScripting;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -38,12 +39,14 @@ public class BoardManagerScript : MonoBehaviour
     private bool Frozen;
 
     public Text DepthLabel;
+    public Text StatusLabel;
     
     // Start is called once before the first execution of Update after the MonoBehaviour is created
     void Start()
     {
         PromotionSelection = GameObject.FindGameObjectWithTag("Promotion");
         PromotionSelection.SetActive(false);
+        StatusLabel.gameObject.SetActive(false);
 
         match.PlayerSide = Side;
         match.Depth = Depth;
@@ -112,6 +115,7 @@ public class BoardManagerScript : MonoBehaviour
                     if (moveMade)
                     {
                         UpdatePieceTextures();
+                        StatusLabel.gameObject.SetActive(true);
 
                         Status = BmStatus.BotTurn; // switch to the bot's turn
                         Debug.Log("Move successful");
@@ -132,6 +136,7 @@ public class BoardManagerScript : MonoBehaviour
                     match.MakeBotMove();
                     
                     UpdatePieceTextures();
+                    StatusLabel.gameObject.SetActive(false);
                     
                     Status = BmStatus.Idle; // Wait for a player move
 
