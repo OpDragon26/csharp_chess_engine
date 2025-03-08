@@ -1,7 +1,9 @@
+using Board;
 using BoardManagerInfo;
 using Piece;
 using UnityEngine;
 using UnityEngine.UI;
+using Presets = Piece.Presets;
 
 // Todo:
 // Add Zobrist hashing
@@ -14,9 +16,9 @@ using UnityEngine.UI;
 
 public class BoardManagerScript : MonoBehaviour
 {
-    public GameObject[,] Squares = new GameObject[8, 8];
-    public GameObject[,] Pieces = new GameObject[8, 8];
-    public GameObject[,] Overlays = new GameObject[8, 8];
+    public readonly GameObject[,] Squares = new GameObject[8, 8];
+    public readonly GameObject[,] Pieces = new GameObject[8, 8];
+    public readonly GameObject[,] Overlays = new GameObject[8, 8];
     
     SquareScript[,] SquareScripts = new SquareScript[8, 8];
     PieceScript[,] PieceScripts = new PieceScript[8, 8];
@@ -40,10 +42,26 @@ public class BoardManagerScript : MonoBehaviour
 
     public Text DepthLabel;
     public Text StatusLabel;
+
+    public GameObject GameOverOverlay;
+
+    public Text WinLabel;
+    public Text LoseLabel;
+    public Text DrawLabel;
+    
+    public Button ResetButton;
+    public Button ExitButton;
     
     // Start is called once before the first execution of Update after the MonoBehaviour is created
     void Start()
     {
+        GameOverOverlay.SetActive(false);
+        WinLabel.gameObject.SetActive(false);
+        LoseLabel.gameObject.SetActive(false);
+        DrawLabel.gameObject.SetActive(false);
+        ResetButton.gameObject.SetActive(false);
+        ExitButton.gameObject.SetActive(false);
+        
         HashCodeHelper.ZobristHash.Init();
         
         PromotionSelection = GameObject.FindGameObjectWithTag("Promotion");
@@ -54,9 +72,7 @@ public class BoardManagerScript : MonoBehaviour
         match.Depth = Depth;
 
         if (Side)
-        {
             Status = BmStatus.BotTurn;
-        }
         
         for (int i = 0; i < 8; i++)
         {
@@ -93,6 +109,8 @@ public class BoardManagerScript : MonoBehaviour
             switch (Status)
             {
                 case  BmStatus.Idle:
+                    GameOverOverlay.SetActive(false);
+                    
                     Frozen = false;
                 break;
                 
@@ -118,7 +136,24 @@ public class BoardManagerScript : MonoBehaviour
                     {
                         UpdatePieceTextures();
                         StatusLabel.gameObject.SetActive(true);
+                        WinLabel.gameObject.SetActive(false);
+                        LoseLabel.gameObject.SetActive(false);
+                        DrawLabel.gameObject.SetActive(false);
+                        ResetButton.gameObject.SetActive(false);
+                        ExitButton.gameObject.SetActive(false);
 
+                        Outcome BoardStatus = match.board.Status().Item1;
+                        if (BoardStatus == Outcome.Draw)
+                        {
+                            Status = BmStatus.Draw;
+                            break;
+                        }
+                        else if (BoardStatus != Outcome.Ongoing)
+                        {
+                            Status = BmStatus.PlayerWon;
+                            break;
+                        }
+                        
                         Status = BmStatus.BotTurn; // switch to the bot's turn
                         Debug.Log("Move successful");
                     }
@@ -139,6 +174,18 @@ public class BoardManagerScript : MonoBehaviour
                     
                     UpdatePieceTextures();
                     StatusLabel.gameObject.SetActive(false);
+                    
+                    Outcome BoardStatus2 = match.board.Status().Item1;
+                    if (BoardStatus2 == Outcome.Draw)
+                    {
+                        Status = BmStatus.Draw;
+                        break;
+                    }
+                    else if (BoardStatus2 != Outcome.Ongoing)
+                    {
+                        Status = BmStatus.BotWon;
+                        break;
+                    }
                     
                     Status = BmStatus.Idle; // Wait for a player move
 
@@ -194,6 +241,33 @@ public class BoardManagerScript : MonoBehaviour
                     PromotionPiece = Presets.B_King;
                     Status = BmStatus.PlayerTurn;
                 break;
+                
+                case BmStatus.PlayerWon:
+                    Frozen = true;
+
+                    ResetButton.gameObject.SetActive(true);
+                    ExitButton.gameObject.SetActive(true);
+                    GameOverOverlay.SetActive(true);
+                    WinLabel.gameObject.SetActive(true);
+                break;
+                
+                case BmStatus.BotWon:
+                    Frozen = true;
+                    
+                    ResetButton.gameObject.SetActive(true);
+                    ExitButton.gameObject.SetActive(true);
+                    GameOverOverlay.SetActive(true);
+                    LoseLabel.gameObject.SetActive(true);
+                break;
+                
+                case BmStatus.Draw:
+                    Frozen = true;
+                    
+                    ResetButton.gameObject.SetActive(true);
+                    ExitButton.gameObject.SetActive(true);
+                    GameOverOverlay.SetActive(true);
+                    DrawLabel.gameObject.SetActive(true);
+                break;
             }
         }
     }
@@ -234,8 +308,8 @@ public class BoardManagerScript : MonoBehaviour
         
                 OverlayScripts[coords.Item2, coords.Item1].UpdateTexture(set);
         
-                Debug.Log(match.board.board[ocoords.Item2, ocoords.Item1].Role);
-                Debug.Log(match.board.board[ocoords.Item2, ocoords.Item1].Color);
+                //Debug.Log(match.board.board[ocoords.Item2, ocoords.Item1].Role);
+                //Debug.Log(match.board.board[ocoords.Item2, ocoords.Item1].Color);
 
                 if (Selected == ocoords)
                 {
@@ -263,6 +337,13 @@ public class BoardManagerScript : MonoBehaviour
 
     public void Reset(bool color)
     {
+        GameOverOverlay.SetActive(false);
+        WinLabel.gameObject.SetActive(false);
+        LoseLabel.gameObject.SetActive(false);
+        DrawLabel.gameObject.SetActive(false);
+        ResetButton.gameObject.SetActive(false);
+        ExitButton.gameObject.SetActive(false);
+        
         Selected = (0, 0);
         Moved = (0, 0);
         
@@ -276,6 +357,11 @@ public class BoardManagerScript : MonoBehaviour
         match = new Match.Match(color, Depth, false, false);
         
         UpdatePieceTextures();
+    }
+
+    public void ResetCurrent()
+    {
+        Reset(Side);
     }
 
     public void DepthIncrease()
@@ -345,6 +431,9 @@ namespace BoardManagerInfo
         PromotionRook,
         PromotionBishop,
         PromotionKnight,
-        PromotionEmpty
+        PromotionEmpty,
+        PlayerWon,
+        BotWon,
+        Draw
     }
 }
