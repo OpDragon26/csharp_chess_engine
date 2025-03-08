@@ -436,13 +436,7 @@ namespace Board
 
         public override int GetHashCode()
         {
-            int Hash = GetBoardHash(this.board);
-            Hash = Hash * 31 + this.Side.GetHashCode();
-            Hash = Hash * 31 + GetArrayHash(this.EnpassantSquare);
-            Hash = Hash * 31 + GetArrayHash(this.Castling[false]);
-            Hash = Hash * 31 + GetArrayHash(this.Castling[true]);
-
-            return Hash;
+            return HashCodeHelper.ZobristHash.Hash(this);
         }
 
         void AddSelf()

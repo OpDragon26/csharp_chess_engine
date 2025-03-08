@@ -1,6 +1,5 @@
 using BoardManagerInfo;
 using Piece;
-using Unity.VisualScripting;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -45,6 +44,8 @@ public class BoardManagerScript : MonoBehaviour
     // Start is called once before the first execution of Update after the MonoBehaviour is created
     void Start()
     {
+        HashCodeHelper.ZobristHash.Init();
+        
         PromotionSelection = GameObject.FindGameObjectWithTag("Promotion");
         PromotionSelection.SetActive(false);
         StatusLabel.gameObject.SetActive(false);

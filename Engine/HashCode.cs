@@ -1,5 +1,4 @@
 using System.Collections.Generic;
-using System.Collections;
 using System;
 using Piece;
 
@@ -7,7 +6,7 @@ namespace HashCodeHelper
 {
     public static class HashCodeHelper
     {
-        public static int GetBoardHash<T>(T[,] array) // Written by DeepSeek, don't ask me how or why it works but it does
+        public static int GetBoardHash<T>(T[,] array) // Written by DeepSeek, don't ask me how or why it works, but it does
         {
             if (array == null)
                 throw new ArgumentNullException(nameof(array));
@@ -71,6 +70,68 @@ namespace HashCodeHelper
             }
 
             return LocalHashValues[piece.Role];
+        }
+    }
+
+    public static class ZobristHash
+    {
+        private static readonly int[][,] BitTables = new int[13][,]
+        {
+            new int[8,8],
+            new int[8,8],
+            new int[8,8],
+            new int[8,8],
+            new int[8,8],
+            new int[8,8],
+            new int[8,8],
+            new int[8,8],
+            new int[8,8],
+            new int[8,8],
+            new int[8,8],
+            new int[8,8],
+            new int[8,8],
+        };
+        private static int BlackToMove;
+        private static readonly Random RandGen = new();
+
+        public static void Init()
+        {
+            for (int i = 0; i < 12; i++)
+            {
+                for (int j = 0; j < 8; j++)
+                {
+                    for (int k = 0; k < 8; k++)
+                    {
+                        BitTables[i + 1][j, k] = RandInt();
+                    }
+                }
+            }
+
+            BlackToMove = RandInt();
+        }
+
+        public static int Hash(Board.Board board)
+        {
+            int hash = 0;
+            if (board.Side)
+                hash = hash ^ BlackToMove;
+            foreach ((int, int) coords in board.PiecePositions[false])
+            {
+                hash = hash ^ BitTables[board.board[coords.Item2, coords.Item1].GetHashCode()][coords.Item2, coords.Item1];
+            }
+            foreach ((int, int) coords in board.PiecePositions[true])
+            {
+                hash = hash ^ BitTables[board.board[coords.Item2, coords.Item1].GetHashCode()][coords.Item2, coords.Item1];
+            }
+
+            return hash;
+        }
+
+        private static int RandInt()
+        {
+            var buffer = new byte[sizeof(int)];
+            RandGen.NextBytes(buffer);
+            return BitConverter.ToInt32(buffer, 0);
         }
     }
 }
