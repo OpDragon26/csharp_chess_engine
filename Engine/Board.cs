@@ -23,6 +23,7 @@ namespace Board
         private int MoveChain;
         private Dictionary<int, int> Repetition =  new Dictionary<int, int>();
         private Outcome DeclaredOutcome = Outcome.Ongoing;
+        
         private Dictionary<bool, int[]> KingPos = new Dictionary<bool, int[]>{
             {true, new[] {8,8}},
             {false, new[] {8,8}},
@@ -31,6 +32,8 @@ namespace Board
             {false, new List<(int,int)>()},
             {true, new List<(int,int)>()},
         };
+
+        public int PieceCounter;
 
         private ReverseMove LastMove;
 
@@ -62,10 +65,15 @@ namespace Board
             bool[] blackCastle = this.Castling[true];
             int[] wKingPos =  this.KingPos[false];
             int[] bKingPos = this.KingPos[true];
-            
-            
+
+
             if (TargetPiece.Role != PieceType.Empty)
+            {
                 this.PiecePositions[TargetColor].Remove(MoveTo);
+                if (TargetPiece.Role != PieceType.Pawn)
+                    this.PieceCounter -= TargetPiece.LocalValue;
+            }
+                
             
             this.PiecePositions[OriginColor].Remove(MoveFrom);
             this.PiecePositions[OriginColor].Add(MoveTo);
@@ -203,6 +211,8 @@ namespace Board
             this.board[LastMove.OriginMove.Item2.Item2, LastMove.OriginMove.Item2.Item1] = LastMove.CapturedPiece;
             this.PiecePositions[this.Side].Remove(LastMove.OriginMove.Item2);
             
+            if (LastMove.CapturedPiece.Role != PieceType.Pawn)
+                this.PieceCounter += LastMove.CapturedPiece.LocalValue;
             
             // unmaking the extra move, if there is one
             if (LastMove.ExtraMove.Item1.Item1 != 8)
@@ -245,6 +255,7 @@ namespace Board
             NewBoard.KingPos[true] = NewBoard.GetKingPos(true);
             NewBoard.PiecePositions[false] = NewBoard.GetPiecePositions(false);
             NewBoard.PiecePositions[true] = NewBoard.GetPiecePositions(true);
+            NewBoard.Endgame();
             return NewBoard;
         }
 
@@ -270,6 +281,7 @@ namespace Board
             
             Clone.MoveChain = this.MoveChain;
             Clone.Repetition = new Dictionary<int, int>(this.Repetition);
+            Clone.PieceCounter = this.PieceCounter;
 
             Clone.PiecePositions[false] = new List<(int, int)>(this.PiecePositions[false]);
             Clone.PiecePositions[true] = new List<(int, int)>(this.PiecePositions[true]);
@@ -365,23 +377,28 @@ namespace Board
 
         public bool Endgame()
         {
-            int Total = 0;
-            
-            for (int i = 0; i < PiecePositions[false].Count; i++)
+            if (PieceCounter == 0)
             {
-                (int, int) coords = PiecePositions[false][i];
+                int Total = 0;
+                
+                for (int i = 0; i < PiecePositions[false].Count; i++)
+                {
+                    (int, int) coords = PiecePositions[false][i];
 
-                if (board[coords.Item2,coords.Item1].Role != PieceType.Pawn)
-                    Total += board[coords.Item2,coords.Item1].LocalValue;
+                    if (board[coords.Item2,coords.Item1].Role != PieceType.Pawn)
+                        Total += board[coords.Item2,coords.Item1].LocalValue;
+                }
+                for (int i = 0; i < PiecePositions[true].Count; i++)
+                {
+                    (int, int) coords = PiecePositions[true][i];
+                    if (board[coords.Item2,coords.Item1].Role != PieceType.Pawn)
+                        Total += board[coords.Item2,coords.Item1].LocalValue;
+                }
+                this.PieceCounter = Total;
+                
+                Debug.Log("Pieces counted");
             }
-            for (int i = 0; i < PiecePositions[true].Count; i++)
-            {
-                (int, int) coords = PiecePositions[true][i];
-                if (board[coords.Item2,coords.Item1].Role != PieceType.Pawn)
-                    Total += board[coords.Item2,coords.Item1].LocalValue;
-            }
-
-            return Total < 3600;
+            return PieceCounter <= 3200;
         }
 
         public (Outcome, List<Move.Move>) Status()

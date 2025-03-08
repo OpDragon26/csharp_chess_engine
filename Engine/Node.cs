@@ -103,6 +103,8 @@ namespace Node
         int StaticEvaluate()
         {
             int Eval = 0;
+            
+            //Debug.Log(board.PieceCounter);
 
             if (!board.Endgame())
             {
