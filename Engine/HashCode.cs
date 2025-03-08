@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using System.Collections;
 using System;
+using Piece;
 
 namespace HashCodeHelper
 {
@@ -45,6 +46,31 @@ namespace HashCodeHelper
             }
 
             return hash;
+        }
+        
+        static readonly Dictionary<PieceType, int> LocalHashValues = new Dictionary<PieceType, int>
+        {
+            { PieceType.Pawn, 1 },
+            { PieceType.Rook, 2 },
+            { PieceType.Knight, 3 },
+            { PieceType.Bishop, 4 },
+            { PieceType.Queen, 5 },
+            { PieceType.King, 6 },
+        };
+        
+        public static int GetPieceHashValue(Piece.Piece piece)
+        {
+            if (piece.Role == PieceType.Empty)
+            {
+                return 0;
+            }
+
+            if (piece.Color)
+            {
+                return LocalHashValues[piece.Role] + 6;
+            }
+
+            return LocalHashValues[piece.Role];
         }
     }
 }
