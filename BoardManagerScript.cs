@@ -383,6 +383,11 @@ public class BoardManagerScript : MonoBehaviour
             DepthLabel.text = "Depth: " + (match.Depth + 1).ToString();
         }
     }
+
+    public void QuitGame()
+    {
+        Application.Quit();
+    }
 }
 
 namespace BoardManagerInfo
