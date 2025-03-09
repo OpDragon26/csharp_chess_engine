@@ -77,15 +77,18 @@ namespace Match
         
         public (int, List<PieceType>, List<PieceType>) GetMaterialImbalance()
         {
-            // remove duplicate pieces
-            /*
-            for (int i = CapturedPieces[false].Count - 1; i >= 0; i--)
+            int imbalance = 0;
+            foreach (PieceType p in CapturedPieces[false])
             {
-                CapturedPieces[true].Remove(CapturedPieces[false][i]);
-                CapturedPieces[false].RemoveAt(i);
+                imbalance += Piece.Piece.Values[p];
             }
-            */
-            return (0, CapturedPieces[false], CapturedPieces[true]);
+
+            foreach (PieceType p in CapturedPieces[true])
+            {
+                imbalance -= Piece.Piece.Values[p];
+            }
+            
+            return (imbalance / 100, CapturedPieces[false], CapturedPieces[true]);
         }
     }
 }

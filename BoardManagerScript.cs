@@ -56,6 +56,9 @@ public class BoardManagerScript : MonoBehaviour
     
     public Button ResetButton;
     public Button ExitButton;
+
+    public Text WAdvantage;
+    public Text BAdvantage;
     
     // Start is called once before the first execution of Update after the MonoBehaviour is created
     void Start()
@@ -378,30 +381,79 @@ public class BoardManagerScript : MonoBehaviour
         List<PieceType> BlackPieces = imbalance.Item3;
         
         WhitePieces.Sort((x,y) => Piece.Piece.SortValues[y].CompareTo(Piece.Piece.SortValues[x]));
-
-        for (int i = 0; i < 16; i++)
+        
+        WAdvantage.text = "";
+        BAdvantage.text = "";
+        
+        if (match.PlayerSide)
         {
-            try
+            for (int i = 0; i < 16; i++)
             {
-                WMaterialVisualiserScripts[i].UpdateTexture(BoardManagerInfo.BoardManagerInfo.MVIndexes[WhitePieces[i]]);
+                try
+                {
+                    BMaterialVisualiserScripts[i].UpdateTexture(BoardManagerInfo.BoardManagerInfo.MVIndexes[WhitePieces[i]]);
+                }
+                catch
+                {
+                    BMaterialVisualiserScripts[i].UpdateTexture(6);
+                }
             }
-            catch
+
+            for (int i = 0; i < 16; i++)
             {
-                WMaterialVisualiserScripts[i].UpdateTexture(6);
+                try
+                {
+                    WMaterialVisualiserScripts[i].UpdateTexture(BoardManagerInfo.BoardManagerInfo.MVIndexes[BlackPieces[i]]);
+                }
+                catch
+                {
+                    WMaterialVisualiserScripts[i].UpdateTexture(6);
+                }
+            }
+
+            if (imbalance.Item1 > 0)
+            {
+                WAdvantage.text = "+" + imbalance.Item1.ToString();
+            }
+            else if (imbalance.Item1 != 0)
+            {
+                BAdvantage.text = "+" + (imbalance.Item1 * -1).ToString();
             }
         }
-
-        for (int i = 0; i < 16; i++)
+        else
         {
-            try
+            for (int i = 0; i < 16; i++)
             {
-                BMaterialVisualiserScripts[i].UpdateTexture(BoardManagerInfo.BoardManagerInfo.MVIndexes[BlackPieces[i]]);
-            }
-            catch
-            {
-                BMaterialVisualiserScripts[i].UpdateTexture(6);
+                try
+                {
+                    WMaterialVisualiserScripts[i].UpdateTexture(BoardManagerInfo.BoardManagerInfo.MVIndexes[WhitePieces[i]]);
+                }
+                catch
+                {
+                    WMaterialVisualiserScripts[i].UpdateTexture(6);
+                }
             }
 
+            for (int i = 0; i < 16; i++)
+            {
+                try
+                {
+                    BMaterialVisualiserScripts[i].UpdateTexture(BoardManagerInfo.BoardManagerInfo.MVIndexes[BlackPieces[i]]);
+                }
+                catch
+                {
+                    BMaterialVisualiserScripts[i].UpdateTexture(6);
+                }
+            }
+            
+            if (imbalance.Item1 > 0)
+            {
+                BAdvantage.text = "+" + imbalance.Item1.ToString();
+            }
+            else if (imbalance.Item1 != 0)
+            {
+                WAdvantage.text = "+" + (imbalance.Item1 * -1).ToString();
+            }
         }
     }
 
