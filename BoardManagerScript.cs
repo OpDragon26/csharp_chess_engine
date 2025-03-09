@@ -19,10 +19,14 @@ public class BoardManagerScript : MonoBehaviour
     public readonly GameObject[,] Squares = new GameObject[8, 8];
     public readonly GameObject[,] Pieces = new GameObject[8, 8];
     public readonly GameObject[,] Overlays = new GameObject[8, 8];
+    public readonly GameObject[] WMaterialVisualisers = new GameObject[16];
+    public readonly GameObject[] BMaterialVisualisers = new GameObject[16];
     
     SquareScript[,] SquareScripts = new SquareScript[8, 8];
     PieceScript[,] PieceScripts = new PieceScript[8, 8];
     OverlayScript[,] OverlayScripts = new OverlayScript[8, 8];
+    MaterialVisualiserScript[] WMaterialVisualiserScripts = new MaterialVisualiserScript[16];
+    MaterialVisualiserScript[] BMaterialVisualiserScripts = new MaterialVisualiserScript[16];
     
     GameObject PromotionSelection;
 

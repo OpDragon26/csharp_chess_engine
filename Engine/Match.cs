@@ -115,7 +115,20 @@ namespace Match
                 BlackMaterial += Piece.Piece.Values[p];
             }
             
-            return (WhiteMaterial - BlackMaterial, RemainingWhitePieces, RemainingBlackPieces);
+            
+            int l = RemainingWhitePieces.Count;
+            for (int i = l - 1; i >= 0; i--)
+            {
+                if (RemainingBlackPieces.Contains(RemainingWhitePieces[i]))
+                {
+                    RemainingBlackPieces.Remove(RemainingWhitePieces[i]);
+                    RemainingWhitePieces.RemoveAt(i);
+                }
+            }
+            
+            RemainingWhitePieces.Sort((x,y) => Piece.Piece.Values[x].CompareTo(Piece.Piece.Values[y]));
+            
+            return ((WhiteMaterial - BlackMaterial) / 10, RemainingWhitePieces, RemainingBlackPieces);
         }
     }
 }
