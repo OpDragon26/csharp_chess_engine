@@ -22,7 +22,7 @@ namespace Piece
         public int LocalValue;
         public int HashValue;
 
-        static readonly Dictionary<PieceType, int> Values = new Dictionary<PieceType, int>{
+        public static readonly Dictionary<PieceType, int> Values = new Dictionary<PieceType, int>{
             {PieceType.Pawn, 100},
             {PieceType.Rook, 500},
             {PieceType.Knight, 300},
@@ -32,12 +32,12 @@ namespace Piece
             {PieceType.Empty, 0},
         };
 
-        static Dictionary<bool, int> Multiplier = new Dictionary<bool, int>{
+        static readonly Dictionary<bool, int> Multiplier = new Dictionary<bool, int>{
             {false, 1},
             {true, -1},
         };
 
-        public Piece(PieceType role, bool color, bool hash =true)
+        public Piece(PieceType role, bool color, bool hash = true)
         {
             Color = color;
             Role = role;
