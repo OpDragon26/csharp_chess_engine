@@ -2,6 +2,8 @@ using Piece;
 using static Piece.Presets;
 using System.Collections.Generic;
 using System.Linq;
+using Unity.Mathematics;
+using UnityEditor;
 using UnityEngine;
 
 namespace Board
@@ -209,7 +211,7 @@ namespace Board
             // check for pieces
             for (int i = 0; i < 5; i++) 
             {
-                Pattern PiecePattern = Patterns.PiecePatterns[Patterns.CheckPiecess[i]];
+                Pattern PiecePattern = Patterns.PiecePatterns[Patterns.CheckPieces[i]];
 
                 if (PiecePattern.Repeat)
                 {
@@ -223,7 +225,7 @@ namespace Board
                             {
                                 Piece.Piece TargetPiece = board.board[Target.Item2,Target.Item1];
 
-                                if (TargetPiece.Color == color && TargetPiece.Role == Patterns.CheckPiecess[i])
+                                if (TargetPiece.Color == color && TargetPiece.Role == Patterns.CheckPieces[i])
                                 {
                                     return true;
                                 }
@@ -249,7 +251,7 @@ namespace Board
                         {
                             Piece.Piece TargetPiece = board.board[Target.Item2,Target.Item1];
 
-                            if (TargetPiece.Color == color && TargetPiece.Role == Patterns.CheckPiecess[i])
+                            if (TargetPiece.Color == color && TargetPiece.Role == Patterns.CheckPieces[i])
                             {
                                 return true;
                             }
@@ -288,12 +290,17 @@ namespace Board
         public (int,int)[] MovePattern; // file, rank
         public bool Repeat;
         public int Importance;
+        public PatternIterator Iterator;
 
         public Pattern((int,int)[] pattern, bool repeat, int  importance)
         {
             MovePattern = pattern;
             Repeat = repeat;
             Importance = importance;
+
+            if (repeat)
+                Iterator = new PatternIterator(MovePattern);
+            
         }
     }
 
@@ -419,12 +426,93 @@ namespace Board
             },
         };
 
-        internal static PieceType[] CheckPiecess = {
+        internal static PieceType[] CheckPieces = {
             PieceType.Knight,
             PieceType.Bishop,
             PieceType.Queen,
             PieceType.Rook,
             PieceType.King
         };
+    }
+
+    class PatternIterator
+    {
+        private (PatternState, PatternState)[] PatternStates;
+
+        public PatternIterator((int,int)[] pattern)
+        {
+            (PatternState, PatternState)[] newStates = new (PatternState, PatternState)[pattern.Length];
+            
+            for (int i = 0; i < pattern.Length; i++)
+            {
+                PatternState first;
+                PatternState second;
+                
+                if (pattern[i].Item1 == 0)
+                    first = PatternState.Zero;
+                else if (pattern[i].Item1 > 0)
+                    first = PatternState.Positive;
+                else
+                    first = PatternState.Negative;
+                
+                if (pattern[i].Item2 == 0)
+                    second = PatternState.Zero;
+                else if (pattern[i].Item2 > 0)
+                    second = PatternState.Positive;
+                else
+                    second = PatternState.Negative;
+                
+                newStates[i] = (first, second);
+            }
+            PatternStates = newStates;
+            
+        }
+
+        public int[] GetIterators((int, int) pos)
+        {
+            int l = PatternStates.Length;
+            
+            int[] iterators = new int[l];
+            
+            for (int i = 0; i < l; i++)
+            {
+                switch (PatternStates[i])
+                {
+                    case ((PatternState.Positive, PatternState.Zero)):
+                        iterators[i] = 7 - pos.Item1;
+                    break;
+                    case ((PatternState.Negative, PatternState.Zero)):
+                        iterators[i] = pos.Item1;
+                    break;
+                    case ((PatternState.Zero, PatternState.Positive)):
+                        iterators[i] = 7 - pos.Item2;
+                    break;
+                    case ((PatternState.Zero, PatternState.Negative)):
+                        iterators[i] = pos.Item2;
+                    break;
+                    case  ((PatternState.Positive, PatternState.Positive)):
+                        iterators[i] = math.min(7 - pos.Item1, 7 - pos.Item2);
+                    break;
+                    case  ((PatternState.Positive, PatternState.Negative)):
+                        iterators[i] = math.min(7 - pos.Item1, pos.Item2);
+                    break;
+                    case  ((PatternState.Negative, PatternState.Positive)):
+                        iterators[i] = math.min(pos.Item1, 7 - pos.Item2);
+                    break;
+                    case  ((PatternState.Negative, PatternState.Negative)):
+                        iterators[i] = math.min(pos.Item1, pos.Item2);
+                    break;
+                }
+            }
+            
+            return iterators;
+        }
+    }
+
+    enum PatternState
+    {
+        Positive,
+        Negative,
+        Zero
     }
 }
