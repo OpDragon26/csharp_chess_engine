@@ -126,7 +126,7 @@ namespace Board
                 PawnPattern pawnPattern = Patterns.PawnPatterns[color];
 
                 // forward moves
-                int[] TargetSquare = new int[] {pos[0] + pawnPattern.MovePattern[0,0], pos[1] + pawnPattern.MovePattern[0,1]};
+                int[] TargetSquare = new int[] {pos[0] + pawnPattern.MovePattern[0].Item1, pos[1] + pawnPattern.MovePattern[0].Item2};
                 Piece.Piece TargetPiece = board.board[TargetSquare[1],TargetSquare[0]];
                 bool SingleMove = false;
 
@@ -159,7 +159,7 @@ namespace Board
                 // double move
                 if (pos[1] == PawnPattern.DoubleMoveRanks[color] && SingleMove)
                 {
-                    TargetSquare = new [] {pos[0] + pawnPattern.MovePattern[0,0] * 2, pos[1] + pawnPattern.MovePattern[0,1] * 2};
+                    TargetSquare = new [] {pos[0] + pawnPattern.MovePattern[0].Item1 * 2, pos[1] + pawnPattern.MovePattern[0].Item2 * 2};
                     TargetPiece = board.board[TargetSquare[1],TargetSquare[0]];
 
                     if (TargetPiece == Empty)
@@ -170,7 +170,7 @@ namespace Board
                 // captures
                 for (int i= 0; i < 2; i++)
                 {
-                    TargetSquare = new[] {pos[0] + pawnPattern.CapturePattern[i,1], pos[1] + pawnPattern.CapturePattern[i,0]};
+                    TargetSquare = new[] {pos[0] + pawnPattern.CapturePattern[i].Item2, pos[1] + pawnPattern.CapturePattern[i].Item1};
                     if (ValidIndex(TargetSquare[0]) && ValidIndex(TargetSquare[1]))
                     {
                         TargetPiece = board.board[TargetSquare[1],TargetSquare[0]];
@@ -261,10 +261,10 @@ namespace Board
 
             // check for pawns
 
-            int[,] CheckPattern = Patterns.PawnPatterns[!color].CapturePattern; // opposite pattern used for backwards direction
+            (int,int)[] CheckPattern = Patterns.PawnPatterns[!color].CapturePattern; // opposite pattern used for backwards direction
             for (int i = 0; i < 2; i++)
             {
-                int[] TargetSquare = new int[] {pos[0] + CheckPattern[i,1], pos[1] + CheckPattern[i,0]};
+                int[] TargetSquare = {pos[0] + CheckPattern[i].Item2, pos[1] + CheckPattern[i].Item1};
                 if (ValidIndex(TargetSquare[0]) && ValidIndex(TargetSquare[1]))
                 {
                     Piece.Piece TargetPiece = board.board[TargetSquare[1],TargetSquare[0]];
@@ -301,16 +301,16 @@ namespace Board
 
     internal class PawnPattern
     {
-        public int[,] MovePattern;
-        public int[,] CapturePattern;
+        public readonly (int,int)[] MovePattern;
+        public readonly (int,int)[] CapturePattern;
 
-        public PawnPattern(int[,] movePattern, int[,] capturePattern)
+        public PawnPattern((int,int)[] movePattern, (int,int)[] capturePattern)
         {
             MovePattern = movePattern;
             CapturePattern = capturePattern;
         }
 
-        public static Dictionary<bool, int> DoubleMoveRanks = new Dictionary<bool, int>{
+        public static readonly Dictionary<bool, int> DoubleMoveRanks = new Dictionary<bool, int>{
             {false, 1},
             {true, 6},
         };
@@ -318,7 +318,7 @@ namespace Board
 
     public static class Patterns
     {
-        internal static Dictionary<PieceType, Pattern> PiecePatterns = new Dictionary<PieceType, Pattern>{
+        internal static readonly Dictionary<PieceType, Pattern> PiecePatterns = new Dictionary<PieceType, Pattern>{
             {PieceType.Knight, new Pattern(
                 new[] {
                     (2, 1),
@@ -404,19 +404,19 @@ namespace Board
 
         internal static Dictionary<bool, PawnPattern> PawnPatterns = new Dictionary<bool, PawnPattern>{
             {false,
-                new PawnPattern(new[,] {
-                    {0,1}
-                }, new[,] {
-                    {1,1},
-                    {1,-1}
+                new PawnPattern(new[] {
+                    (0,1)
+                }, new[] {
+                    (1,1),
+                    (1,-1)
                 })
             },
             {true,
-                new PawnPattern(new[,] {
-                    {0,-1}
-                }, new[,] {
-                    {-1,1},
-                    {-1,-1}
+                new PawnPattern(new[] {
+                    (0,-1)
+                }, new[] {
+                    (-1,1),
+                    (-1,-1)
                 })
             },
         };
