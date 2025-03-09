@@ -594,7 +594,7 @@ namespace Board
                 switch (newStates[i])
                 {
                     case PatternState.Positive:
-                            Validators.Add((int pos) =>  pos < 8);
+                        Validators.Add((int pos) =>  pos < 8);
                     break;
                     case PatternState.Negative:
                         Validators.Add((int pos) =>  pos >= 0);
