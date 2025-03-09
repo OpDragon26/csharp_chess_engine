@@ -210,10 +210,12 @@ namespace Board
 
                 if (PiecePattern.Repeat)
                 {
+                    int[] iterators = PiecePattern.Iterator.GetIterators(pos);
                     int l = PiecePattern.MovePattern.Length;
                     for (int k = 0; k < l; k++)
                     {
-                        for (int j = 0; j < 7; j++)
+                        int it = iterators[k];
+                        for (int j = 0; j < it; j++)
                         {
                             (int, int) Target = (pos.Item1 + PiecePattern.MovePattern[k].Item1 * (j + 1), pos.Item2 + PiecePattern.MovePattern[k].Item1 * (j + 1));
                             if (ValidIndex(Target.Item1) && ValidIndex(Target.Item2)) 
