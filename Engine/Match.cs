@@ -3,6 +3,7 @@ using static Piece.Presets;
 using System.Collections.Generic;
 using Piece;
 using Presets = Board.Presets;
+using UnityEngine;
 
 namespace Match
 {
@@ -21,10 +22,12 @@ namespace Match
 
         bool Debug;
         bool Notate;
-
-        private static List<PieceType> AllWhitePieces = new List<PieceType>();
-        private static List<PieceType> AllBlackPieces = new List<PieceType>();
-
+        
+        private Dictionary<bool, List<PieceType>> CapturedPieces = new Dictionary<bool, List<PieceType>>
+        {
+            { false, new List<PieceType>() },
+            { true, new List<PieceType>() }
+        };
 
         public Match(bool side, int depth, bool debug, bool notateMoves)
         {
@@ -32,20 +35,6 @@ namespace Match
             Depth = depth;
             Debug = debug;
             Notate = notateMoves;
-
-            for (int i = 0; i < 8; i++)
-            {
-                for (int j = 0; j < 8; j++)
-                {
-                    if (Presets.StartingBoard.board[i, j].Role != PieceType.Empty)
-                    {
-                        if (!Presets.StartingBoard.board[i, j].Color)
-                            AllWhitePieces.Add(Presets.StartingBoard.board[i, j].Role);
-                        else
-                            AllBlackPieces.Add(Presets.StartingBoard.board[i, j].Role);
-                    }
-                }
-            }
         }
 
         public bool StatusTest()
@@ -55,6 +44,12 @@ namespace Match
 
         public bool MakeMove(Move.Move move)
         {
+            if (board.board[move.To.Item2, move.To.Item1].Role != PieceType.Empty)
+            {
+                CapturedPieces[board.board[move.To.Item2,move.To.Item1].Color].Add(board.board[move.To.Item2,move.To.Item1].Role);
+                UnityEngine.Debug.Log(board.board[move.To.Item2,move.To.Item1].Role);
+            }
+            
             return board.MakeMove(move, true, false);
         }
 
@@ -64,6 +59,15 @@ namespace Match
             {
                 Node.Node node = new Node.Node(this.board);
                 Move.Move BotMove = node.BestMove(this.Depth);
+                
+                if (board.board[BotMove.To.Item2, BotMove.To.Item1].Role != PieceType.Empty)
+                {
+                    if (CapturedPieces[!board.board[BotMove.To.Item2, BotMove.To.Item1].Color].Contains(board.board[BotMove.To.Item2, BotMove.To.Item1].Role))
+                        CapturedPieces[!board.board[BotMove.To.Item2, BotMove.To.Item1].Color].Remove(board.board[BotMove.To.Item2, BotMove.To.Item1].Role);
+                    else
+                        CapturedPieces[board.board[BotMove.To.Item2,BotMove.To.Item1].Color].Add(board.board[BotMove.To.Item2,BotMove.To.Item1].Role);
+                }
+                
                 board.MakeMove(BotMove, false, false);
                 return BotMove;
             }
@@ -73,62 +77,15 @@ namespace Match
         
         public (int, List<PieceType>, List<PieceType>) GetMaterialImbalance()
         {
-            List<PieceType> WhitePieces = new List<PieceType>();
-            List<PieceType> BlackPieces = new List<PieceType>();
-            List<PieceType> RemainingWhitePieces = new List<PieceType>(AllWhitePieces);
-            List<PieceType> RemainingBlackPieces = new List<PieceType>(AllBlackPieces);
-            int WhiteMaterial = 0;
-            int BlackMaterial = 0;
-            
-            for (int i = 0; i < 8; i++)
+            // remove duplicate pieces
+            /*
+            for (int i = CapturedPieces[false].Count - 1; i >= 0; i--)
             {
-                for (int j = 0; j < 8; j++)
-                {
-                    if (this.board.board[i, j].Role != PieceType.Empty)
-                    {
-                        if (!Presets.StartingBoard.board[i, j].Color)
-                            WhitePieces.Add(Presets.StartingBoard.board[i, j].Role);
-                        else
-                            BlackPieces.Add(Presets.StartingBoard.board[i, j].Role);
-                    }
-                }
+                CapturedPieces[true].Remove(CapturedPieces[false][i]);
+                CapturedPieces[false].RemoveAt(i);
             }
-
-            foreach (PieceType p in WhitePieces)
-            {
-                RemainingWhitePieces.Remove(p);
-            }
-
-            foreach (PieceType p in BlackPieces)
-            {
-                RemainingBlackPieces.Remove(p);
-            }
-
-
-            foreach (PieceType p in RemainingWhitePieces)
-            {
-                WhiteMaterial += Piece.Piece.Values[p];
-            }
-
-            foreach (PieceType p in RemainingBlackPieces)
-            {
-                BlackMaterial += Piece.Piece.Values[p];
-            }
-            
-            
-            int l = RemainingWhitePieces.Count;
-            for (int i = l - 1; i >= 0; i--)
-            {
-                if (RemainingBlackPieces.Contains(RemainingWhitePieces[i]))
-                {
-                    RemainingBlackPieces.Remove(RemainingWhitePieces[i]);
-                    RemainingWhitePieces.RemoveAt(i);
-                }
-            }
-            
-            RemainingWhitePieces.Sort((x,y) => Piece.Piece.Values[x].CompareTo(Piece.Piece.Values[y]));
-            
-            return ((WhiteMaterial - BlackMaterial) / 10, RemainingWhitePieces, RemainingBlackPieces);
+            */
+            return (0, CapturedPieces[false], CapturedPieces[true]);
         }
     }
 }

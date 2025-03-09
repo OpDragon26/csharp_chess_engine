@@ -3,6 +3,7 @@ using BoardManagerInfo;
 using Piece;
 using UnityEngine;
 using UnityEngine.UI;
+using System.Collections.Generic;
 using Presets = Piece.Presets;
 
 // Todo:
@@ -90,6 +91,12 @@ public class BoardManagerScript : MonoBehaviour
                 
                 OverlayScripts[i,j] = Overlays[i,j].GetComponent<OverlayScript>();
             }
+        }
+
+        for (int i = 0; i < 16; i++)
+        {
+            WMaterialVisualiserScripts[i] = WMaterialVisualisers[i].GetComponent<MaterialVisualiserScript>();
+            BMaterialVisualiserScripts[i] = BMaterialVisualisers[i].GetComponent<MaterialVisualiserScript>();
         }
         
         UpdatePieceTextures();
@@ -292,6 +299,8 @@ public class BoardManagerScript : MonoBehaviour
                 PieceScripts[i,j].UpdateTexture(match.board.board[coords.Item1, coords.Item2]);
             }
         }
+        
+        UpdateMaterialVisualisers();
     }
 
     public void Click((int,int) coords)
@@ -361,6 +370,41 @@ public class BoardManagerScript : MonoBehaviour
         OverlayScripts[from.Item1, from.Item2].UpdateTexture(2);
     }
 
+    public void UpdateMaterialVisualisers()
+    {
+        (int, List<PieceType>, List<PieceType>) imbalance = match.GetMaterialImbalance();
+        
+        List<PieceType> WhitePieces = imbalance.Item2;
+        List<PieceType> BlackPieces = imbalance.Item3;
+        
+        WhitePieces.Sort((x,y) => Piece.Piece.SortValues[y].CompareTo(Piece.Piece.SortValues[x]));
+
+        for (int i = 0; i < 16; i++)
+        {
+            try
+            {
+                WMaterialVisualiserScripts[i].UpdateTexture(BoardManagerInfo.BoardManagerInfo.MVIndexes[WhitePieces[i]]);
+            }
+            catch
+            {
+                WMaterialVisualiserScripts[i].UpdateTexture(6);
+            }
+        }
+
+        for (int i = 0; i < 16; i++)
+        {
+            try
+            {
+                BMaterialVisualiserScripts[i].UpdateTexture(BoardManagerInfo.BoardManagerInfo.MVIndexes[BlackPieces[i]]);
+            }
+            catch
+            {
+                BMaterialVisualiserScripts[i].UpdateTexture(6);
+            }
+
+        }
+    }
+
     public void Reset(bool color)
     {
         GameOverOverlay.SetActive(false);
@@ -369,6 +413,14 @@ public class BoardManagerScript : MonoBehaviour
         DrawLabel.gameObject.SetActive(false);
         ResetButton.gameObject.SetActive(false);
         ExitButton.gameObject.SetActive(false);
+        
+        for (int i = 0; i < 8; i++)
+        {
+            for (int j = 0; j < 8; j++)
+            {
+                OverlayScripts[i, j].UpdateTexture(0);
+            }
+        }
         
         Selected = (0, 0);
         Moved = (0, 0);
@@ -452,6 +504,16 @@ namespace BoardManagerInfo
                 return coords.Item2 == 7;
             }
         }
+
+        public static Dictionary<PieceType, int> MVIndexes = new Dictionary<PieceType, int>
+        {
+            {PieceType.Pawn, 0},
+            {PieceType.Rook, 1},
+            {PieceType.Knight, 2},
+            {PieceType.Bishop, 3},
+            {PieceType.Queen, 4},
+            {PieceType.King, 5},
+        };
     }
 
     public enum BmStatus

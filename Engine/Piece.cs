@@ -31,6 +31,15 @@ namespace Piece
             {PieceType.King, 1000},
             {PieceType.Empty, 0},
         };
+        
+        public static readonly Dictionary<PieceType, int> SortValues = new Dictionary<PieceType, int>{
+            {PieceType.Pawn, 1},
+            {PieceType.Rook, 4},
+            {PieceType.Knight, 2},
+            {PieceType.Bishop, 3},
+            {PieceType.Queen, 5},
+            {PieceType.King, 6},
+        };
 
         static readonly Dictionary<bool, int> Multiplier = new Dictionary<bool, int>{
             {false, 1},
