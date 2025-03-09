@@ -1,10 +1,9 @@
+using System;
 using Piece;
 using static Piece.Presets;
 using System.Collections.Generic;
-using System.Linq;
 using Unity.Mathematics;
-using UnityEditor;
-using UnityEngine;
+
 
 namespace Board
 {
@@ -434,6 +433,7 @@ namespace Board
     class PatternIterator
     {
         private (PatternState, PatternState)[] PatternStates;
+        List<Func<(int,int) ,int>> IteratorCalculators  = new List<Func<(int,int),int>>();
 
         public PatternIterator((int,int)[] pattern)
         {
@@ -459,6 +459,34 @@ namespace Board
                     second = PatternState.Negative;
                 
                 newStates[i] = (first, second);
+                
+                switch (newStates[i])
+                {
+                    case ((PatternState.Positive, PatternState.Zero)):
+                        IteratorCalculators.Add(( pos) =>  7 - pos.Item1);
+                    break;
+                    case ((PatternState.Negative, PatternState.Zero)):
+                        IteratorCalculators.Add(( pos) =>  pos.Item1);
+                    break;
+                    case ((PatternState.Zero, PatternState.Positive)):
+                        IteratorCalculators.Add(( pos) =>  7 - pos.Item2);
+                    break;
+                    case ((PatternState.Zero, PatternState.Negative)):
+                        IteratorCalculators.Add(( pos) =>  pos.Item2);
+                    break;
+                    case  ((PatternState.Positive, PatternState.Positive)):
+                        IteratorCalculators.Add(( pos) =>  math.min(7 - pos.Item1, 7 - pos.Item2));
+                    break;
+                    case  ((PatternState.Positive, PatternState.Negative)):
+                        IteratorCalculators.Add(( pos) =>  math.min(7 - pos.Item1, pos.Item2));
+                    break;
+                    case  ((PatternState.Negative, PatternState.Positive)):
+                        IteratorCalculators.Add(( pos) =>  math.min(pos.Item1, 7 - pos.Item2));
+                    break;
+                    case  ((PatternState.Negative, PatternState.Negative)):
+                        IteratorCalculators.Add(( pos) =>  math.min(pos.Item1, pos.Item2));
+                    break;
+                }
             }
             PatternStates = newStates;
             
@@ -472,33 +500,7 @@ namespace Board
             
             for (int i = 0; i < l; i++)
             {
-                switch (PatternStates[i])
-                {
-                    case ((PatternState.Positive, PatternState.Zero)):
-                        iterators[i] = 7 - pos.Item1;
-                    break;
-                    case ((PatternState.Negative, PatternState.Zero)):
-                        iterators[i] = pos.Item1;
-                    break;
-                    case ((PatternState.Zero, PatternState.Positive)):
-                        iterators[i] = 7 - pos.Item2;
-                    break;
-                    case ((PatternState.Zero, PatternState.Negative)):
-                        iterators[i] = pos.Item2;
-                    break;
-                    case  ((PatternState.Positive, PatternState.Positive)):
-                        iterators[i] = math.min(7 - pos.Item1, 7 - pos.Item2);
-                    break;
-                    case  ((PatternState.Positive, PatternState.Negative)):
-                        iterators[i] = math.min(7 - pos.Item1, pos.Item2);
-                    break;
-                    case  ((PatternState.Negative, PatternState.Positive)):
-                        iterators[i] = math.min(pos.Item1, 7 - pos.Item2);
-                    break;
-                    case  ((PatternState.Negative, PatternState.Negative)):
-                        iterators[i] = math.min(pos.Item1, pos.Item2);
-                    break;
-                }
+                iterators[i] = IteratorCalculators[i](pos);
             }
             
             return iterators;
