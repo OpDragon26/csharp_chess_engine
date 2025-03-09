@@ -10,15 +10,29 @@ namespace Board
         public static List<Move.Move> Search(Board board, bool color, bool ordering)
         {
             List<Move.Move> MoveList = new List<Move.Move>();
+            List<(int, int)> Pieces = board.PiecePositions[color];
+            int l = Pieces.Count;
 
-            for (int i = 0; i < board.PiecePositions[color].Count; i++)
+            for (int i = 0; i < l; i++)
             {
-                (int, int) coords = board.PiecePositions[color][i];
+                (int, int) coords = Pieces[i];
+                Piece.Piece Selected = board.board[coords.Item2, coords.Item1];
 
-                if (board.board[coords.Item2,coords.Item1].Color == color && board.board[coords.Item2,coords.Item1].Role != PieceType.Empty)
+                if (Selected.Color == color && Selected.Role != PieceType.Empty)
                 {
-                    MoveList.AddRange(SearchPiece(board, board.board[coords.Item2,coords.Item1].Role, color, new[] {coords.Item1,coords.Item2}));
+                    MoveList.AddRange(SearchPiece(board, Selected.Role, color, new[] {coords.Item1,coords.Item2}));
                 }
+            }
+            
+            Board MoveBoard = board.DeepCopy();
+            l = MoveList.Count;
+            for (int i = l - 1; i >= 0; i--)
+            {
+                MoveBoard.MakeMove(MoveList[i], false, true);
+                if (MoveBoard.KingInCheck(color))
+                    MoveList.RemoveAt(i);
+                
+                MoveBoard.UnmakeMove();
             }
             
             if (ordering)
@@ -26,7 +40,7 @@ namespace Board
             return MoveList;
         }
 
-        public static List<Move.Move> SearchPiece(Board board, PieceType role, bool color, int[] pos)
+        private static List<Move.Move> SearchPiece(Board board, PieceType role, bool color, int[] pos)
         {
            List<Move.Move> MoveList = new List<Move.Move>();
 
@@ -36,22 +50,24 @@ namespace Board
 
                 if (PiecePattern.Repeat)
                 {
-                    for (int i = 0; i < PiecePattern.MovePattern.Length / 2; i++)
+                    int l = PiecePattern.MovePattern.Length / 2;
+                    for (int i = 0; i < l; i++)
                     {
                         for (int j = 0; j < 7; j++)
                         {
-                            if (ValidIndex(pos[0] + PiecePattern.MovePattern[i,0] * (j + 1)) && ValidIndex(pos[1] + PiecePattern.MovePattern[i,1] * (j + 1))) 
+                            (int,int) Target = (pos[0] + PiecePattern.MovePattern[i,0] * (j + 1),  pos[1] + PiecePattern.MovePattern[i,1] * (j + 1));
+                            if (ValidIndex(Target.Item1) && ValidIndex(Target.Item2)) 
                             {
-                                int[] TargetSquare = new int[] {pos[0] + PiecePattern.MovePattern[i,0] * (j + 1), pos[1] + PiecePattern.MovePattern[i,1] * (j + 1)};
+                                int[] TargetSquare = {Target.Item1, Target.Item2};
                                 Piece.Piece TargetPiece = board.board[TargetSquare[1],TargetSquare[0]];
 
                                 if (TargetPiece.Role == PieceType.Empty)
                                 {
-                                    MoveList.Add(new Move.Move(pos, TargetSquare, Empty, 0));
+                                    MoveList.Add(new Move.Move(pos, TargetSquare, Empty, PiecePattern.Importance));
                                 }
                                 else if (TargetPiece.Color != color)
                                 {
-                                    MoveList.Add(new Move.Move(pos, TargetSquare, Empty, 5));
+                                    MoveList.Add(new Move.Move(pos, TargetSquare, Empty, 5 - PiecePattern.Importance));
                                     break;
                                 }
                                 else
@@ -68,19 +84,18 @@ namespace Board
                 }
                 else
                 {
-                    for (int i = 0; i < PiecePattern.MovePattern.Length / 2; i++)
+                    int l  = PiecePattern.MovePattern.Length / 2;
+                    for (int i = 0; i < l; i++)
                     {
-                        if (ValidIndex(pos[0] + PiecePattern.MovePattern[i,0]) && ValidIndex(pos[1] + PiecePattern.MovePattern[i,1])) {
-                            int[] TargetSquare = new[] {pos[0] + PiecePattern.MovePattern[i,0], pos[1] + PiecePattern.MovePattern[i,1]};
+                        (int, int) Target = (pos[0] + PiecePattern.MovePattern[i, 0], pos[1] + PiecePattern.MovePattern[i, 1]);
+                        if (ValidIndex(Target.Item1) && ValidIndex(Target.Item2)) {
+                            int[] TargetSquare = {Target.Item1, Target.Item2};
                             Piece.Piece TargetPiece = board.board[TargetSquare[1],TargetSquare[0]];
 
                             if (TargetPiece == Empty) 
-                                MoveList.Add(new Move.Move(pos, TargetSquare, Empty, 0));
-                            
+                                MoveList.Add(new Move.Move(pos, TargetSquare, Empty, PiecePattern.Importance));
                             else if (TargetPiece.Color != color) 
-                                MoveList.Add(new Move.Move(pos, TargetSquare, Empty, 5));
-
-                            
+                                MoveList.Add(new Move.Move(pos, TargetSquare, Empty, 5 - PiecePattern.Importance));
                         }
                     }
 
@@ -122,16 +137,16 @@ namespace Board
                         if (color)
                         {
                             MoveList.Add(new Move.Move(pos, TargetSquare, B_Queen, 6));
-                            MoveList.Add(new Move.Move(pos, TargetSquare, B_Rook, -1));
-                            MoveList.Add(new Move.Move(pos, TargetSquare, B_Knight, -1));
-                            MoveList.Add(new Move.Move(pos, TargetSquare, B_Bishop, -1));
+                            MoveList.Add(new Move.Move(pos, TargetSquare, B_Rook, -3));
+                            MoveList.Add(new Move.Move(pos, TargetSquare, B_Knight, -3));
+                            MoveList.Add(new Move.Move(pos, TargetSquare, B_Bishop, -3));
                         }
                         else
                         {
                             MoveList.Add(new Move.Move(pos, TargetSquare, W_Queen, 6));
-                            MoveList.Add(new Move.Move(pos, TargetSquare, W_Rook, -1));
-                            MoveList.Add(new Move.Move(pos, TargetSquare, W_Knight, -1));
-                            MoveList.Add(new Move.Move(pos, TargetSquare, W_Bishop, -1));
+                            MoveList.Add(new Move.Move(pos, TargetSquare, W_Rook, -3));
+                            MoveList.Add(new Move.Move(pos, TargetSquare, W_Knight, -3));
+                            MoveList.Add(new Move.Move(pos, TargetSquare, W_Bishop, -3));
                         }
                     }
                     else // simple move
@@ -167,37 +182,26 @@ namespace Board
                                 if (color)
                                 {
                                     MoveList.Add(new Move.Move(pos, TargetSquare, B_Queen, 8));
-                                    MoveList.Add(new Move.Move(pos, TargetSquare, B_Rook, 0));
-                                    MoveList.Add(new Move.Move(pos, TargetSquare, B_Knight, 0));
-                                    MoveList.Add(new Move.Move(pos, TargetSquare, B_Bishop, 0));
+                                    MoveList.Add(new Move.Move(pos, TargetSquare, B_Rook, -3));
+                                    MoveList.Add(new Move.Move(pos, TargetSquare, B_Knight, -3));
+                                    MoveList.Add(new Move.Move(pos, TargetSquare, B_Bishop, -3));
                                 }
                                 else
                                 {
                                     MoveList.Add(new Move.Move(pos, TargetSquare, W_Queen, 8));
-                                    MoveList.Add(new Move.Move(pos, TargetSquare, W_Rook, 0));
-                                    MoveList.Add(new Move.Move(pos, TargetSquare, W_Knight, 0));
-                                    MoveList.Add(new Move.Move(pos, TargetSquare, W_Bishop, 0));
+                                    MoveList.Add(new Move.Move(pos, TargetSquare, W_Rook, -3));
+                                    MoveList.Add(new Move.Move(pos, TargetSquare, W_Knight, -3));
+                                    MoveList.Add(new Move.Move(pos, TargetSquare, W_Bishop, -3));
                                 }
                             }
                             else // simple move
                             {
-                                MoveList.Add(new Move.Move(pos, TargetSquare, Empty, 5));
+                                MoveList.Add(new Move.Move(pos, TargetSquare, Empty, 6));
                             }
                         }
                     }
                 }
             }
-            
-            Board MoveBoard = board.DeepCopy();
-            for (int i = MoveList.Count - 1; i >= 0; i--)
-            {
-                MoveBoard.MakeMove(MoveList[i], false, true);
-                if (MoveBoard.KingInCheck(color))
-                    MoveList.RemoveAt(i);
-                
-                MoveBoard.UnmakeMove();
-            }
-
             return MoveList;
         }
 
@@ -210,20 +214,21 @@ namespace Board
 
                 if (PiecePattern.Repeat)
                 {
-                    for (int k = 0; k < PiecePattern.MovePattern.Length / 2; k++)
+                    int l = PiecePattern.MovePattern.Length / 2;
+                    for (int k = 0; k < l; k++)
                     {
-                        for (int j = 0; j < 8; j++)
+                        for (int j = 0; j < 7; j++)
                         {
-                            if (ValidIndex(pos[0] + PiecePattern.MovePattern[k,0] * (j + 1)) && ValidIndex(pos[1] + PiecePattern.MovePattern[k,1] * (j + 1))) 
+                            (int, int) Target = (pos[0] + PiecePattern.MovePattern[k,0] * (j + 1), pos[1] + PiecePattern.MovePattern[k,1] * (j + 1));
+                            if (ValidIndex(Target.Item1) && ValidIndex(Target.Item2)) 
                             {
-                                int[] TargetSquare = new int[] {pos[0] + PiecePattern.MovePattern[k,0] * (j + 1), pos[1] + PiecePattern.MovePattern[k,1] * (j + 1)};
-                                Piece.Piece TargetPiece = board.board[TargetSquare[1],TargetSquare[0]];
+                                Piece.Piece TargetPiece = board.board[Target.Item2,Target.Item1];
 
                                 if (TargetPiece.Color == color && TargetPiece.Role == Patterns.CheckPiecess[i])
                                 {
                                     return true;
                                 }
-                                else if (TargetPiece.Role != PieceType.Empty)
+                                if (TargetPiece.Role != PieceType.Empty)
                                 {
                                     break;
                                 }
@@ -237,11 +242,13 @@ namespace Board
                 }
                 else
                 {
-                    for (int j = 0; j < PiecePattern.MovePattern.Length / 2; j++)
+                    int l =  PiecePattern.MovePattern.Length / 2;
+                    for (int j = 0; j < l; j++)
                     {
-                        if (ValidIndex(pos[0] + PiecePattern.MovePattern[j,0]) && ValidIndex(pos[1] + PiecePattern.MovePattern[j,1])) {
-                            int[] TargetSquare = new int[] {pos[0] + PiecePattern.MovePattern[j,0], pos[1] + PiecePattern.MovePattern[j,1]};
-                            Piece.Piece TargetPiece = board.board[TargetSquare[1],TargetSquare[0]];
+                        (int, int) Target = (pos[0] + PiecePattern.MovePattern[j,0], pos[1] + PiecePattern.MovePattern[j,1]);
+                        if (ValidIndex(Target.Item1) && ValidIndex(Target.Item2)) 
+                        {
+                            Piece.Piece TargetPiece = board.board[Target.Item2,Target.Item1];
 
                             if (TargetPiece.Color == color && TargetPiece.Role == Patterns.CheckPiecess[i])
                             {
@@ -272,7 +279,7 @@ namespace Board
             return false;
         }
 
-        public static bool ValidIndex(int index)
+        private static bool ValidIndex(int index)
         {
             return index >= 0 && index < 8;
         }
@@ -282,25 +289,25 @@ namespace Board
     {
         public int[,] MovePattern; // file, rank
         public bool Repeat;
+        public int Importance;
 
-        public Pattern(int[,] pattern, bool repeat)
+        public Pattern(int[,] pattern, bool repeat, int  importance)
         {
             MovePattern = pattern;
             Repeat = repeat;
+            Importance = importance;
         }
     }
 
     internal class PawnPattern
     {
-        public int[,] MovePattern = new int[,] {};
-        public int[,] CapturePattern = new int[,] {};
+        public int[,] MovePattern;
+        public int[,] CapturePattern;
 
-        public static PawnPattern Constructor(int[,] movePattern, int[,] capturePattern)
+        public PawnPattern(int[,] movePattern, int[,] capturePattern)
         {
-            PawnPattern NewPattern = new PawnPattern();
-            NewPattern.MovePattern = movePattern;
-            NewPattern.CapturePattern = capturePattern;
-            return NewPattern;
+            MovePattern = movePattern;
+            CapturePattern = capturePattern;
         }
 
         public static Dictionary<bool, int> DoubleMoveRanks = new Dictionary<bool, int>{
@@ -323,7 +330,8 @@ namespace Board
                     {-1,2},
                     {-1,-2},
                 },
-                false
+                false,
+                2
             )},
             {PieceType.Rook, new Pattern(
                 new[,] {
@@ -332,7 +340,8 @@ namespace Board
                     {1,0},
                     {-1,0},
                 },
-                true
+                true,
+                0
             )},
             {PieceType.Bishop, new Pattern(
                 new[,] {
@@ -341,7 +350,8 @@ namespace Board
                     {-1,-1},
                     {-1,1},
                 },
-                true
+                true,
+                2
             )},
             {PieceType.Queen, new Pattern(
                 new[,] {
@@ -354,7 +364,8 @@ namespace Board
                     {-1,-1},
                     {-1,1},
                 },
-                true
+                true,
+                3
             )},
             {PieceType.King, new Pattern(
                 new[,] {
@@ -367,7 +378,8 @@ namespace Board
                     {-1,-1},
                     {-1,1},
                 },
-                false
+                false,
+                -1
             )},
         };
 
@@ -376,21 +388,23 @@ namespace Board
                 {2,0},
                 {-2,0},
             },
-            false
+            false,
+            2
         );
         internal static Pattern SkipPattern = new Pattern(
             new[,] {
                 {1,0},
                 {-1,0},
             },
-            false
+            false,
+            0
         );
 
         internal static int[] LongCastleSkip = {-3,0};
 
         internal static Dictionary<bool, PawnPattern> PawnPatterns = new Dictionary<bool, PawnPattern>{
             {false,
-                PawnPattern.Constructor(new[,] {
+                new PawnPattern(new[,] {
                     {0,1}
                 }, new[,] {
                     {1,1},
@@ -398,7 +412,7 @@ namespace Board
                 })
             },
             {true,
-                PawnPattern.Constructor(new[,] {
+                new PawnPattern(new[,] {
                     {0,-1}
                 }, new[,] {
                     {-1,1},
