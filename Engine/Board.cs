@@ -16,7 +16,7 @@ namespace Board
             {true, new [] {true, true}},
         };
 
-        public int[] EnpassantSquare = {8,8}; // file, rank  8,8 for no en passant
+        public (int,int) EnpassantSquare = (8,8); // file, rank  8,8 for no en passant
         public bool Side;
 
         // 50 move rule
@@ -24,9 +24,9 @@ namespace Board
         private Dictionary<int, int> Repetition =  new Dictionary<int, int>();
         private Outcome DeclaredOutcome = Outcome.Ongoing;
         
-        private Dictionary<bool, int[]> KingPos = new Dictionary<bool, int[]>{
-            {true, new[] {8,8}},
-            {false, new[] {8,8}},
+        private Dictionary<bool, (int,int)> KingPos = new Dictionary<bool, (int,int)>{
+            {true, (8,8)},
+            {false, (8,8)},
         };
         public Dictionary<bool, List<(int,int)>> PiecePositions = new Dictionary<bool, List<(int,int)>>{
             {false, new List<(int,int)>()},
@@ -49,10 +49,10 @@ namespace Board
             }
              
             // local variables storing data that is accessed over and over
-            (int, int) MoveTo = (move.To[0],move.To[1]);
-            (int, int) MoveFrom = (move.From[0], move.From[1]);
-            Piece.Piece OriginPiece = this.board[move.From[1],move.From[0]];
-            Piece.Piece TargetPiece = this.board[move.To[1],move.To[0]];
+            (int, int) MoveTo = (move.To.Item1,move.To.Item2);
+            (int, int) MoveFrom = (move.From.Item1, move.From.Item2);
+            Piece.Piece OriginPiece = this.board[move.From.Item2,move.From.Item1];
+            Piece.Piece TargetPiece = this.board[move.To.Item2,move.To.Item1];
             bool OriginColor = OriginPiece.Color;
             bool TargetColor = TargetPiece.Color;
             
@@ -60,11 +60,11 @@ namespace Board
             ((int, int), (int, int)) extraMove = ((8, 8), (8, 8));
             (int, int) enpassant = (8,8);
             int moveChain = this.MoveChain;
-            int[] prevEnpassant = this.EnpassantSquare;
+            (int,int) prevEnpassant = this.EnpassantSquare;
             bool[] whiteCastle = this.Castling[false];
             bool[] blackCastle = this.Castling[true];
-            int[] wKingPos =  this.KingPos[false];
-            int[] bKingPos = this.KingPos[true];
+            (int,int) wKingPos =  this.KingPos[false];
+            (int,int) bKingPos = this.KingPos[true];
 
 
             if (TargetPiece.Role != PieceType.Empty)
@@ -85,104 +85,104 @@ namespace Board
             
 
             if (move.Promotion != Empty)
-                this.board[move.To[1],move.To[0]] = move.Promotion;
+                this.board[move.To.Item2,move.To.Item1] = move.Promotion;
             else
-                this.board[move.To[1],move.To[0]] = OriginPiece;
+                this.board[move.To.Item2,move.To.Item1] = OriginPiece;
             
-            this.board[move.From[1],move.From[0]] = Empty;
+            this.board[move.From.Item2,move.From.Item1] = Empty;
             
             // castling
-            if (Enumerable.SequenceEqual(new[] {move.From[1],move.From[0]}, Presets.WKStartPos) && OriginPiece.Role == PieceType.King)
+            if (move.From == Presets.WKStartPos && OriginPiece.Role == PieceType.King)
             {
-                if (Enumerable.SequenceEqual(new[] {move.To[1],move.To[0]}, Presets.WKShortCastlePos) && this.Castling[false][0])
+                if (move.To == Presets.WKShortCastlePos && this.Castling[false][0])
                 {
-                    this.board[Presets.WRShortCastlePos[0],Presets.WRShortCastlePos[1]] = Empty;
-                    this.board[Presets.WRShortCastleDest[0],Presets.WRShortCastleDest[1]] = W_Rook;
-                    this.PiecePositions[false].Add((Presets.WRShortCastleDest[1],Presets.WRShortCastleDest[0]));
-                    this.PiecePositions[false].Remove((Presets.WRShortCastlePos[1],Presets.WRShortCastlePos[0]));
+                    this.board[Presets.WRShortCastlePos.Item2,Presets.WRShortCastlePos.Item1] = Empty;
+                    this.board[Presets.WRShortCastleDest.Item2,Presets.WRShortCastleDest.Item1] = W_Rook;
+                    this.PiecePositions[false].Add(Presets.WRShortCastleDest);
+                    this.PiecePositions[false].Remove(Presets.WRShortCastlePos);
                     this.Castling[false] = new[] {false, false};
 
-                    extraMove = ((Presets.WRShortCastlePos[1],Presets.WRShortCastlePos[0]), (Presets.WRShortCastleDest[1],Presets.WRShortCastleDest[0]));
+                    extraMove = (Presets.WRShortCastlePos, Presets.WRShortCastleDest);
                 } 
-                else if (Enumerable.SequenceEqual(new[] {move.To[1],move.To[0]}, Presets.WKLongCastlePos) && this.Castling[false][1])
+                else if (move.To == Presets.WKLongCastlePos && this.Castling[false][1])
                 {
-                    this.board[Presets.WRLongCastlePos[0],Presets.WRLongCastlePos[1]] = Empty;
-                    this.board[Presets.WRLongCastleDest[0],Presets.WRLongCastleDest[1]] = W_Rook;
-                    this.PiecePositions[false].Add((Presets.WRLongCastleDest[1],Presets.WRLongCastleDest[0]));
-                    this.PiecePositions[false].Remove((Presets.WRLongCastlePos[1],Presets.WRLongCastlePos[0]));
+                    this.board[Presets.WRLongCastlePos.Item2,Presets.WRLongCastlePos.Item1] = Empty;
+                    this.board[Presets.WRLongCastleDest.Item2,Presets.WRLongCastleDest.Item1] = W_Rook;
+                    this.PiecePositions[false].Add(Presets.WRLongCastleDest);
+                    this.PiecePositions[false].Remove(Presets.WRLongCastlePos);
                     this.Castling[false] = new[] {false, false};
                     
-                    extraMove = ((Presets.WRLongCastlePos[1],Presets.WRLongCastlePos[0]), (Presets.WRLongCastleDest[1],Presets.WRLongCastleDest[0]));
+                    extraMove = (Presets.WRLongCastlePos, Presets.WRLongCastleDest);
                 }
             } 
-            else if (Enumerable.SequenceEqual(new[] {move.From[1],move.From[0]}, Presets.BKStartPos) && OriginPiece.Role == PieceType.King)
+            else if (move.From == Presets.BKStartPos && OriginPiece.Role == PieceType.King)
             {
-                if (Enumerable.SequenceEqual(new[] {move.To[1],move.To[0]}, Presets.BKShortCastlePos) && this.Castling[true][0])
+                if (move.To == Presets.BKShortCastlePos && this.Castling[true][0])
                 {
-                    this.board[Presets.BRShortCastlePos[0],Presets.BRShortCastlePos[1]] = Empty;
-                    this.board[Presets.BRShortCastleDest[0],Presets.BRShortCastleDest[1]] = B_Rook;
-                    this.PiecePositions[true].Add((Presets.BRShortCastleDest[1],Presets.BRShortCastleDest[0]));
-                    this.PiecePositions[true].Remove((Presets.BRShortCastlePos[1],Presets.BRShortCastlePos[0]));
+                    this.board[Presets.BRShortCastlePos.Item2,Presets.BRShortCastlePos.Item1] = Empty;
+                    this.board[Presets.BRShortCastleDest.Item2,Presets.BRShortCastleDest.Item1] = B_Rook;
+                    this.PiecePositions[true].Add(Presets.BRShortCastleDest);
+                    this.PiecePositions[true].Remove(Presets.BRShortCastlePos);
                     this.Castling[true] = new[] {false, false};
                     
-                    extraMove = ((Presets.BRShortCastlePos[1],Presets.BRShortCastlePos[0]), (Presets.BRShortCastleDest[1],Presets.BRShortCastleDest[0]));
+                    extraMove = (Presets.BRShortCastlePos, Presets.BRShortCastleDest);
                 } 
-                else if (Enumerable.SequenceEqual(new[] {move.To[1],move.To[0]}, Presets.BKLongCastlePos) && this.Castling[true][1])
+                else if (move.To == Presets.BKLongCastlePos && this.Castling[true][1])
                 {
-                    this.board[Presets.BRLongCastlePos[0],Presets.BRLongCastlePos[1]] = Empty;
-                    this.board[Presets.BRLongCastleDest[0],Presets.BRLongCastleDest[1]] = B_Rook;
-                    this.PiecePositions[true].Add((Presets.BRLongCastleDest[1],Presets.BRLongCastleDest[0]));
-                    this.PiecePositions[true].Remove((Presets.BRLongCastlePos[1],Presets.BRLongCastlePos[0]));
+                    this.board[Presets.BRLongCastlePos.Item2,Presets.BRLongCastlePos.Item1] = Empty;
+                    this.board[Presets.BRLongCastleDest.Item2,Presets.BRLongCastleDest.Item1] = B_Rook;
+                    this.PiecePositions[true].Add(Presets.BRLongCastleDest);
+                    this.PiecePositions[true].Remove(Presets.BRLongCastlePos);
                     this.Castling[true] = new[] {false, false};
                     
-                    extraMove = ((Presets.BRLongCastlePos[1],Presets.BRLongCastlePos[0]), (Presets.BRLongCastlePos[1],Presets.BRLongCastlePos[0]));
+                    extraMove = (Presets.BRLongCastlePos, Presets.BRLongCastlePos);
                 }
             }
             // Remove castling rights
-            else if (Enumerable.SequenceEqual(new[] {move.To[1],move.To[0]}, Presets.WhiteRookHPos) || Enumerable.SequenceEqual(new[] {move.From[1],move.From[0]}, Presets.WhiteRookHPos))
+            else if (move.To == Presets.WhiteRookHPos || move.From == Presets.WhiteRookHPos)
                 this.Castling[false][0] = false;
-            else if (Enumerable.SequenceEqual(new[] {move.To[1],move.To[0]}, Presets.WhiteRookAPos) || Enumerable.SequenceEqual(new[] {move.From[1],move.From[0]}, Presets.WhiteRookAPos))
+            else if (move.To == Presets.WhiteRookAPos || move.From == Presets.WhiteRookAPos)
                 this.Castling[false][1] = false;
-            else if (Enumerable.SequenceEqual(new[] {move.To[1],move.To[0]}, Presets.BlackRookHPos) || Enumerable.SequenceEqual(new[] {move.From[1],move.From[0]}, Presets.BlackRookHPos))
+            else if (move.To == Presets.BlackRookHPos || move.From == Presets.BlackRookHPos)
                 this.Castling[true][0] = false;
-            else if (Enumerable.SequenceEqual(new[] {move.To[1],move.To[0]}, Presets.BlackRookAPos) || Enumerable.SequenceEqual(new[] {move.From[1],move.From[0]}, Presets.BlackRookAPos))
+            else if (move.To == Presets.BlackRookAPos || move.From == Presets.BlackRookAPos)
                 this.Castling[true][1] = false;
             
 
             // en passant (Holy Hell!)
             if (OriginPiece.Role == PieceType.Pawn)
             {
-                int RankDistance = move.From[1] - move.To[1];
+                int RankDistance = move.From.Item2 - move.To.Item2;
 
-                if (Enumerable.SequenceEqual(move.To, this.EnpassantSquare))
+                if (move.To == this.EnpassantSquare)
                 {
-                    if (this.board[move.To[1] + 1,move.To[0]].Role == PieceType.Pawn)
+                    if (this.board[move.To.Item2 + 1,move.To.Item1].Role == PieceType.Pawn)
                     {
-                        this.PiecePositions[this.board[move.To[1] + 1,move.To[0]].Color].Remove((move.To[0],move.To[1] + 1));
-                        this.board[move.To[1] + 1,move.To[0]] = Empty;
-                        enpassant = (move.To[1] + 1,move.To[0]);
+                        this.PiecePositions[this.board[move.To.Item2 + 1,move.To.Item1].Color].Remove((move.To.Item1,move.To.Item2 + 1));
+                        this.board[move.To.Item2 + 1,move.To.Item1] = Empty;
+                        enpassant = (move.To.Item2 + 1,move.To.Item1);
                     }
-                    else if (this.board[move.To[1] - 1,move.To[0]].Role == PieceType.Pawn)
+                    else if (this.board[move.To.Item2 - 1,move.To.Item1].Role == PieceType.Pawn)
                     {
-                        this.PiecePositions[this.board[move.To[1] - 1,move.To[0]].Color].Remove((move.To[0],move.To[1] - 1));
-                        this.board[move.To[1] - 1,move.To[0]] = Empty;
-                        enpassant = (move.To[1] - 1,move.To[0]);
+                        this.PiecePositions[this.board[move.To.Item2 - 1,move.To.Item1].Color].Remove((move.To.Item1,move.To.Item2 - 1));
+                        this.board[move.To.Item2 - 1,move.To.Item1] = Empty;
+                        enpassant = (move.To.Item2 - 1,move.To.Item1);
                     }
                 }
                 else if (RankDistance == 2 || RankDistance == -2) // if the pawn made 2 moves forward, set EnpassantSquare
-                    this.EnpassantSquare = new[] {move.From[0], move.To[1] + (RankDistance / 2)};
+                    this.EnpassantSquare = (move.From.Item1, move.To.Item2 + (RankDistance / 2));
                 else
-                    this.EnpassantSquare = new[] {8,8};
+                    this.EnpassantSquare = (8,8);
                 
             }
             else if (OriginPiece.Role == PieceType.King) // Changing KingPos
             {
-                this.KingPos[OriginColor] = new[] {move.To[0],move.To[1]};
+                this.KingPos[OriginColor] = (move.To.Item1,move.To.Item2);
                 this.Castling[OriginColor] = new[] {false, false};
-                this.EnpassantSquare = new[] {8,8};
+                this.EnpassantSquare = (8,8);
             }
             else
-                this.EnpassantSquare = new[] {8,8};
+                this.EnpassantSquare = (8,8);
             
             if (generateReverse)
                 LastMove = new ReverseMove((MoveFrom, MoveTo), extraMove, TargetPiece, move.Promotion != Empty, enpassant, prevEnpassant, moveChain, whiteCastle, blackCastle, wKingPos, bKingPos);
@@ -232,18 +232,18 @@ namespace Board
             }
             
             this.MoveChain = LastMove.MoveChain;
-            this.EnpassantSquare = new[] {LastMove.PrevEnpassant[0], LastMove.PrevEnpassant[1]};
+            this.EnpassantSquare = LastMove.PrevEnpassant;
 
             this.Castling[false] = new[] { LastMove.WhiteCastle[0], LastMove.WhiteCastle[1] };
             this.Castling[true] = new[] { LastMove.BlackCastle[0], LastMove.BlackCastle[1] };
-            
-            this.KingPos[false] =  new[] { LastMove.WKingPos[0], LastMove.WKingPos[1] };
-            this.KingPos[true] =  new[] { LastMove.BKingPos[0], LastMove.BKingPos[1] };
+
+            this.KingPos[false] = LastMove.WKingPos;
+            this.KingPos[true] =  LastMove.BKingPos;
 
             Side = !Side;
         }
 
-        public static Board Constructor(Piece.Piece[,] board, bool side, bool[] whiteCastle, bool[] blackCastle, int[] enpassantSquare, int moveChain)
+        public static Board Constructor(Piece.Piece[,] board, bool side, bool[] whiteCastle, bool[] blackCastle, (int,int) enpassantSquare, int moveChain)
         {
             Board NewBoard = new Board();
             NewBoard.board = board;
@@ -276,7 +276,7 @@ namespace Board
                 {false, new[] {this.Castling[false][0], this.Castling[false][1]}},
                 {true, new[] {this.Castling[true][0], this.Castling[true][1]}}};
 
-            Clone.EnpassantSquare = new[] {this.EnpassantSquare[0], this.EnpassantSquare[1]};
+            Clone.EnpassantSquare = this.EnpassantSquare;
             Clone.Side = this.Side == true;
             
             Clone.MoveChain = this.MoveChain;
@@ -286,8 +286,8 @@ namespace Board
             Clone.PiecePositions[false] = new List<(int, int)>(this.PiecePositions[false]);
             Clone.PiecePositions[true] = new List<(int, int)>(this.PiecePositions[true]);
             
-            Clone.KingPos[false] = new[] {this.KingPos[false][0],this.KingPos[false][1]};
-            Clone.KingPos[true] = new[] {this.KingPos[true][0],this.KingPos[true][1]};
+            Clone.KingPos[false] = (this.KingPos[false].Item1, this.KingPos[false].Item2);
+            Clone.KingPos[true] = (this.KingPos[true].Item1, this.KingPos[true].Item2);
             return Clone;
         }
 
@@ -296,9 +296,9 @@ namespace Board
             return MoveFinder.Attacked(this, this.GetKingPos(color), !color);
         }
 
-        public int[] GetKingPos(bool color)
+        private (int,int) GetKingPos(bool color)
         {
-            if (this.KingPos[color][0] != 8)
+            if (this.KingPos[color].Item1 != 8)
             {
                 return this.KingPos[color];
             }
@@ -309,12 +309,12 @@ namespace Board
                 {
                     if (this.board[i,j].Role == PieceType.King && this.board[i,j].Color == color)
                     {
-                        this.KingPos[color] = new[] {j,i};
-                        return new[] {j,i};
+                        this.KingPos[color] = (j,i);
+                        return (j,i);
                     }
                 }
             }
-            return new[] {8,8};
+            return (8,8);
         }
 
         public List<(int,int)> GetPiecePositions(bool side)
@@ -464,37 +464,37 @@ namespace Board
             {B_Pawn, B_Pawn, B_Pawn, B_Pawn, B_Pawn, B_Pawn, B_Pawn, B_Pawn},
             {B_Rook, B_Knight, B_Bishop, B_Queen, B_King, B_Bishop, B_Knight, B_Rook},
         };
-        public static Board StartingBoard = Board.Constructor(StartingPosition, false, new[] {true,true}, new[] {true,true}, new[] {8,8}, 0);
+        public static Board StartingBoard = Board.Constructor(StartingPosition, false, new[] {true,true}, new[] {true,true}, (8,8), 0);
 
-        internal static int[] WKStartPos = {0,4}; // file, rank
+        internal static (int,int) WKStartPos = (4,0); // file, rank
 
         // white short castle
-        internal static int[] WKShortCastlePos = {0,6};
-        internal static int[] WRShortCastlePos = {0,7};
-        internal static int[] WRShortCastleDest = {0,5};
+        internal static (int,int) WKShortCastlePos = (6,0);
+        internal static (int,int) WRShortCastlePos = (7,0);
+        internal static (int,int) WRShortCastleDest = (5,0);
 
         // white long castle
-        internal static int[] WKLongCastlePos = {0,2};
-        internal static int[] WRLongCastlePos = {0,0};
-        internal static int[] WRLongCastleDest = {0,3};
+        internal static (int,int) WKLongCastlePos = (2,0);
+        internal static (int,int) WRLongCastlePos = (0,0);
+        internal static (int,int) WRLongCastleDest = (3,0);
 
-        internal static int[] BKStartPos = {7,4}; // file, rank
+        internal static (int,int) BKStartPos = (4,7); // file, rank
 
         // black short castle
-        internal static int[] BKShortCastlePos = {7,6};
-        internal static int[] BRShortCastlePos = {7,7};
-        internal static int[] BRShortCastleDest = {7,5};
+        internal static (int,int) BKShortCastlePos = (6,7);
+        internal static (int,int) BRShortCastlePos = (7,7);
+        internal static (int,int) BRShortCastleDest = (5,7);
 
         // black long castle
-        internal static int[] BKLongCastlePos = {7,2};
-        internal static int[] BRLongCastlePos = {7,0};
-        internal static int[] BRLongCastleDest = {7,3};
+        internal static (int,int) BKLongCastlePos = (2,7);
+        internal static (int,int) BRLongCastlePos = (0,7);
+        internal static (int,int) BRLongCastleDest = (3,7);
 
         // rook positions
-        internal static int[] WhiteRookAPos = {0,0};
-        internal static int[] WhiteRookHPos = {0,7};
-        internal static int[] BlackRookAPos = {7,0};
-        internal static int[] BlackRookHPos = {7,7};
+        internal static (int,int) WhiteRookAPos = (0,0);
+        internal static (int,int) WhiteRookHPos = (7,0);
+        internal static (int,int) BlackRookAPos = (0,7);
+        internal static (int,int) BlackRookHPos = (7,7);
 
         public static Dictionary<string, int> FileIndex = new Dictionary<string, int>{
             {"a",0},
@@ -506,16 +506,6 @@ namespace Board
             {"g",6},
             {"h",7},
         };
-
-        public static int[] ConvertSquare(string square, bool reverse)
-        {
-            if (!reverse)
-            {
-                return new[] {FileIndex[square[0].ToString()], Int32.Parse(square[1].ToString()) - 1};
-            } else {
-                return new[] {Int32.Parse(square[1].ToString()) - 1, FileIndex[square[0].ToString()]};
-            }
-        }
 
         public static Dictionary<bool, Outcome> SideOutcomes = new Dictionary<bool, Outcome>{
             {false, Outcome.White},
@@ -538,14 +528,14 @@ namespace Board
         public Piece.Piece CapturedPiece;
         public bool Promotion;
         public (int, int) Enpassant;
-        public int[] PrevEnpassant;
+        public (int, int) PrevEnpassant;
         public int MoveChain;
         public bool[] WhiteCastle;
         public bool[] BlackCastle;
-        public int[] WKingPos;
-        public int[] BKingPos;
+        public (int,int) WKingPos;
+        public (int,int) BKingPos;
         
-        public ReverseMove(((int, int),(int,int)) originMove, ((int, int),(int,int)) extraMove, Piece.Piece capturedPiece, bool promotion, (int, int) enpassant, int[] prevEnpassant,  int moveChain, bool[] whiteCastle, bool[] blackCastle, int[] wKingPos, int[] bKingPos)
+        public ReverseMove(((int, int),(int,int)) originMove, ((int, int),(int,int)) extraMove, Piece.Piece capturedPiece, bool promotion, (int, int) enpassant, (int, int) prevEnpassant,  int moveChain, bool[] whiteCastle, bool[] blackCastle, (int, int) wKingPos, (int, int) bKingPos)
         {
             OriginMove = originMove;
             ExtraMove = extraMove;

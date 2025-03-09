@@ -1,16 +1,14 @@
 using static Piece.Presets;
-using static Board.Presets;
 using System.Collections.Generic;
-using System.Linq;
 using System;
 
 namespace Move
 {
     public class Move
     {
-        public int[] From;
-        public int[] To;
-        public int Importance;
+        public (int,int) From;
+        public (int,int) To;
+        public readonly int Importance;
 
         public Piece.Piece Promotion; // Empty for no promotion
 
@@ -36,7 +34,7 @@ namespace Move
             {"b",B_Bishop},
         };
 
-        public Move(int[] from, int[] to, Piece.Piece promotion, int importance)
+        public Move((int,int) from, (int,int) to, Piece.Piece promotion, int importance)
         {
             From = from;
             To = to;
@@ -46,7 +44,7 @@ namespace Move
 
         public static Move FromString(string move) // Format: from-to(-promotion) a2-b1(-Q)
         {
-            Move NewMove = new Move(new[] {8,8},new[] {8,8}, Empty, 0);
+            Move NewMove = new Move((8,8), (8,8), Empty, 0);
 
             string[] MoveString = move.Split("-");
 
@@ -72,7 +70,17 @@ namespace Move
 
         public int Value(Board.Board board)
         {
-            return board.board[To[1],To[0]].LocalValue + board.board[From[1],From[0]].LocalValue + Importance;
+            return board.board[To.Item2,To.Item1].LocalValue + board.board[From.Item2,From.Item1].LocalValue + Importance;
+        }
+        
+        private static (int,int) ConvertSquare(string square, bool reverse)
+        {
+            if (!reverse)
+            {
+                return (FileIndex[square[0].ToString()], Int32.Parse(square[1].ToString()) - 1);
+            } else {
+                return (Int32.Parse(square[1].ToString()) - 1, FileIndex[square[0].ToString()]);
+            }
         }
 
         public bool InMovelist(List<Move> MoveList)
@@ -97,7 +105,7 @@ namespace Move
                 return false;
             }
 
-            return Enumerable.SequenceEqual(this.From, item.From) && Enumerable.SequenceEqual(this.To, item.To) && this.Promotion == item.Promotion;
+            return this.From == item.From && this.To == item.To && this.Promotion == item.Promotion;
         }
 
         public override int GetHashCode() => HashCode.Combine(this.From, this.To, this.Promotion);
@@ -105,7 +113,7 @@ namespace Move
         public static string[] Files = {"a","b","c","d","e","f","g","h"};
         public string Notate()
         {
-            return Files[From[0]] + (From[1] + 1).ToString() + "-" + Files[To[0]] + (To[1] + 1).ToString();
+            return (Files[From.Item1] + (From.Item2 + 1)).ToString() + "-" + (Files[To.Item1] + (To.Item2 + 1)).ToString();
         }
     }
 }

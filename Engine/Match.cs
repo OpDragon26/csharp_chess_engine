@@ -44,7 +44,7 @@ namespace Match
                 board.MakeMove(BotMove, false, false);
                 return BotMove;
             }
-            return new Move.Move(new int[] {8,8},new int[] {8,8}, Empty, 0);
+            return new Move.Move((8,8), (8,8), Empty, 0);
         }
     }
 }
