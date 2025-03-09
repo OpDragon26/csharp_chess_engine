@@ -4,7 +4,6 @@ using static Piece.Presets;
 using System.Collections.Generic;
 using Unity.Mathematics;
 
-
 namespace Board
 {
     public static class MoveFinder
@@ -257,9 +256,13 @@ namespace Board
             for (int i = 0; i < 2; i++)
             {
                 (int, int) Target = (pos.Item1 + CheckPattern.CapturePattern[i].Item2, pos.Item2 + CheckPattern.CapturePattern[i].Item1);
-                if (CheckPattern.Validator.Validators[i](Target.Item1))
+                
+                if (CheckPattern.Validator.CheckValidators[i](Target)) 
                 {
+
+
                     Piece.Piece TargetPiece = board.board[Target.Item2,Target.Item1];
+                    
 
                     if (TargetPiece.Role == PieceType.Pawn && TargetPiece.Color == color)
                     {
@@ -269,11 +272,6 @@ namespace Board
             }
             
             return false;
-        }
-
-        private static bool ValidIndex(int index)
-        {
-            return index >= 0 && index < 8;
         }
     }
 
@@ -510,13 +508,10 @@ namespace Board
 
     class PatternValidator
     {
-        private (PatternState, PatternState)[] PatternStates;
         public List<Func<(int, int), bool>> Validators = new List<Func<(int, int), bool>>();
 
         public PatternValidator((int, int)[] pattern)
         {
-            (PatternState, PatternState)[] newStates = new (PatternState, PatternState)[pattern.Length];
-
             for (int i = 0; i < pattern.Length; i++)
             {
                 PatternState first;
@@ -535,10 +530,8 @@ namespace Board
                     second = PatternState.Positive;
                 else
                     second = PatternState.Negative;
-
-                newStates[i] = (first, second);
-
-                switch (newStates[i])
+                
+                switch ((first, second))
                 {
                     case ((PatternState.Positive, PatternState.Zero)):
                         Validators.Add((target) => target.Item1 < 8);
@@ -566,43 +559,57 @@ namespace Board
                     break;
                 }
             }
-
-            PatternStates = newStates;
         }
     }
 
     class PawnPatternValidator
     {
-        private PatternState[] PatternStates;
         public List<Func<int, bool>> Validators = new List<Func<int, bool>>();
+        public List<Func<(int,int), bool>> CheckValidators = new List<Func<(int,int), bool>>();
 
         public PawnPatternValidator((int, int)[] pattern)
         {
-            PatternState[] newStates = new PatternState[pattern.Length];
-
             for (int i = 0; i < pattern.Length; i++)
             {
-                PatternState s;
+                PatternState second;
+                PatternState first;
                     
                 if (pattern[i].Item2 > 0)
-                    s = PatternState.Positive;
+                    second = PatternState.Positive;
                 else
-                    s = PatternState.Negative;
-                    
-                newStates[i] = s;
-
-                switch (newStates[i])
+                    second = PatternState.Negative;
+                
+                if (pattern[i].Item2 > 0)
+                    first = PatternState.Positive;
+                else
+                    first = PatternState.Negative;
+                
+                switch (second)
                 {
                     case PatternState.Positive:
-                        Validators.Add((int pos) =>  pos < 8);
+                        Validators.Add((pos) =>  pos < 8);
                     break;
                     case PatternState.Negative:
-                        Validators.Add((int pos) =>  pos >= 0);
+                        Validators.Add((pos) =>  pos >= 0);
+                    break;
+                }
+
+                switch ((first, second))
+                {
+                    case ((PatternState.Positive, PatternState.Positive)):
+                        CheckValidators.Add((target) =>  target.Item1 < 8 && target.Item2 < 8);
+                    break;
+                    case ((PatternState.Positive, PatternState.Negative)):
+                        CheckValidators.Add((target) =>  target.Item1 < 8 && target.Item2 >= 0);
+                    break;
+                    case ((PatternState.Negative, PatternState.Positive)):
+                        CheckValidators.Add((target) =>  target.Item1 >= 0 && target.Item2 < 8);
+                    break;
+                    case (PatternState.Negative, PatternState.Negative):
+                        CheckValidators.Add((target) =>  target.Item1 >= 0 && target.Item2 >= 0);
                     break;
                 }
             }
-                
-            PatternStates = newStates;
         }
     }
     
