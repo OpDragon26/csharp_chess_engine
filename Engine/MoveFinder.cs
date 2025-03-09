@@ -85,7 +85,8 @@ namespace Board
                     for (int i = 0; i < l; i++)
                     {
                         (int, int) Target = (pos.Item1 + PiecePattern.MovePattern[i].Item1, pos.Item2 + PiecePattern.MovePattern[i].Item2);
-                        if (ValidIndex(Target.Item1) && ValidIndex(Target.Item2)) {
+                        if (PiecePattern.Validator.Validators[i](Target))
+                        {
                             Piece.Piece TargetPiece = board.board[Target.Item2,Target.Item1];
 
                             if (TargetPiece == Empty) 
@@ -167,7 +168,7 @@ namespace Board
                 for (int i= 0; i < 2; i++)
                 {
                     Target = (pos.Item1 + pawnPattern.CapturePattern[i].Item2, pos.Item2 + pawnPattern.CapturePattern[i].Item1);
-                    if (ValidIndex(Target.Item1) && ValidIndex(Target.Item2))
+                    if (ValidIndex(Target.Item1))
                     {
                         TargetPiece = board.board[Target.Item2,Target.Item1];
 
@@ -217,22 +218,16 @@ namespace Board
                         int it = iterators[k];
                         for (int j = 0; j < it; j++)
                         {
-                            (int, int) Target = (pos.Item1 + PiecePattern.MovePattern[k].Item1 * (j + 1), pos.Item2 + PiecePattern.MovePattern[k].Item1 * (j + 1));
-                            if (ValidIndex(Target.Item1) && ValidIndex(Target.Item2)) 
-                            {
-                                Piece.Piece TargetPiece = board.board[Target.Item2,Target.Item1];
+                            (int, int) Target = (pos.Item1 + PiecePattern.MovePattern[k].Item1 * (j + 1), pos.Item2 + PiecePattern.MovePattern[k].Item2 * (j + 1));
 
-                                if (TargetPiece.Color == color && TargetPiece.Role == Patterns.CheckPieces[i])
-                                {
-                                    return true;
-                                }
-                                if (TargetPiece.Role != PieceType.Empty)
-                                {
-                                    break;
-                                }
-                            }
-                            else
+                            Piece.Piece TargetPiece = board.board[Target.Item2,Target.Item1];
+
+                            if (TargetPiece.Color == color && TargetPiece.Role == Patterns.CheckPieces[i])
                             {
+                                return true;
+                            }
+                            if (TargetPiece.Role != PieceType.Empty) 
+                            { 
                                 break;
                             }
                         }
@@ -244,7 +239,7 @@ namespace Board
                     for (int j = 0; j < l; j++)
                     {
                         (int, int) Target = (pos.Item1 + PiecePattern.MovePattern[j].Item1, pos.Item2 + PiecePattern.MovePattern[j].Item2);
-                        if (ValidIndex(Target.Item1) && ValidIndex(Target.Item2)) 
+                        if (PiecePattern.Validator.Validators[j](Target)) 
                         {
                             Piece.Piece TargetPiece = board.board[Target.Item2,Target.Item1];
 
@@ -288,6 +283,7 @@ namespace Board
         public bool Repeat;
         public int Importance;
         public PatternIterator Iterator;
+        public PatternValidator Validator;
 
         public Pattern((int,int)[] pattern, bool repeat, int  importance)
         {
@@ -297,7 +293,8 @@ namespace Board
 
             if (repeat)
                 Iterator = new PatternIterator(MovePattern);
-            
+            else
+                Validator = new PatternValidator(MovePattern);
         }
     }
 
@@ -435,7 +432,7 @@ namespace Board
     class PatternIterator
     {
         private (PatternState, PatternState)[] PatternStates;
-        List<Func<(int,int) ,int>> IteratorCalculators  = new List<Func<(int,int),int>>();
+        private List<Func<(int,int) ,int>> IteratorCalculators  = new List<Func<(int,int),int>>();
 
         public PatternIterator((int,int)[] pattern)
         {
@@ -506,6 +503,69 @@ namespace Board
             }
             
             return iterators;
+        }
+    }
+
+    class PatternValidator
+    {
+        private (PatternState, PatternState)[] PatternStates;
+        public List<Func<(int,int), bool>> Validators = new List<Func<(int,int), bool>>();
+
+        public PatternValidator((int, int)[] pattern)
+        {
+            (PatternState, PatternState)[] newStates = new (PatternState, PatternState)[pattern.Length];
+
+            for (int i = 0; i < pattern.Length; i++)
+            {
+                PatternState first;
+                PatternState second;
+
+                if (pattern[i].Item1 == 0)
+                    first = PatternState.Zero;
+                else if (pattern[i].Item1 > 0)
+                    first = PatternState.Positive;
+                else
+                    first = PatternState.Negative;
+
+                if (pattern[i].Item2 == 0)
+                    second = PatternState.Zero;
+                else if (pattern[i].Item2 > 0)
+                    second = PatternState.Positive;
+                else
+                    second = PatternState.Negative;
+
+                newStates[i] = (first, second);
+
+                switch (newStates[i])
+                {
+                    case ((PatternState.Positive, PatternState.Zero)):
+                        Validators.Add(( target) =>  target.Item1 < 8);
+                    break;
+                    case ((PatternState.Negative, PatternState.Zero)):
+                        Validators.Add(( target) =>  target.Item1 >= 0);
+                    break;
+                    case ((PatternState.Zero, PatternState.Positive)):
+                        Validators.Add(( target) =>  target.Item2 < 8);
+                    break;
+                    case ((PatternState.Zero, PatternState.Negative)):
+                        Validators.Add(( target) =>  target.Item2 >= 0);
+                    break;
+                    case  ((PatternState.Positive, PatternState.Positive)):
+                        Validators.Add(( target) =>  target.Item1 < 8 && target.Item2 < 8);
+                    break;
+                    case  ((PatternState.Positive, PatternState.Negative)):
+                        Validators.Add(( target) =>  target.Item1 < 8 && target.Item2 >= 0);
+                    break;
+                    case  ((PatternState.Negative, PatternState.Positive)):
+                        Validators.Add(( target) =>  target.Item1 >=0 && target.Item2 < 8);
+                    break;
+                    case  ((PatternState.Negative, PatternState.Negative)):
+                        Validators.Add(( target) =>  target.Item1 >=0 && target.Item2 >= 0);
+                    break;
+                }
+            }
+            
+            PatternStates = newStates;
         }
     }
 
