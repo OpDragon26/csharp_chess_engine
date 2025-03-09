@@ -50,12 +50,12 @@ namespace Board
 
                 if (PiecePattern.Repeat)
                 {
-                    int l = PiecePattern.MovePattern.Length / 2;
+                    int l = PiecePattern.MovePattern.Length;
                     for (int i = 0; i < l; i++)
                     {
                         for (int j = 0; j < 7; j++)
                         {
-                            (int,int) Target = (pos[0] + PiecePattern.MovePattern[i,0] * (j + 1),  pos[1] + PiecePattern.MovePattern[i,1] * (j + 1));
+                            (int,int) Target = (pos[0] + PiecePattern.MovePattern[i].Item1 * (j + 1),  pos[1] + PiecePattern.MovePattern[i].Item2 * (j + 1));
                             if (ValidIndex(Target.Item1) && ValidIndex(Target.Item2)) 
                             {
                                 int[] TargetSquare = {Target.Item1, Target.Item2};
@@ -84,10 +84,10 @@ namespace Board
                 }
                 else
                 {
-                    int l  = PiecePattern.MovePattern.Length / 2;
+                    int l  = PiecePattern.MovePattern.Length;
                     for (int i = 0; i < l; i++)
                     {
-                        (int, int) Target = (pos[0] + PiecePattern.MovePattern[i, 0], pos[1] + PiecePattern.MovePattern[i, 1]);
+                        (int, int) Target = (pos[0] + PiecePattern.MovePattern[i].Item1, pos[1] + PiecePattern.MovePattern[i].Item2);
                         if (ValidIndex(Target.Item1) && ValidIndex(Target.Item2)) {
                             int[] TargetSquare = {Target.Item1, Target.Item2};
                             Piece.Piece TargetPiece = board.board[TargetSquare[1],TargetSquare[0]];
@@ -103,8 +103,8 @@ namespace Board
                     {
                         for (int i = 0; i < 2; i++)
                         {
-                            int[] TargetSquare = new int[] {pos[0] + Patterns.CastlingPattern.MovePattern[i,0], pos[1] + Patterns.CastlingPattern.MovePattern[i,1]};
-                            int[] SkipSquare = new int[] {pos[0] + Patterns.SkipPattern.MovePattern[i,0], pos[1] + Patterns.SkipPattern.MovePattern[i,1]};
+                            int[] TargetSquare = new int[] {pos[0] + Patterns.CastlingPattern.MovePattern[i].Item1, pos[1] + Patterns.CastlingPattern.MovePattern[i].Item2};
+                            int[] SkipSquare = new int[] {pos[0] + Patterns.SkipPattern.MovePattern[i].Item1, pos[1] + Patterns.SkipPattern.MovePattern[i].Item2};
                             bool Castling = board.Castling[color][i] && board.board[TargetSquare[1],TargetSquare[0]] == Empty && board.board[SkipSquare[1],SkipSquare[0]] == Empty;
 
                             if (i == 1)
@@ -214,12 +214,12 @@ namespace Board
 
                 if (PiecePattern.Repeat)
                 {
-                    int l = PiecePattern.MovePattern.Length / 2;
+                    int l = PiecePattern.MovePattern.Length;
                     for (int k = 0; k < l; k++)
                     {
                         for (int j = 0; j < 7; j++)
                         {
-                            (int, int) Target = (pos[0] + PiecePattern.MovePattern[k,0] * (j + 1), pos[1] + PiecePattern.MovePattern[k,1] * (j + 1));
+                            (int, int) Target = (pos[0] + PiecePattern.MovePattern[k].Item1 * (j + 1), pos[1] + PiecePattern.MovePattern[k].Item1 * (j + 1));
                             if (ValidIndex(Target.Item1) && ValidIndex(Target.Item2)) 
                             {
                                 Piece.Piece TargetPiece = board.board[Target.Item2,Target.Item1];
@@ -242,10 +242,10 @@ namespace Board
                 }
                 else
                 {
-                    int l =  PiecePattern.MovePattern.Length / 2;
+                    int l =  PiecePattern.MovePattern.Length;
                     for (int j = 0; j < l; j++)
                     {
-                        (int, int) Target = (pos[0] + PiecePattern.MovePattern[j,0], pos[1] + PiecePattern.MovePattern[j,1]);
+                        (int, int) Target = (pos[0] + PiecePattern.MovePattern[j].Item1, pos[1] + PiecePattern.MovePattern[j].Item2);
                         if (ValidIndex(Target.Item1) && ValidIndex(Target.Item2)) 
                         {
                             Piece.Piece TargetPiece = board.board[Target.Item2,Target.Item1];
@@ -287,11 +287,11 @@ namespace Board
 
     internal class Pattern
     {
-        public int[,] MovePattern; // file, rank
+        public (int,int)[] MovePattern; // file, rank
         public bool Repeat;
         public int Importance;
 
-        public Pattern(int[,] pattern, bool repeat, int  importance)
+        public Pattern((int,int)[] pattern, bool repeat, int  importance)
         {
             MovePattern = pattern;
             Repeat = repeat;
@@ -320,63 +320,63 @@ namespace Board
     {
         internal static Dictionary<PieceType, Pattern> PiecePatterns = new Dictionary<PieceType, Pattern>{
             {PieceType.Knight, new Pattern(
-                new[,] {
-                    {2,1},
-                    {2,-1},
-                    {-2,1},
-                    {-2,-1},
-                    {1,2},
-                    {1,-2},
-                    {-1,2},
-                    {-1,-2},
+                new[] {
+                    (2, 1),
+                    (2, -1),
+                    (-2,1),
+                    (-2,-1),
+                    (1,2),
+                    (1,-2),
+                    (-1,2),
+                    (-1,-2),
                 },
                 false,
                 2
             )},
             {PieceType.Rook, new Pattern(
-                new[,] {
-                    {0,1},
-                    {0,-1},
-                    {1,0},
-                    {-1,0},
+                new[] {
+                    (0,1),
+                    (0,-1),
+                    (1,0),
+                    (-1,0),
                 },
                 true,
                 0
             )},
             {PieceType.Bishop, new Pattern(
-                new[,] {
-                    {1,-1},
-                    {1,1},
-                    {-1,-1},
-                    {-1,1},
+                new[] {
+                    (1,-1),
+                    (1,1),
+                    (-1,-1),
+                    (-1,1),
                 },
                 true,
                 2
             )},
             {PieceType.Queen, new Pattern(
-                new[,] {
-                    {0,1},
-                    {0,-1},
-                    {1,0},
-                    {-1,0},
-                    {1,-1},
-                    {1,1},
-                    {-1,-1},
-                    {-1,1},
+                new[] {
+                    (0,1),
+                    (0,-1),
+                    (1,0),
+                    (-1,0),
+                    (1,-1),
+                    (1,1),
+                    (-1,-1),
+                    (-1,1),
                 },
                 true,
                 3
             )},
             {PieceType.King, new Pattern(
-                new[,] {
-                    {0,1},
-                    {0,-1},
-                    {1,0},
-                    {-1,0},
-                    {1,-1},
-                    {1,1},
-                    {-1,-1},
-                    {-1,1},
+                new[] {
+                    (0,1),
+                    (0,-1),
+                    (1,0),
+                    (-1,0),
+                    (1,-1),
+                    (1,1),
+                    (-1,-1),
+                    (-1,1),
                 },
                 false,
                 -1
@@ -384,17 +384,17 @@ namespace Board
         };
 
         internal static Pattern CastlingPattern = new Pattern(
-            new[,] {
-                {2,0},
-                {-2,0},
+            new[] {
+                (2,0),
+                (-2,0),
             },
             false,
             2
         );
         internal static Pattern SkipPattern = new Pattern(
-            new[,] {
-                {1,0},
-                {-1,0},
+            new[] {
+                (1,0),
+                (-1,0),
             },
             false,
             0
