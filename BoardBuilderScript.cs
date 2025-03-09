@@ -18,9 +18,9 @@ public class BoardBuilderScript : MonoBehaviour
             for (int j = 0; j < 8; j++)
             {
                 BoardManager.Squares[i,j] = (Instantiate(SquarePrefab, new Vector3(transform.position.x, transform.position.y, 0), Quaternion.identity));
-                BoardManager.Pieces[i,j] = (Instantiate(PiecePrefab, new Vector3(transform.position.x, transform.position.y, -1), Quaternion.identity));
-                BoardManager.Overlays[i,j] = (Instantiate(OverlayPrefab, new Vector3(transform.position.x, transform.position.y, -2), Quaternion.identity));
-                
+                BoardManager.Overlays[i,j] = (Instantiate(OverlayPrefab, new Vector3(transform.position.x, transform.position.y, -1), Quaternion.identity));
+                BoardManager.Pieces[i,j] = (Instantiate(PiecePrefab, new Vector3(transform.position.x, transform.position.y, -2), Quaternion.identity));
+
                 transform.position = new Vector3(transform.position.x + 5, transform.position.y, 0);
             }
             
