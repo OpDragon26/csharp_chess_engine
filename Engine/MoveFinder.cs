@@ -1,7 +1,9 @@
+using System;
 using Piece;
 using static Piece.Presets;
 using System.Collections.Generic;
-using System.Linq;
+using Unity.Mathematics;
+
 
 namespace Board
 {
@@ -20,7 +22,7 @@ namespace Board
 
                 if (Selected.Color == color && Selected.Role != PieceType.Empty)
                 {
-                    MoveList.AddRange(SearchPiece(board, Selected.Role, color, new[] {coords.Item1,coords.Item2}));
+                    MoveList.AddRange(SearchPiece(board, Selected.Role, color, coords));
                 }
             }
             
@@ -40,7 +42,7 @@ namespace Board
             return MoveList;
         }
 
-        private static List<Move.Move> SearchPiece(Board board, PieceType role, bool color, int[] pos)
+        private static List<Move.Move> SearchPiece(Board board, PieceType role, bool color, (int,int) pos)
         {
            List<Move.Move> MoveList = new List<Move.Move>();
 
@@ -50,30 +52,25 @@ namespace Board
 
                 if (PiecePattern.Repeat)
                 {
-                    int l = PiecePattern.MovePattern.Length / 2;
+                    int[] iterators = PiecePattern.Iterator.GetIterators(pos);
+                    int l = PiecePattern.MovePattern.Length;
                     for (int i = 0; i < l; i++)
                     {
-                        for (int j = 0; j < 7; j++)
+                        int it = iterators[i];
+                        for (int j = 0; j < it; j++)
                         {
-                            (int,int) Target = (pos[0] + PiecePattern.MovePattern[i,0] * (j + 1),  pos[1] + PiecePattern.MovePattern[i,1] * (j + 1));
-                            if (ValidIndex(Target.Item1) && ValidIndex(Target.Item2)) 
-                            {
-                                int[] TargetSquare = {Target.Item1, Target.Item2};
-                                Piece.Piece TargetPiece = board.board[TargetSquare[1],TargetSquare[0]];
+                            (int,int) Target = (pos.Item1 + PiecePattern.MovePattern[i].Item1 * (j + 1),  pos.Item2 + PiecePattern.MovePattern[i].Item2 * (j + 1));
+                            
+                            Piece.Piece TargetPiece = board.board[Target.Item2,Target.Item1];
 
-                                if (TargetPiece.Role == PieceType.Empty)
-                                {
-                                    MoveList.Add(new Move.Move(pos, TargetSquare, Empty, PiecePattern.Importance));
-                                }
-                                else if (TargetPiece.Color != color)
-                                {
-                                    MoveList.Add(new Move.Move(pos, TargetSquare, Empty, 5 - PiecePattern.Importance));
-                                    break;
-                                }
-                                else
-                                {
-                                    break;
-                                }
+                            if (TargetPiece.Role == PieceType.Empty)
+                            {
+                                MoveList.Add(new Move.Move(pos, Target, Empty, PiecePattern.Importance));
+                            }
+                            else if (TargetPiece.Color != color)
+                            {
+                                MoveList.Add(new Move.Move(pos, Target, Empty, 5 - PiecePattern.Importance));
+                                break;
                             }
                             else
                             {
@@ -84,18 +81,18 @@ namespace Board
                 }
                 else
                 {
-                    int l  = PiecePattern.MovePattern.Length / 2;
+                    int l  = PiecePattern.MovePattern.Length;
                     for (int i = 0; i < l; i++)
                     {
-                        (int, int) Target = (pos[0] + PiecePattern.MovePattern[i, 0], pos[1] + PiecePattern.MovePattern[i, 1]);
-                        if (ValidIndex(Target.Item1) && ValidIndex(Target.Item2)) {
-                            int[] TargetSquare = {Target.Item1, Target.Item2};
-                            Piece.Piece TargetPiece = board.board[TargetSquare[1],TargetSquare[0]];
+                        (int, int) Target = (pos.Item1 + PiecePattern.MovePattern[i].Item1, pos.Item2 + PiecePattern.MovePattern[i].Item2);
+                        if (PiecePattern.Validator.Validators[i](Target))
+                        {
+                            Piece.Piece TargetPiece = board.board[Target.Item2,Target.Item1];
 
                             if (TargetPiece == Empty) 
-                                MoveList.Add(new Move.Move(pos, TargetSquare, Empty, PiecePattern.Importance));
+                                MoveList.Add(new Move.Move(pos, Target, Empty, PiecePattern.Importance));
                             else if (TargetPiece.Color != color) 
-                                MoveList.Add(new Move.Move(pos, TargetSquare, Empty, 5 - PiecePattern.Importance));
+                                MoveList.Add(new Move.Move(pos, Target, Empty, 5 - PiecePattern.Importance));
                         }
                     }
 
@@ -103,19 +100,19 @@ namespace Board
                     {
                         for (int i = 0; i < 2; i++)
                         {
-                            int[] TargetSquare = new int[] {pos[0] + Patterns.CastlingPattern.MovePattern[i,0], pos[1] + Patterns.CastlingPattern.MovePattern[i,1]};
-                            int[] SkipSquare = new int[] {pos[0] + Patterns.SkipPattern.MovePattern[i,0], pos[1] + Patterns.SkipPattern.MovePattern[i,1]};
-                            bool Castling = board.Castling[color][i] && board.board[TargetSquare[1],TargetSquare[0]] == Empty && board.board[SkipSquare[1],SkipSquare[0]] == Empty;
+                            (int, int) Target = (pos.Item1 + Patterns.CastlingPattern.MovePattern[i].Item1, pos.Item2 + Patterns.CastlingPattern.MovePattern[i].Item2);
+                            (int, int) SkipSquare = (pos.Item1 + Patterns.SkipPattern.MovePattern[i].Item1, pos.Item2 + Patterns.SkipPattern.MovePattern[i].Item2);
+                            bool Castling = board.Castling[color][i] && board.board[Target.Item2,Target.Item1] == Empty && board.board[SkipSquare.Item2,SkipSquare.Item1] == Empty;
 
                             if (i == 1)
                             {
-                                int[] LongCastleSkip = {pos[0] + Patterns.LongCastleSkip[0], pos[1] + Patterns.LongCastleSkip[1]};
-                                Castling = Castling && board.board[LongCastleSkip[1],LongCastleSkip[0]] == Empty && !Attacked(board, LongCastleSkip, !color);
+                                (int,int) LongCastleSkip = (pos.Item1 + Patterns.LongCastleSkip[0], pos.Item2 + Patterns.LongCastleSkip[1]);
+                                Castling = Castling && board.board[LongCastleSkip.Item2,LongCastleSkip.Item1] == Empty && !Attacked(board, LongCastleSkip, !color);
                             }
 
                             if (Castling && !board.KingInCheck(color) && !Attacked(board, SkipSquare, !color))
                             {
-                                MoveList.Add(new Move.Move(pos, TargetSquare, Empty, 2));
+                                MoveList.Add(new Move.Move(pos, Target, Empty, 2));
                             }
                         }
                     }
@@ -126,77 +123,77 @@ namespace Board
                 PawnPattern pawnPattern = Patterns.PawnPatterns[color];
 
                 // forward moves
-                int[] TargetSquare = new int[] {pos[0] + pawnPattern.MovePattern[0,0], pos[1] + pawnPattern.MovePattern[0,1]};
-                Piece.Piece TargetPiece = board.board[TargetSquare[1],TargetSquare[0]];
+                (int, int) Target = (pos.Item1 + pawnPattern.MovePattern[0].Item1, pos.Item2 + pawnPattern.MovePattern[0].Item2);
+                Piece.Piece TargetPiece = board.board[Target.Item2,Target.Item1];
                 bool SingleMove = false;
 
                 if (TargetPiece.Role == PieceType.Empty)
                 {
-                    if (TargetSquare[1] == 0 || TargetSquare[1] == 7) // promotion
+                    if (Target.Item2 == 0 || Target.Item2 == 7) // promotion
                     { 
                         if (color)
                         {
-                            MoveList.Add(new Move.Move(pos, TargetSquare, B_Queen, 6));
-                            MoveList.Add(new Move.Move(pos, TargetSquare, B_Rook, -3));
-                            MoveList.Add(new Move.Move(pos, TargetSquare, B_Knight, -3));
-                            MoveList.Add(new Move.Move(pos, TargetSquare, B_Bishop, -3));
+                            MoveList.Add(new Move.Move(pos, Target, B_Queen, 6));
+                            MoveList.Add(new Move.Move(pos, Target, B_Rook, -3));
+                            MoveList.Add(new Move.Move(pos, Target, B_Knight, -3));
+                            MoveList.Add(new Move.Move(pos, Target, B_Bishop, -3));
                         }
                         else
                         {
-                            MoveList.Add(new Move.Move(pos, TargetSquare, W_Queen, 6));
-                            MoveList.Add(new Move.Move(pos, TargetSquare, W_Rook, -3));
-                            MoveList.Add(new Move.Move(pos, TargetSquare, W_Knight, -3));
-                            MoveList.Add(new Move.Move(pos, TargetSquare, W_Bishop, -3));
+                            MoveList.Add(new Move.Move(pos, Target, W_Queen, 6));
+                            MoveList.Add(new Move.Move(pos, Target, W_Rook, -3));
+                            MoveList.Add(new Move.Move(pos, Target, W_Knight, -3));
+                            MoveList.Add(new Move.Move(pos, Target, W_Bishop, -3));
                         }
                     }
                     else // simple move
                     {
-                        MoveList.Add(new Move.Move(pos, TargetSquare, Empty, -1));
+                        MoveList.Add(new Move.Move(pos, Target, Empty, -1));
                         
                         SingleMove = true;
                     }
                 }
                 // double move
-                if (pos[1] == PawnPattern.DoubleMoveRanks[color] && SingleMove)
+                if (pos.Item2 == PawnPattern.DoubleMoveRanks[color] && SingleMove)
                 {
-                    TargetSquare = new [] {pos[0] + pawnPattern.MovePattern[0,0] * 2, pos[1] + pawnPattern.MovePattern[0,1] * 2};
-                    TargetPiece = board.board[TargetSquare[1],TargetSquare[0]];
+                    Target = (pos.Item1 + pawnPattern.MovePattern[0].Item1 * 2, pos.Item2 + pawnPattern.MovePattern[0].Item2 * 2);
+                    TargetPiece = board.board[Target.Item2,Target.Item1];
 
                     if (TargetPiece == Empty)
                     {
-                        MoveList.Add(new Move.Move(pos, TargetSquare, Empty, 1));
+                        MoveList.Add(new Move.Move(pos, Target, Empty, 1));
                     }
                 }
                 // captures
                 for (int i= 0; i < 2; i++)
                 {
-                    TargetSquare = new[] {pos[0] + pawnPattern.CapturePattern[i,1], pos[1] + pawnPattern.CapturePattern[i,0]};
-                    if (ValidIndex(TargetSquare[0]) && ValidIndex(TargetSquare[1]))
+                    Target = (pos.Item1 + pawnPattern.CapturePattern[i].Item2, pos.Item2 + pawnPattern.CapturePattern[i].Item1);
+                    if (pawnPattern.Validator.Validators[i](Target.Item1)) 
                     {
-                        TargetPiece = board.board[TargetSquare[1],TargetSquare[0]];
+                        TargetPiece = board.board[Target.Item2,Target.Item1];
 
-                        if (TargetPiece.Role != PieceType.Empty && TargetPiece.Color != color || Enumerable.SequenceEqual(TargetSquare, board.EnpassantSquare))
+                        if (TargetPiece.Role != PieceType.Empty && TargetPiece.Color != color || Target == board.EnpassantSquare)
                         {
-                            if (TargetSquare[1] == 0 || TargetSquare[1] == 7) // promotion
+                            if (Target.Item2 == 0 || Target.Item2 == 7) // promotion
                             { 
                                 if (color)
                                 {
-                                    MoveList.Add(new Move.Move(pos, TargetSquare, B_Queen, 8));
-                                    MoveList.Add(new Move.Move(pos, TargetSquare, B_Rook, -3));
-                                    MoveList.Add(new Move.Move(pos, TargetSquare, B_Knight, -3));
-                                    MoveList.Add(new Move.Move(pos, TargetSquare, B_Bishop, -3));
+                                    MoveList.Add(new Move.Move(pos, Target, B_Queen, 8));
+                                    MoveList.Add(new Move.Move(pos, Target, B_Rook, -3));
+                                    MoveList.Add(new Move.Move(pos, Target, B_Knight, -3));
+                                    MoveList.Add(new Move.Move(pos, Target, B_Bishop, -3));
                                 }
                                 else
                                 {
-                                    MoveList.Add(new Move.Move(pos, TargetSquare, W_Queen, 8));
-                                    MoveList.Add(new Move.Move(pos, TargetSquare, W_Rook, -3));
-                                    MoveList.Add(new Move.Move(pos, TargetSquare, W_Knight, -3));
-                                    MoveList.Add(new Move.Move(pos, TargetSquare, W_Bishop, -3));
+                                    MoveList.Add(new Move.Move(pos, Target, W_Queen, 8));
+                                    MoveList.Add(new Move.Move(pos, Target, W_Rook, -3));
+                                    MoveList.Add(new Move.Move(pos, Target, W_Knight, -3));
+                                    MoveList.Add(new Move.Move(pos, Target, W_Bishop, -3));
                                 }
                             }
                             else // simple move
                             {
-                                MoveList.Add(new Move.Move(pos, TargetSquare, Empty, 6));
+                                MoveList.Add(new Move.Move(pos, Target, Empty, 6));
                             }
                         }
                     }
@@ -205,36 +202,32 @@ namespace Board
             return MoveList;
         }
 
-        public static bool Attacked(Board board, int[] pos, bool color) // color refers to the color that is attacking the square
+        public static bool Attacked(Board board, (int,int) pos, bool color) // color refers to the color that is attacking the square
         {
             // check for pieces
             for (int i = 0; i < 5; i++) 
             {
-                Pattern PiecePattern = Patterns.PiecePatterns[Patterns.CheckPiecess[i]];
+                Pattern PiecePattern = Patterns.PiecePatterns[Patterns.CheckPieces[i]];
 
                 if (PiecePattern.Repeat)
                 {
-                    int l = PiecePattern.MovePattern.Length / 2;
+                    int[] iterators = PiecePattern.Iterator.GetIterators(pos);
+                    int l = PiecePattern.MovePattern.Length;
                     for (int k = 0; k < l; k++)
                     {
-                        for (int j = 0; j < 7; j++)
+                        int it = iterators[k];
+                        for (int j = 0; j < it; j++)
                         {
-                            (int, int) Target = (pos[0] + PiecePattern.MovePattern[k,0] * (j + 1), pos[1] + PiecePattern.MovePattern[k,1] * (j + 1));
-                            if (ValidIndex(Target.Item1) && ValidIndex(Target.Item2)) 
-                            {
-                                Piece.Piece TargetPiece = board.board[Target.Item2,Target.Item1];
+                            (int, int) Target = (pos.Item1 + PiecePattern.MovePattern[k].Item1 * (j + 1), pos.Item2 + PiecePattern.MovePattern[k].Item2 * (j + 1));
 
-                                if (TargetPiece.Color == color && TargetPiece.Role == Patterns.CheckPiecess[i])
-                                {
-                                    return true;
-                                }
-                                if (TargetPiece.Role != PieceType.Empty)
-                                {
-                                    break;
-                                }
-                            }
-                            else
+                            Piece.Piece TargetPiece = board.board[Target.Item2,Target.Item1];
+
+                            if (TargetPiece.Color == color && TargetPiece.Role == Patterns.CheckPieces[i])
                             {
+                                return true;
+                            }
+                            if (TargetPiece.Role != PieceType.Empty) 
+                            { 
                                 break;
                             }
                         }
@@ -242,15 +235,15 @@ namespace Board
                 }
                 else
                 {
-                    int l =  PiecePattern.MovePattern.Length / 2;
+                    int l =  PiecePattern.MovePattern.Length;
                     for (int j = 0; j < l; j++)
                     {
-                        (int, int) Target = (pos[0] + PiecePattern.MovePattern[j,0], pos[1] + PiecePattern.MovePattern[j,1]);
-                        if (ValidIndex(Target.Item1) && ValidIndex(Target.Item2)) 
+                        (int, int) Target = (pos.Item1 + PiecePattern.MovePattern[j].Item1, pos.Item2 + PiecePattern.MovePattern[j].Item2);
+                        if (PiecePattern.Validator.Validators[j](Target)) 
                         {
                             Piece.Piece TargetPiece = board.board[Target.Item2,Target.Item1];
 
-                            if (TargetPiece.Color == color && TargetPiece.Role == Patterns.CheckPiecess[i])
+                            if (TargetPiece.Color == color && TargetPiece.Role == Patterns.CheckPieces[i])
                             {
                                 return true;
                             }
@@ -260,14 +253,13 @@ namespace Board
             }
 
             // check for pawns
-
-            int[,] CheckPattern = Patterns.PawnPatterns[!color].CapturePattern; // opposite pattern used for backwards direction
+            PawnPattern CheckPattern = Patterns.PawnPatterns[!color]; // opposite pattern used for backwards direction
             for (int i = 0; i < 2; i++)
             {
-                int[] TargetSquare = new int[] {pos[0] + CheckPattern[i,1], pos[1] + CheckPattern[i,0]};
-                if (ValidIndex(TargetSquare[0]) && ValidIndex(TargetSquare[1]))
+                (int, int) Target = (pos.Item1 + CheckPattern.CapturePattern[i].Item2, pos.Item2 + CheckPattern.CapturePattern[i].Item1);
+                if (CheckPattern.Validator.Validators[i](Target.Item1))
                 {
-                    Piece.Piece TargetPiece = board.board[TargetSquare[1],TargetSquare[0]];
+                    Piece.Piece TargetPiece = board.board[Target.Item2,Target.Item1];
 
                     if (TargetPiece.Role == PieceType.Pawn && TargetPiece.Color == color)
                     {
@@ -287,30 +279,39 @@ namespace Board
 
     internal class Pattern
     {
-        public int[,] MovePattern; // file, rank
+        public (int,int)[] MovePattern; // file, rank
         public bool Repeat;
         public int Importance;
+        public PatternIterator Iterator;
+        public PatternValidator Validator;
 
-        public Pattern(int[,] pattern, bool repeat, int  importance)
+        public Pattern((int,int)[] pattern, bool repeat, int  importance)
         {
             MovePattern = pattern;
             Repeat = repeat;
             Importance = importance;
+
+            if (repeat)
+                Iterator = new PatternIterator(MovePattern);
+            else
+                Validator = new PatternValidator(MovePattern);
         }
     }
 
     internal class PawnPattern
     {
-        public int[,] MovePattern;
-        public int[,] CapturePattern;
+        public readonly (int,int)[] MovePattern;
+        public readonly (int,int)[] CapturePattern;
+        public PawnPatternValidator Validator;
 
-        public PawnPattern(int[,] movePattern, int[,] capturePattern)
+        public PawnPattern((int,int)[] movePattern, (int,int)[] capturePattern)
         {
             MovePattern = movePattern;
             CapturePattern = capturePattern;
+            Validator = new PawnPatternValidator(CapturePattern);
         }
 
-        public static Dictionary<bool, int> DoubleMoveRanks = new Dictionary<bool, int>{
+        public static readonly Dictionary<bool, int> DoubleMoveRanks = new Dictionary<bool, int>{
             {false, 1},
             {true, 6},
         };
@@ -318,65 +319,65 @@ namespace Board
 
     public static class Patterns
     {
-        internal static Dictionary<PieceType, Pattern> PiecePatterns = new Dictionary<PieceType, Pattern>{
+        internal static readonly Dictionary<PieceType, Pattern> PiecePatterns = new Dictionary<PieceType, Pattern>{
             {PieceType.Knight, new Pattern(
-                new[,] {
-                    {2,1},
-                    {2,-1},
-                    {-2,1},
-                    {-2,-1},
-                    {1,2},
-                    {1,-2},
-                    {-1,2},
-                    {-1,-2},
+                new[] {
+                    (2, 1),
+                    (2, -1),
+                    (-2,1),
+                    (-2,-1),
+                    (1,2),
+                    (1,-2),
+                    (-1,2),
+                    (-1,-2),
                 },
                 false,
                 2
             )},
             {PieceType.Rook, new Pattern(
-                new[,] {
-                    {0,1},
-                    {0,-1},
-                    {1,0},
-                    {-1,0},
+                new[] {
+                    (0,1),
+                    (0,-1),
+                    (1,0),
+                    (-1,0),
                 },
                 true,
                 0
             )},
             {PieceType.Bishop, new Pattern(
-                new[,] {
-                    {1,-1},
-                    {1,1},
-                    {-1,-1},
-                    {-1,1},
+                new[] {
+                    (1,-1),
+                    (1,1),
+                    (-1,-1),
+                    (-1,1),
                 },
                 true,
                 2
             )},
             {PieceType.Queen, new Pattern(
-                new[,] {
-                    {0,1},
-                    {0,-1},
-                    {1,0},
-                    {-1,0},
-                    {1,-1},
-                    {1,1},
-                    {-1,-1},
-                    {-1,1},
+                new[] {
+                    (0,1),
+                    (0,-1),
+                    (1,0),
+                    (-1,0),
+                    (1,-1),
+                    (1,1),
+                    (-1,-1),
+                    (-1,1),
                 },
                 true,
                 3
             )},
             {PieceType.King, new Pattern(
-                new[,] {
-                    {0,1},
-                    {0,-1},
-                    {1,0},
-                    {-1,0},
-                    {1,-1},
-                    {1,1},
-                    {-1,-1},
-                    {-1,1},
+                new[] {
+                    (0,1),
+                    (0,-1),
+                    (1,0),
+                    (-1,0),
+                    (1,-1),
+                    (1,1),
+                    (-1,-1),
+                    (-1,1),
                 },
                 false,
                 -1
@@ -384,17 +385,17 @@ namespace Board
         };
 
         internal static Pattern CastlingPattern = new Pattern(
-            new[,] {
-                {2,0},
-                {-2,0},
+            new[] {
+                (2,0),
+                (-2,0),
             },
             false,
             2
         );
         internal static Pattern SkipPattern = new Pattern(
-            new[,] {
-                {1,0},
-                {-1,0},
+            new[] {
+                (1,0),
+                (-1,0),
             },
             false,
             0
@@ -404,29 +405,212 @@ namespace Board
 
         internal static Dictionary<bool, PawnPattern> PawnPatterns = new Dictionary<bool, PawnPattern>{
             {false,
-                new PawnPattern(new[,] {
-                    {0,1}
-                }, new[,] {
-                    {1,1},
-                    {1,-1}
+                new PawnPattern(new[] {
+                    (0,1)
+                }, new[] {
+                    (1,1),
+                    (1,-1)
                 })
             },
             {true,
-                new PawnPattern(new[,] {
-                    {0,-1}
-                }, new[,] {
-                    {-1,1},
-                    {-1,-1}
+                new PawnPattern(new[] {
+                    (0,-1)
+                }, new[] {
+                    (-1,1),
+                    (-1,-1)
                 })
             },
         };
 
-        internal static PieceType[] CheckPiecess = {
+        internal static PieceType[] CheckPieces = {
             PieceType.Knight,
             PieceType.Bishop,
             PieceType.Queen,
             PieceType.Rook,
             PieceType.King
         };
+    }
+
+    class PatternIterator
+    {
+        private (PatternState, PatternState)[] PatternStates;
+        private List<Func<(int,int) ,int>> IteratorCalculators  = new List<Func<(int,int),int>>();
+
+        public PatternIterator((int,int)[] pattern)
+        {
+            (PatternState, PatternState)[] newStates = new (PatternState, PatternState)[pattern.Length];
+            
+            for (int i = 0; i < pattern.Length; i++)
+            {
+                PatternState first;
+                PatternState second;
+                
+                if (pattern[i].Item1 == 0)
+                    first = PatternState.Zero;
+                else if (pattern[i].Item1 > 0)
+                    first = PatternState.Positive;
+                else
+                    first = PatternState.Negative;
+                
+                if (pattern[i].Item2 == 0)
+                    second = PatternState.Zero;
+                else if (pattern[i].Item2 > 0)
+                    second = PatternState.Positive;
+                else
+                    second = PatternState.Negative;
+                
+                newStates[i] = (first, second);
+                
+                switch (newStates[i])
+                {
+                    case ((PatternState.Positive, PatternState.Zero)):
+                        IteratorCalculators.Add(( pos) =>  7 - pos.Item1);
+                    break;
+                    case ((PatternState.Negative, PatternState.Zero)):
+                        IteratorCalculators.Add(( pos) =>  pos.Item1);
+                    break;
+                    case ((PatternState.Zero, PatternState.Positive)):
+                        IteratorCalculators.Add(( pos) =>  7 - pos.Item2);
+                    break;
+                    case ((PatternState.Zero, PatternState.Negative)):
+                        IteratorCalculators.Add(( pos) =>  pos.Item2);
+                    break;
+                    case  ((PatternState.Positive, PatternState.Positive)):
+                        IteratorCalculators.Add(( pos) =>  math.min(7 - pos.Item1, 7 - pos.Item2));
+                    break;
+                    case  ((PatternState.Positive, PatternState.Negative)):
+                        IteratorCalculators.Add(( pos) =>  math.min(7 - pos.Item1, pos.Item2));
+                    break;
+                    case  ((PatternState.Negative, PatternState.Positive)):
+                        IteratorCalculators.Add(( pos) =>  math.min(pos.Item1, 7 - pos.Item2));
+                    break;
+                    case  ((PatternState.Negative, PatternState.Negative)):
+                        IteratorCalculators.Add(( pos) =>  math.min(pos.Item1, pos.Item2));
+                    break;
+                }
+            }
+            PatternStates = newStates;
+            
+        }
+
+        public int[] GetIterators((int, int) pos)
+        {
+            int l = PatternStates.Length;
+            
+            int[] iterators = new int[l];
+            
+            for (int i = 0; i < l; i++)
+            {
+                iterators[i] = IteratorCalculators[i](pos);
+            }
+            
+            return iterators;
+        }
+    }
+
+    class PatternValidator
+    {
+        private (PatternState, PatternState)[] PatternStates;
+        public List<Func<(int, int), bool>> Validators = new List<Func<(int, int), bool>>();
+
+        public PatternValidator((int, int)[] pattern)
+        {
+            (PatternState, PatternState)[] newStates = new (PatternState, PatternState)[pattern.Length];
+
+            for (int i = 0; i < pattern.Length; i++)
+            {
+                PatternState first;
+                PatternState second;
+
+                if (pattern[i].Item1 == 0)
+                    first = PatternState.Zero;
+                else if (pattern[i].Item1 > 0)
+                    first = PatternState.Positive;
+                else
+                    first = PatternState.Negative;
+
+                if (pattern[i].Item2 == 0)
+                    second = PatternState.Zero;
+                else if (pattern[i].Item2 > 0)
+                    second = PatternState.Positive;
+                else
+                    second = PatternState.Negative;
+
+                newStates[i] = (first, second);
+
+                switch (newStates[i])
+                {
+                    case ((PatternState.Positive, PatternState.Zero)):
+                        Validators.Add((target) => target.Item1 < 8);
+                    break;
+                    case ((PatternState.Negative, PatternState.Zero)):
+                        Validators.Add((target) => target.Item1 >= 0);
+                    break;
+                    case ((PatternState.Zero, PatternState.Positive)):
+                        Validators.Add((target) => target.Item2 < 8);
+                    break;
+                    case ((PatternState.Zero, PatternState.Negative)):
+                        Validators.Add((target) => target.Item2 >= 0);
+                    break;
+                    case ((PatternState.Positive, PatternState.Positive)):
+                        Validators.Add((target) => target.Item1 < 8 && target.Item2 < 8);
+                    break;
+                    case ((PatternState.Positive, PatternState.Negative)):
+                        Validators.Add((target) => target.Item1 < 8 && target.Item2 >= 0);
+                    break;
+                    case ((PatternState.Negative, PatternState.Positive)):
+                        Validators.Add((target) => target.Item1 >= 0 && target.Item2 < 8);
+                    break;
+                    case ((PatternState.Negative, PatternState.Negative)):
+                        Validators.Add((target) => target.Item1 >= 0 && target.Item2 >= 0);
+                    break;
+                }
+            }
+
+            PatternStates = newStates;
+        }
+    }
+
+    class PawnPatternValidator
+    {
+        private PatternState[] PatternStates;
+        public List<Func<int, bool>> Validators = new List<Func<int, bool>>();
+
+        public PawnPatternValidator((int, int)[] pattern)
+        {
+            PatternState[] newStates = new PatternState[pattern.Length];
+
+            for (int i = 0; i < pattern.Length; i++)
+            {
+                PatternState s;
+                    
+                if (pattern[i].Item2 > 0)
+                    s = PatternState.Positive;
+                else
+                    s = PatternState.Negative;
+                    
+                newStates[i] = s;
+
+                switch (newStates[i])
+                {
+                    case PatternState.Positive:
+                        Validators.Add((int pos) =>  pos < 8);
+                    break;
+                    case PatternState.Negative:
+                        Validators.Add((int pos) =>  pos >= 0);
+                    break;
+                }
+            }
+                
+            PatternStates = newStates;
+        }
+    }
+    
+
+    enum PatternState
+    {
+        Positive,
+        Negative,
+        Zero
     }
 }
