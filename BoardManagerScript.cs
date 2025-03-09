@@ -124,9 +124,11 @@ public class BoardManagerScript : MonoBehaviour
                         Status = BmStatus.WaitingForPromotion;
                         break;
                     }
+
+                    Move.Move playerMove = new Move.Move(Selected, Moved, PromotionPiece, 0);
                     
                     // true if the move was legal and it was made on the board
-                    bool moveMade = match.MakeMove(new Move.Move(Selected, Moved, PromotionPiece, 0));
+                    bool moveMade = match.MakeMove(playerMove);
                     PromotionPiece = Presets.Empty;
                     
                     Selected = (8, 8);
@@ -135,6 +137,8 @@ public class BoardManagerScript : MonoBehaviour
                     if (moveMade)
                     {
                         UpdatePieceTextures();
+                        HighlightMove(playerMove, !match.PlayerSide);
+                        
                         StatusLabel.gameObject.SetActive(true);
                         WinLabel.gameObject.SetActive(false);
                         LoseLabel.gameObject.SetActive(false);
@@ -170,9 +174,10 @@ public class BoardManagerScript : MonoBehaviour
 
                     Debug.Log("Bot move");
                     // Make the bot's move
-                    match.MakeBotMove();
+                    Move.Move botMove = match.MakeBotMove();
                     
                     UpdatePieceTextures();
+                    HighlightMove(botMove, !match.PlayerSide);
                     StatusLabel.gameObject.SetActive(false);
                     
                     Outcome BoardStatus2 = match.board.Status().Item1;
@@ -324,7 +329,8 @@ public class BoardManagerScript : MonoBehaviour
                 {
                     for (int j = 0; j < 8; j++)
                     {
-                        OverlayScripts[i, j].UpdateTexture(0);
+                        if (OverlayScripts[i, j].TextureIndex != 2)
+                            OverlayScripts[i, j].UpdateTexture(0);
                     }
                 }
 
@@ -333,6 +339,22 @@ public class BoardManagerScript : MonoBehaviour
                 Status = BmStatus.PlayerTurn;
             }
         }
+    }
+
+    public void HighlightMove(Move.Move move, bool side)
+    {
+        for (int i = 0; i < 8; i++)
+        {
+            for (int j = 0; j < 8; j++)
+            {
+                OverlayScripts[i, j].UpdateTexture(0);
+            }
+        }
+        (int,int) to = BoardManagerInfo.BoardManagerInfo.Switch((move.To.Item2, move.To.Item1), side, false);
+        (int,int) from = BoardManagerInfo.BoardManagerInfo.Switch((move.From.Item2, move.From.Item1), side, false);
+        
+        OverlayScripts[to.Item1, to.Item2].UpdateTexture(2);
+        OverlayScripts[from.Item1, from.Item2].UpdateTexture(2);
     }
 
     public void Reset(bool color)
@@ -400,15 +422,17 @@ namespace BoardManagerInfo
             {
                 return coords;
             }
+
             
             if (perspective)
             {
                 return (7 - coords.Item1, coords.Item2);
             }
-            else
-            {
+            else 
+            { 
                 return (coords.Item1, 7 - coords.Item2);
             }
+            
         }
 
         public static bool PromotionSquare((int,int) coords, bool perspective)
