@@ -3,6 +3,7 @@ using Piece;
 using static Piece.Presets;
 using System.Collections.Generic;
 using Unity.Mathematics;
+using UnityEngine;
 
 namespace Board
 {
@@ -259,11 +260,8 @@ namespace Board
                 
                 if (CheckPattern.Validator.CheckValidators[i](Target)) 
                 {
-
-
                     Piece.Piece TargetPiece = board.board[Target.Item2,Target.Item1];
                     
-
                     if (TargetPiece.Role == PieceType.Pawn && TargetPiece.Color == color)
                     {
                         return true;
@@ -579,7 +577,7 @@ namespace Board
                 else
                     second = PatternState.Negative;
                 
-                if (pattern[i].Item2 > 0)
+                if (pattern[i].Item1 > 0)
                     first = PatternState.Positive;
                 else
                     first = PatternState.Negative;
@@ -594,7 +592,7 @@ namespace Board
                     break;
                 }
 
-                switch ((first, second))
+                switch ((second, first))
                 {
                     case ((PatternState.Positive, PatternState.Positive)):
                         CheckValidators.Add((target) =>  target.Item1 < 8 && target.Item2 < 8);

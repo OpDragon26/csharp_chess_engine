@@ -185,6 +185,8 @@ public class BoardManagerScript : MonoBehaviour
 
                 case BmStatus.BotTurn:
                     Frozen = false;
+                    Selected = (0, 0);
+                    Moved = (0,0);
 
                     Debug.Log("Bot move");
                     // Make the bot's move

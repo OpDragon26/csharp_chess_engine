@@ -37,18 +37,33 @@ namespace Match
             Notate = notateMoves;
         }
 
-        public bool StatusTest()
+        bool StatusTest()
         {
             return board.Status().Item1 == Outcome.Ongoing;
         }
 
-        public bool MakeMove(Move.Move move)
+        private void UpdateCapturedPieces(Move.Move move)
         {
             if (board.board[move.To.Item2, move.To.Item1].Role != PieceType.Empty)
             {
-                CapturedPieces[board.board[move.To.Item2,move.To.Item1].Color].Add(board.board[move.To.Item2,move.To.Item1].Role);
-                UnityEngine.Debug.Log(board.board[move.To.Item2,move.To.Item1].Role);
+                if (CapturedPieces[!board.board[move.To.Item2, move.To.Item1].Color].Contains(board.board[move.To.Item2, move.To.Item1].Role))
+                    CapturedPieces[!board.board[move.To.Item2, move.To.Item1].Color].Remove(board.board[move.To.Item2, move.To.Item1].Role);
+                else
+                    CapturedPieces[board.board[move.To.Item2,move.To.Item1].Color].Add(board.board[move.To.Item2,move.To.Item1].Role);
             }
+
+            if (move.Promotion != Empty)
+            {
+                if (CapturedPieces[!board.board[move.To.Item2, move.To.Item1].Color].Contains(move.Promotion.Role))
+                    CapturedPieces[!board.board[move.To.Item2, move.To.Item1].Color].Remove(move.Promotion.Role);
+                else
+                    CapturedPieces[board.board[move.To.Item2,move.To.Item1].Color].Add(move.Promotion.Role);
+            }
+        }
+
+        public bool MakeMove(Move.Move move)
+        {
+            UpdateCapturedPieces(move);
             
             return board.MakeMove(move, true, false);
         }
@@ -60,13 +75,7 @@ namespace Match
                 Node.Node node = new Node.Node(this.board);
                 Move.Move BotMove = node.BestMove(this.Depth);
                 
-                if (board.board[BotMove.To.Item2, BotMove.To.Item1].Role != PieceType.Empty)
-                {
-                    if (CapturedPieces[!board.board[BotMove.To.Item2, BotMove.To.Item1].Color].Contains(board.board[BotMove.To.Item2, BotMove.To.Item1].Role))
-                        CapturedPieces[!board.board[BotMove.To.Item2, BotMove.To.Item1].Color].Remove(board.board[BotMove.To.Item2, BotMove.To.Item1].Role);
-                    else
-                        CapturedPieces[board.board[BotMove.To.Item2,BotMove.To.Item1].Color].Add(board.board[BotMove.To.Item2,BotMove.To.Item1].Role);
-                }
+                UpdateCapturedPieces(BotMove);
                 
                 board.MakeMove(BotMove, false, false);
                 return BotMove;
