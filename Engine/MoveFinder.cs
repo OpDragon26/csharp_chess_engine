@@ -168,7 +168,7 @@ namespace Board
                 for (int i= 0; i < 2; i++)
                 {
                     Target = (pos.Item1 + pawnPattern.CapturePattern[i].Item2, pos.Item2 + pawnPattern.CapturePattern[i].Item1);
-                    if (ValidIndex(Target.Item1))
+                    if (pawnPattern.Validator.Validators[i](Target.Item1)) 
                     {
                         TargetPiece = board.board[Target.Item2,Target.Item1];
 
@@ -253,13 +253,13 @@ namespace Board
             }
 
             // check for pawns
-            (int,int)[] CheckPattern = Patterns.PawnPatterns[!color].CapturePattern; // opposite pattern used for backwards direction
+            PawnPattern CheckPattern = Patterns.PawnPatterns[!color]; // opposite pattern used for backwards direction
             for (int i = 0; i < 2; i++)
             {
-                int[] TargetSquare = {pos.Item1 + CheckPattern[i].Item2, pos.Item2 + CheckPattern[i].Item1};
-                if (ValidIndex(TargetSquare[0]) && ValidIndex(TargetSquare[1]))
+                (int, int) Target = (pos.Item1 + CheckPattern.CapturePattern[i].Item2, pos.Item2 + CheckPattern.CapturePattern[i].Item1);
+                if (CheckPattern.Validator.Validators[i](Target.Item1))
                 {
-                    Piece.Piece TargetPiece = board.board[TargetSquare[1],TargetSquare[0]];
+                    Piece.Piece TargetPiece = board.board[Target.Item2,Target.Item1];
 
                     if (TargetPiece.Role == PieceType.Pawn && TargetPiece.Color == color)
                     {
@@ -302,11 +302,13 @@ namespace Board
     {
         public readonly (int,int)[] MovePattern;
         public readonly (int,int)[] CapturePattern;
+        public PawnPatternValidator Validator;
 
         public PawnPattern((int,int)[] movePattern, (int,int)[] capturePattern)
         {
             MovePattern = movePattern;
             CapturePattern = capturePattern;
+            Validator = new PawnPatternValidator(CapturePattern);
         }
 
         public static readonly Dictionary<bool, int> DoubleMoveRanks = new Dictionary<bool, int>{
@@ -509,7 +511,7 @@ namespace Board
     class PatternValidator
     {
         private (PatternState, PatternState)[] PatternStates;
-        public List<Func<(int,int), bool>> Validators = new List<Func<(int,int), bool>>();
+        public List<Func<(int, int), bool>> Validators = new List<Func<(int, int), bool>>();
 
         public PatternValidator((int, int)[] pattern)
         {
@@ -539,35 +541,71 @@ namespace Board
                 switch (newStates[i])
                 {
                     case ((PatternState.Positive, PatternState.Zero)):
-                        Validators.Add(( target) =>  target.Item1 < 8);
+                        Validators.Add((target) => target.Item1 < 8);
                     break;
                     case ((PatternState.Negative, PatternState.Zero)):
-                        Validators.Add(( target) =>  target.Item1 >= 0);
+                        Validators.Add((target) => target.Item1 >= 0);
                     break;
                     case ((PatternState.Zero, PatternState.Positive)):
-                        Validators.Add(( target) =>  target.Item2 < 8);
+                        Validators.Add((target) => target.Item2 < 8);
                     break;
                     case ((PatternState.Zero, PatternState.Negative)):
-                        Validators.Add(( target) =>  target.Item2 >= 0);
+                        Validators.Add((target) => target.Item2 >= 0);
                     break;
-                    case  ((PatternState.Positive, PatternState.Positive)):
-                        Validators.Add(( target) =>  target.Item1 < 8 && target.Item2 < 8);
+                    case ((PatternState.Positive, PatternState.Positive)):
+                        Validators.Add((target) => target.Item1 < 8 && target.Item2 < 8);
                     break;
-                    case  ((PatternState.Positive, PatternState.Negative)):
-                        Validators.Add(( target) =>  target.Item1 < 8 && target.Item2 >= 0);
+                    case ((PatternState.Positive, PatternState.Negative)):
+                        Validators.Add((target) => target.Item1 < 8 && target.Item2 >= 0);
                     break;
-                    case  ((PatternState.Negative, PatternState.Positive)):
-                        Validators.Add(( target) =>  target.Item1 >=0 && target.Item2 < 8);
+                    case ((PatternState.Negative, PatternState.Positive)):
+                        Validators.Add((target) => target.Item1 >= 0 && target.Item2 < 8);
                     break;
-                    case  ((PatternState.Negative, PatternState.Negative)):
-                        Validators.Add(( target) =>  target.Item1 >=0 && target.Item2 >= 0);
+                    case ((PatternState.Negative, PatternState.Negative)):
+                        Validators.Add((target) => target.Item1 >= 0 && target.Item2 >= 0);
                     break;
                 }
             }
-            
+
             PatternStates = newStates;
         }
     }
+
+    class PawnPatternValidator
+    {
+        private PatternState[] PatternStates;
+        public List<Func<int, bool>> Validators = new List<Func<int, bool>>();
+
+        public PawnPatternValidator((int, int)[] pattern)
+        {
+            PatternState[] newStates = new PatternState[pattern.Length];
+
+            for (int i = 0; i < pattern.Length; i++)
+            {
+                PatternState s;
+                    
+                if (pattern[i].Item2 > 0)
+                    s = PatternState.Positive;
+                else
+                    s = PatternState.Negative;
+                    
+                newStates[i] = s;
+
+                switch (newStates[i])
+                {
+                    case PatternState.Positive:
+                            Validators.Add((int pos) =>  pos < 8);
+                    break;
+                    case PatternState.Negative:
+                        Validators.Add((int pos) =>  pos >= 0);
+                    break;
+                }
+            }
+                
+            PatternStates = newStates;
+        }
+    }
+    
 
     enum PatternState
     {
