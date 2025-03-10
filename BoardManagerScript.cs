@@ -13,7 +13,7 @@ using Presets = Piece.Presets;
 // - Add a MinimaxQuiescence function
 // Add endgame tables
 // Add opening book
-// 2229
+// 2951
 
 public class BoardManagerScript : MonoBehaviour
 {

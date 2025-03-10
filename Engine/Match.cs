@@ -54,10 +54,15 @@ namespace Match
 
             if (move.Promotion != Empty)
             {
-                if (CapturedPieces[!board.board[move.To.Item2, move.To.Item1].Color].Contains(move.Promotion.Role))
-                    CapturedPieces[!board.board[move.To.Item2, move.To.Item1].Color].Remove(move.Promotion.Role);
+                if (CapturedPieces[!move.Promotion.Color].Contains(move.Promotion.Role))
+                    CapturedPieces[!move.Promotion.Color].Remove(move.Promotion.Role);
                 else
-                    CapturedPieces[board.board[move.To.Item2,move.To.Item1].Color].Add(move.Promotion.Role);
+                    CapturedPieces[move.Promotion.Color].Add(move.Promotion.Role);
+
+                if (CapturedPieces[move.Promotion.Color].Contains(PieceType.Pawn))
+                    CapturedPieces[move.Promotion.Color].Remove(PieceType.Pawn);
+                else
+                    CapturedPieces[!move.Promotion.Color].Add(PieceType.Pawn);
             }
         }
 
