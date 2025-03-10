@@ -1,9 +1,7 @@
-using static HashCodeHelper.HashCodeHelper;
+using System;
 using Piece;
 using static Piece.Presets;
 using System.Collections.Generic;
-using System;
-using System.Linq;
 using UnityEngine;
 
 namespace Board
@@ -33,10 +31,10 @@ namespace Board
             {true, new List<(int,int)>()},
         };
 
-        public int PieceCounter;
+        private int PieceCounter;
 
         private ReverseMove LastMove;
-
+        
         public bool MakeMove(Move.Move move, bool filter, bool generateReverse)
         {
             if (filter)
@@ -66,24 +64,21 @@ namespace Board
             (int,int) wKingPos =  this.KingPos[false];
             (int,int) bKingPos = this.KingPos[true];
 
-
             if (TargetPiece.Role != PieceType.Empty)
             {
                 this.PiecePositions[TargetColor].Remove(MoveTo);
                 if (TargetPiece.Role != PieceType.Pawn)
                     this.PieceCounter -= TargetPiece.LocalValue;
             }
-                
             
             this.PiecePositions[OriginColor].Remove(MoveFrom);
             this.PiecePositions[OriginColor].Add(MoveTo);
-
-            if (OriginPiece.Role == PieceType.Pawn || TargetPiece.Role != PieceType.Empty)
-                this.MoveChain = 0;
-            else if (this.Side) 
-                this.MoveChain++;
             
-
+            if (this.Side) 
+                this.MoveChain++;
+            else if (OriginPiece.Role == PieceType.Pawn || TargetPiece.Role != PieceType.Empty)
+                this.MoveChain = 0;
+            
             if (move.Promotion != Empty)
                 this.board[move.To.Item2,move.To.Item1] = move.Promotion;
             else
@@ -256,6 +251,7 @@ namespace Board
             NewBoard.PiecePositions[false] = NewBoard.GetPiecePositions(false);
             NewBoard.PiecePositions[true] = NewBoard.GetPiecePositions(true);
             NewBoard.Endgame();
+            NewBoard.LocalValue();
             return NewBoard;
         }
 
@@ -282,9 +278,11 @@ namespace Board
             Clone.MoveChain = this.MoveChain;
             Clone.Repetition = new Dictionary<int, int>(this.Repetition);
             Clone.PieceCounter = this.PieceCounter;
-            Clone.Castling = new Dictionary<bool, bool[]> {
-                {false, new[] {this.Castling[false][0], this.Castling[false][1]}},
-                {true, new[] {this.Castling[true][0], this.Castling[true][1]}}};
+            Clone.Castling = new Dictionary<bool, bool[]> 
+            {
+                {false, (bool[])this.Castling[false].Clone()},
+                {true, (bool[])this.Castling[true].Clone()}
+            };
             
             return Clone;
         }
@@ -335,6 +333,7 @@ namespace Board
 
         int[] LocalValue()
         {
+
             int White = 0;
             int Black = 0;
             for (int i = 0; i < PiecePositions[false].Count; i++)
@@ -349,8 +348,8 @@ namespace Board
 
                 Black += board[coords.Item2,coords.Item1].LocalValue;
             }
+            return new[] { White, Black };
 
-            return new[] {White, Black};
         }
 
         bool PawnsLeft()
