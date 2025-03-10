@@ -20,7 +20,7 @@ namespace Board
                 (int, int) coords = Pieces[i];
                 Piece.Piece Selected = board.board[coords.Item2, coords.Item1];
 
-                if (Selected.Color == color && Selected.Role != PieceType.Empty)
+                if (Selected.Color == color && Selected.Role != PieceType.Empty) // probably can be deleted
                 {
                     MoveList.AddRange(SearchPiece(board, Selected.Role, color, coords));
                 }
@@ -38,7 +38,7 @@ namespace Board
             }
             
             if (ordering)
-                MoveList.Sort((x,y) => x.Value(board).CompareTo(y.Value(board))); // Sorts the moves based on the value that has been attributed to the move
+                MoveList.Sort((x,y) => x.Importance.CompareTo(y.Importance)); // Sorts the moves based on the value that has been attributed to the move
             return MoveList;
         }
 
@@ -65,11 +65,11 @@ namespace Board
 
                             if (TargetPiece.Role == PieceType.Empty)
                             {
-                                MoveList.Add(new Move.Move(pos, Target, Empty, PiecePattern.Importance));
+                                MoveList.Add(new Move.Move(pos, Target, Empty, PiecePattern.Importance + TargetPiece.LocalValue));
                             }
                             else if (TargetPiece.Color != color)
                             {
-                                MoveList.Add(new Move.Move(pos, Target, Empty, 5 - PiecePattern.Importance));
+                                MoveList.Add(new Move.Move(pos, Target, Empty, 5 - PiecePattern.Importance + Target.LocalValue));
                                 break;
                             }
                             else
@@ -92,7 +92,7 @@ namespace Board
                             if (TargetPiece == Empty) 
                                 MoveList.Add(new Move.Move(pos, Target, Empty, PiecePattern.Importance));
                             else if (TargetPiece.Color != color) 
-                                MoveList.Add(new Move.Move(pos, Target, Empty, 5 - PiecePattern.Importance));
+                                MoveList.Add(new Move.Move(pos, Target, Empty, 5 - PiecePattern.Importance + TargetPiece.LocalValue));
                         }
                     }
 
@@ -100,19 +100,22 @@ namespace Board
                     {
                         for (int i = 0; i < 2; i++)
                         {
-                            (int, int) Target = (pos.Item1 + Patterns.CastlingPattern.MovePattern[i].Item1, pos.Item2 + Patterns.CastlingPattern.MovePattern[i].Item2);
-                            (int, int) SkipSquare = (pos.Item1 + Patterns.SkipPattern.MovePattern[i].Item1, pos.Item2 + Patterns.SkipPattern.MovePattern[i].Item2);
-                            bool Castling = board.Castling[color][i] && board.board[Target.Item2,Target.Item1] == Empty && board.board[SkipSquare.Item2,SkipSquare.Item1] == Empty;
-
-                            if (i == 1)
+                            if (board.Castling[color][i])
                             {
-                                (int,int) LongCastleSkip = (pos.Item1 + Patterns.LongCastleSkip[0], pos.Item2 + Patterns.LongCastleSkip[1]);
-                                Castling = Castling && board.board[LongCastleSkip.Item2,LongCastleSkip.Item1] == Empty && !Attacked(board, LongCastleSkip, !color);
-                            }
+                                (int, int) Target = (pos.Item1 + Patterns.CastlingPattern.MovePattern[i].Item1, pos.Item2 + Patterns.CastlingPattern.MovePattern[i].Item2);
+                                (int, int) SkipSquare = (pos.Item1 + Patterns.SkipPattern.MovePattern[i].Item1, pos.Item2 + Patterns.SkipPattern.MovePattern[i].Item2);
+                                bool Castling = board.board[Target.Item2,Target.Item1] == Empty && board.board[SkipSquare.Item2,SkipSquare.Item1] == Empty;
 
-                            if (Castling && !board.KingInCheck(color) && !Attacked(board, SkipSquare, !color))
-                            {
-                                MoveList.Add(new Move.Move(pos, Target, Empty, 2));
+                                if (i == 1)
+                                {
+                                    (int,int) LongCastleSkip = (pos.Item1 + Patterns.LongCastleSkip[0], pos.Item2 + Patterns.LongCastleSkip[1]);
+                                    Castling = Castling && board.board[LongCastleSkip.Item2,LongCastleSkip.Item1] == Empty && !Attacked(board, LongCastleSkip, !color);
+                                }
+
+                                if (Castling && !board.KingInCheck(color) && !Attacked(board, SkipSquare, !color))
+                                {
+                                    MoveList.Add(new Move.Move(pos, Target, Empty, 9));
+                                }
                             }
                         }
                     }
@@ -185,15 +188,15 @@ namespace Board
                                 }
                                 else
                                 {
-                                    MoveList.Add(new Move.Move(pos, Target, W_Queen, 8));
-                                    MoveList.Add(new Move.Move(pos, Target, W_Rook, -3));
-                                    MoveList.Add(new Move.Move(pos, Target, W_Knight, -3));
-                                    MoveList.Add(new Move.Move(pos, Target, W_Bishop, -3));
+                                    MoveList.Add(new Move.Move(pos, Target, W_Queen, 8 + TargetPiece.LocalValue));
+                                    MoveList.Add(new Move.Move(pos, Target, W_Rook, -3 + TargetPiece.LocalValue));
+                                    MoveList.Add(new Move.Move(pos, Target, W_Knight, -3 + TargetPiece.LocalValue));
+                                    MoveList.Add(new Move.Move(pos, Target, W_Bishop, -3 + TargetPiece.LocalValue));
                                 }
                             }
                             else // simple move
                             {
-                                MoveList.Add(new Move.Move(pos, Target, Empty, 6));
+                                MoveList.Add(new Move.Move(pos, Target, Empty, 6 + TargetPiece.LocalValue));
                             }
                         }
                     }

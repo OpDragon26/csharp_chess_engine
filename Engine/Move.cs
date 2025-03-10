@@ -67,11 +67,6 @@ namespace Move
 
             return NewMove;
         }
-
-        public int Value(Board.Board board)
-        {
-            return board.board[To.Item2,To.Item1].LocalValue + board.board[From.Item2,From.Item1].LocalValue + Importance;
-        }
         
         private static (int,int) ConvertSquare(string square, bool reverse)
         {
