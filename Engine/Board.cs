@@ -262,32 +262,30 @@ namespace Board
         public Board DeepCopy()
         {
             Board Clone = new Board();
-
-            Piece.Piece[,] CloneBoard = new Piece.Piece[8,8];
-            for (int i = 0; i < 8; i++)
-            {
-                for (int j = 0; j < 8; j++)
-                {
-                    CloneBoard[i,j] = Piece.Presets.Clone[this.board[i,j]];
-                }
-            }
-            Clone.board = CloneBoard;
-            Clone.Castling = new Dictionary<bool, bool[]> {
-                {false, new[] {this.Castling[false][0], this.Castling[false][1]}},
-                {true, new[] {this.Castling[true][0], this.Castling[true][1]}}};
-
-            Clone.EnpassantSquare = this.EnpassantSquare;
-            Clone.Side = this.Side == true;
             
+            Clone.board = (Piece.Piece[,])this.board.Clone();
+            
+            Clone.PiecePositions = new Dictionary<bool, List<(int, int)>>
+            {
+                {false, new List<(int, int)>(this.PiecePositions[false])},
+                {true, new List<(int, int)>(this.PiecePositions[true])}
+            };
+            
+            Clone.KingPos = new Dictionary<bool, (int,int)>
+            {
+                {false, this.KingPos[false]},
+                {true, this.KingPos[true]}
+            };
+            
+            Clone.EnpassantSquare = this.EnpassantSquare;
+            Clone.Side = this.Side;
             Clone.MoveChain = this.MoveChain;
             Clone.Repetition = new Dictionary<int, int>(this.Repetition);
             Clone.PieceCounter = this.PieceCounter;
-
-            Clone.PiecePositions[false] = new List<(int, int)>(this.PiecePositions[false]);
-            Clone.PiecePositions[true] = new List<(int, int)>(this.PiecePositions[true]);
+            Clone.Castling = new Dictionary<bool, bool[]> {
+                {false, new[] {this.Castling[false][0], this.Castling[false][1]}},
+                {true, new[] {this.Castling[true][0], this.Castling[true][1]}}};
             
-            Clone.KingPos[false] = (this.KingPos[false].Item1, this.KingPos[false].Item2);
-            Clone.KingPos[true] = (this.KingPos[true].Item1, this.KingPos[true].Item2);
             return Clone;
         }
 

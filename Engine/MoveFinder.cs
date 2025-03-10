@@ -69,7 +69,7 @@ namespace Board
                             }
                             else if (TargetPiece.Color != color)
                             {
-                                MoveList.Add(new Move.Move(pos, Target, Empty, 5 - PiecePattern.Importance + Target.LocalValue));
+                                MoveList.Add(new Move.Move(pos, Target, Empty, 5 - PiecePattern.Importance + TargetPiece.LocalValue));
                                 break;
                             }
                             else
