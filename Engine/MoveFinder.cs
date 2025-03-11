@@ -59,7 +59,8 @@ namespace Board
                         int it = iterators[i];
                         for (int j = 0; j < it; j++)
                         {
-                            (int,int) Target = (pos.Item1 + PiecePattern.MovePattern[i].Item1 * (j + 1),  pos.Item2 + PiecePattern.MovePattern[i].Item2 * (j + 1));
+                            (int,int) Pattern = PiecePattern.MovePattern[i];
+                            (int,int) Target = (pos.Item1 + Pattern.Item1 * (j + 1),  pos.Item2 + Pattern.Item2 * (j + 1));
                             
                             Piece.Piece TargetPiece = board.board[Target.Item2,Target.Item1];
 
@@ -84,7 +85,8 @@ namespace Board
                     int l  = PiecePattern.MovePattern.Length;
                     for (int i = 0; i < l; i++)
                     {
-                        (int, int) Target = (pos.Item1 + PiecePattern.MovePattern[i].Item1, pos.Item2 + PiecePattern.MovePattern[i].Item2);
+                        (int,int) Pattern = PiecePattern.MovePattern[i];
+                        (int, int) Target = (pos.Item1 + Pattern.Item1, pos.Item2 + Pattern.Item2);
                         if (PiecePattern.Validator.Validators[i](Target))
                         {
                             Piece.Piece TargetPiece = board.board[Target.Item2,Target.Item1];

@@ -302,7 +302,8 @@ namespace Board
             {
                 for (int j = 0; j < 8; j++)
                 {
-                    if (this.board[i,j].Role == PieceType.King && this.board[i,j].Color == color)
+                    Piece.Piece TargetPiece = this.board[i, j];
+                    if (TargetPiece.Role == PieceType.King && TargetPiece.Color == color)
                     {
                         this.KingPos[color] = (j,i);
                         return (j,i);
@@ -320,7 +321,8 @@ namespace Board
                 {
                     for (int j = 0; j < 8; j++)
                     {
-                        if (this.board[i,j].Color == side && this.board[i,j].Role != PieceType.Empty)
+                        Piece.Piece TargetPiece = this.board[i, j];
+                        if (TargetPiece.Color == side && TargetPiece.Role != PieceType.Empty)
                         {
                             this.PiecePositions[side].Add((j,i));
                         }
