@@ -1,4 +1,3 @@
-using System;
 using Piece;
 using static Piece.Presets;
 using System.Collections.Generic;
@@ -333,37 +332,49 @@ namespace Board
 
         int[] LocalValue()
         {
-
             int White = 0;
             int Black = 0;
-            for (int i = 0; i < PiecePositions[false].Count; i++)
+            
+            List<(int,int)> Positions = PiecePositions[false];
+            int l = Positions.Count;
+            
+            for (int i = 0; i < l; i++)
             {
-                (int, int) coords = PiecePositions[false][i];
+                (int, int) coords = Positions[i];
 
                 White += board[coords.Item2,coords.Item1].LocalValue;
             }
-            for (int i = 0; i < PiecePositions[true].Count; i++)
+            
+            Positions = PiecePositions[true];
+            l  = Positions.Count;
+            
+            for (int i = 0; i < l; i++)
             {
-                (int, int) coords = PiecePositions[true][i];
+                (int, int) coords = Positions[i];
 
                 Black += board[coords.Item2,coords.Item1].LocalValue;
             }
             return new[] { White, Black };
-
         }
 
         bool PawnsLeft()
         {
-            for (int i = 0; i < PiecePositions[false].Count; i++)
+            List<(int,int)> Positions = PiecePositions[false];
+            int l = Positions.Count;
+            
+            for (int i = 0; i < l; i++)
             {
-                (int, int) coords = PiecePositions[false][i];
+                (int, int) coords = Positions[i];
 
                 if (board[coords.Item2,coords.Item1].Role == PieceType.Pawn)
                     return true;
             }
-            for (int i = 0; i < PiecePositions[true].Count; i++)
+            
+            Positions = PiecePositions[true];
+            l  = Positions.Count;
+            for (int i = 0; i < l; i++)
             {
-                (int, int) coords = PiecePositions[true][i];
+                (int, int) coords = Positions[i];
 
                 if (board[coords.Item2,coords.Item1].Role == PieceType.Pawn)
                     return true;
@@ -438,19 +449,21 @@ namespace Board
 
         void AddSelf()
         {
-            if (Repetition.ContainsKey(this.GetHashCode()))
+            int HashValue = this.GetHashCode();
+            
+            if (Repetition.ContainsKey(HashValue))
             {
-                Repetition[this.GetHashCode()]++;
+                Repetition[HashValue]++;
             }
             else
             {
-                Repetition[this.GetHashCode()] = 1;
+                Repetition.Add(HashValue, 1);
             }
         }
     }
 
     public static class Presets {
-        public static Piece.Piece[,] StartingPosition = new Piece.Piece[,] 
+        public static Piece.Piece[,] StartingPosition =
         {
             {W_Rook, W_Knight, W_Bishop, W_Queen, W_King, W_Bishop, W_Knight, W_Rook},
             {W_Pawn, W_Pawn, W_Pawn, W_Pawn, W_Pawn, W_Pawn, W_Pawn, W_Pawn},
