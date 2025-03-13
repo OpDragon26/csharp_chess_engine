@@ -367,7 +367,7 @@ namespace Board
                     (-1,1),
                 },
                 true,
-                3
+                0
             )},
             {PieceType.King, new Pattern(
                 new[] {
