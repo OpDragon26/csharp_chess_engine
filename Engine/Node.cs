@@ -19,13 +19,13 @@ namespace Node
             Dictionary<int, Move.Move> MoveDict = new Dictionary<int,  Move.Move>();
             int l = MoveList.Count;
 
-            int alpha = -1_000_000;
-            int beta  = 1_000_000;
+            int alpha = Int32.MinValue;
+            int beta  = Int32.MaxValue;
             
             if (!this.board.Side)
             {
                 // White (maximising player)
-                int MaxEval = -1_000_000;
+                int MaxEval = Int32.MinValue;
                 for (int i = 0; i < l; i++)
                 {
                     // Generate child node
@@ -49,7 +49,7 @@ namespace Node
             else 
             {
                 // Black
-                int MinEval = 1_000_000;
+                int MinEval = Int32.MaxValue;
                 
                 for (int i = 0; i < l; i++)
                 {
@@ -155,7 +155,7 @@ namespace Node
             
             if (!board.Side)
             {
-                int MaxEval = -1_000_000;
+                int MaxEval = Int32.MinValue;
                 
                 for (int i = 0; i < l; i++)
                 {
@@ -176,7 +176,7 @@ namespace Node
             }
             else
             {
-                int MinEval = 1_000_000;
+                int MinEval = Int32.MaxValue;
                 
                 for (int i = 0; i < l; i++)
                 {
