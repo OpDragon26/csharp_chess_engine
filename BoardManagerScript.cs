@@ -30,6 +30,9 @@ public class BoardManagerScript : MonoBehaviour
     public bool Side;
     public int Depth = 2;
     public bool DebugMode;
+    
+    public bool ShowBitboards = true;
+    public bool BitboardColor = false;
 
     public Match.Match match = new Match.Match(false, 2, false, false);
 
@@ -55,9 +58,7 @@ public class BoardManagerScript : MonoBehaviour
 
     public Text WAdvantage;
     public Text BAdvantage;
-
-    public bool ShowBitboards = true;
-
+    
     // Start is called once before the first execution of Update after the MonoBehaviour is created
     void Start()
     {
@@ -310,7 +311,10 @@ public class BoardManagerScript : MonoBehaviour
         }
 
         UpdateMaterialVisualisers();
-        UpdateBitboard(Bitboards.Bitboards.SquareBitboards[0,0]);
+        if (BitboardColor)
+            UpdateBitboard(Board.Presets.StartingBoard.BlackPieces);
+        else
+            UpdateBitboard(Board.Presets.StartingBoard.WhitePieces);
     }
 
     public void Click((int, int) coords)
@@ -471,7 +475,7 @@ public class BoardManagerScript : MonoBehaviour
     {
         if (ShowBitboards)
         {
-            string bits = Convert.ToString((long)bitboard, 2);
+            string bits = Convert.ToString((long)bitboard, 2).PadLeft(64, '0');
 
             for (int i = 0; i < 8; i++)
             {

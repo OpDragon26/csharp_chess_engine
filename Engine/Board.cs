@@ -2,6 +2,7 @@ using Piece;
 using static Piece.Presets;
 using System.Collections.Generic;
 using UnityEngine;
+using System;
 
 namespace Board
 {
@@ -33,6 +34,9 @@ namespace Board
         private int PieceCounter;
 
         private ReverseMove LastMove;
+
+        public ulong WhitePieces;
+        public ulong BlackPieces;
         
         public bool MakeMove(Move.Move move, bool filter, bool generateReverse)
         {
@@ -239,6 +243,8 @@ namespace Board
 
         public static Board Constructor(Piece.Piece[,] board, bool side, bool[] whiteCastle, bool[] blackCastle, (int,int) enpassantSquare, int moveChain)
         {
+            Bitboards.Bitboards.Init();
+            
             Board NewBoard = new Board();
             NewBoard.board = board;
             NewBoard.Castling = new Dictionary<bool, bool[]> {{false, blackCastle},{true, whiteCastle}};
@@ -251,6 +257,21 @@ namespace Board
             NewBoard.PiecePositions[true] = NewBoard.GetPiecePositions(true);
             NewBoard.Endgame();
             NewBoard.LocalValue();
+            
+            for (int i = 0; i < 8; i++)
+            {
+                for (int j = 0; j < 8; j++)
+                {
+                    if (board[i, j].Role != PieceType.Empty)
+                    {
+                        if (board[i, j].Color)
+                            NewBoard.BlackPieces |= Bitboards.Bitboards.SquareBitboards[i, j];
+                        else
+                            NewBoard.WhitePieces |= Bitboards.Bitboards.SquareBitboards[i, j];
+                    }
+                }
+            }
+            
             return NewBoard;
         }
 
@@ -282,6 +303,9 @@ namespace Board
                 {false, (bool[])this.Castling[false].Clone()},
                 {true, (bool[])this.Castling[true].Clone()}
             };
+            
+            Clone.WhitePieces = this.WhitePieces;
+            Clone.BlackPieces = this.BlackPieces;
             
             return Clone;
         }
