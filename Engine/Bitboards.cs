@@ -1,5 +1,3 @@
-using UnityEngine.PlayerLoop;
-
 namespace Bitboards
 {
     public static class Bitboards
@@ -15,7 +13,7 @@ namespace Bitboards
                 for (int j = 0; j < 8; j++)
                 {
                     SquareBitboards[i, j] = init;
-                    init = init >> 1; // shift it to the right for the next square
+                    init >>= 1; // shift it to the right for the next square
                 }
             }
         }

@@ -885,6 +885,7 @@ MonoBehaviour:
   SquarePrefab: {fileID: 2407372642965089829, guid: 5bf6896ff570b4216bb42e4ae13d4d52, type: 3}
   PiecePrefab: {fileID: 3272226786879308288, guid: 6bcaa5f4e12d4c39db64ae89e44f6ae8, type: 3}
   OverlayPrefab: {fileID: 8178581321692652643, guid: 00a0631730193cb9eac4c31de9ea54d0, type: 3}
+  BitboardVisualiserPrefab: {fileID: 194727399816066704, guid: e1ee6f713cff5ce8a9499ae65a05ee03, type: 3}
   MaterialVisualiserPrefab: {fileID: 6785188898663730724, guid: 004a382f5afd6647da54d79be8e9a4be, type: 3}
 --- !u!4 &368439943
 Transform:
@@ -2005,6 +2006,7 @@ MonoBehaviour:
   ExitButton: {fileID: 385282730}
   WAdvantage: {fileID: 614286334}
   BAdvantage: {fileID: 843990734}
+  ShowBitboards: 1
 --- !u!4 &816662428
 Transform:
   m_ObjectHideFlags: 0
