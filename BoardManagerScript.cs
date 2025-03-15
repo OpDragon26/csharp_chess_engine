@@ -298,9 +298,10 @@ public class BoardManagerScript : MonoBehaviour
         }
         else
         {
-            // UpdateBitboard(RookMask[bitboardCooords[0], bitboardCooords[1]]);
             UpdatePieceTextures();
-            UpdateBitboard(RookBlockerCombinations[bitboardCooords[0], bitboardCooords[1]][blockerIndex]);
+            UpdateBitboard(BishopBlockerCombinations[bitboardCooords[0], bitboardCooords[1]][blockerIndex]);
+            //UpdateBitboard(BishopMask[bitboardCooords[0], bitboardCooords[1]]);
+            //UpdateBitboard(DownDiagonal);
         }
     }
 
@@ -485,7 +486,7 @@ public class BoardManagerScript : MonoBehaviour
             {
                 for (int j = 0; j < 8; j++)
                 {
-                    (int, int) coords = BoardManagerInfo.BoardManagerInfo.Switch((i,j), !match.PlayerSide, false);
+                    (int, int) coords = BoardManagerInfo.BoardManagerInfo.Switch((i,j), !match.PlayerSide, DebugMode);
                     
                     BitboardVisualiserScripts[coords.Item1, coords.Item2].UpdateTexture((bits[i * 8 + j] == char.Parse("0") ? 1 : 2) + (ShowBits ? 0 : 2));
                 }

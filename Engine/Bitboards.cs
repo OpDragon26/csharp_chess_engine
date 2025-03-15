@@ -11,13 +11,20 @@ namespace Bitboards
     public static class Bitboards
     {
         public static ulong[,] SquareBitboards = new ulong[8, 8];
+        public static bool initialized;
+        
+        // rooks
         public static ulong[,] RookMask = new ulong[8, 8];
         public static ulong rank = 0xFF00000000000000;
         public static ulong file = 0x8080808080808080;
-        public static bool initialized;
-        public static Dictionary<((int, int), ulong), List<Move.Move>> RookLookupTable = new(); 
-        
         public static ulong[,][] RookBlockerCombinations = new ulong[8, 8][];
+        
+        // bishops
+        public static ulong[,] BishopMask = new ulong[8, 8];
+        public static ulong UpDiagonal = 0x102040810204080;
+        public static ulong DownDiagonal = 0x8040201008040201;
+        public static ulong[,][] BishopBlockerCombinations = new ulong[8, 8][];
+
 
         public static void Init()
         {
@@ -35,22 +42,48 @@ namespace Bitboards
                         // create rook masks
                         ulong currentFile = file >> i;
                         ulong currentRank = rank >> (j * 8);
-                        ulong mask = currentFile ^ currentRank;
-                        ulong blockerMask = mask;
+                        ulong rookMask = currentFile ^ currentRank;
 
                         if (i != 0) // if the coordinate is not on the edge, then subtract the final ranks and files, because those won't need to be checked for blockers
-                            blockerMask &= ~file;
+                            rookMask &= ~file;
                         if (i != 7)
-                            blockerMask &= ~(file >> 7);
+                            rookMask &= ~(file >> 7);
                         if (j != 0)
-                            blockerMask &= ~(rank);
+                            rookMask &= ~(rank);
                         if (j != 7)
-                            blockerMask &= ~(rank >> 56);
-                            
+                            rookMask &= ~(rank >> 56);
                         
                         // Add the mask to the array
-                        RookMask[i, j] = blockerMask;
+                        RookMask[i, j] = rookMask;
                         // Debug.Log(Convert.ToString((long)RookMoveMask[i, j], 2).PadLeft(64, '0'));
+                        
+                        // create bishop masks
+                        ulong relativeUD = UpDiagonal;
+                        ulong relativeDD = DownDiagonal;
+                        
+                        int udShift = (i + j - 7) * 8;
+                        int ddShift = (j - i) * 8;
+                        
+                        if (udShift < 0)
+                            relativeUD <<= -udShift;
+                        else
+                            relativeUD >>= udShift;
+                        
+                        if (ddShift < 0)
+                            relativeDD <<= -ddShift;
+                        else
+                            relativeDD >>= ddShift;
+                        
+                        ulong bishopMask = relativeUD ^ relativeDD;
+                        
+                        // remove the edges, as they won't be necessary
+                        //bishopMask &= ~file;
+                        //bishopMask &= ~(file >> 7);
+                        //bishopMask &= ~(rank);
+                        //bishopMask &= ~(rank >> 56);
+                        
+                        // add the mask to the array
+                        BishopMask[i, j] = bishopMask;
                     }
                 }
                 
@@ -60,6 +93,7 @@ namespace Bitboards
                     for (int j = 0; j < 8; j++)
                     {
                         RookBlockerCombinations[i, j] = blockerCombinations(RookMask[i, j]);
+                        BishopBlockerCombinations[i, j] = blockerCombinations(BishopMask[i, j]);
                     }
                 }
             
