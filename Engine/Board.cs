@@ -600,4 +600,19 @@ namespace Board
             BKingPos = bKingPos;
         }
     }
+
+    public static class TestCases
+    {
+        public static Piece.Piece[,] RookBitboards =
+        {
+            {Empty, Empty, Empty, Empty, Empty, Empty, Empty, Empty},
+            {Empty, Empty, Empty, Empty, Empty, Empty, Empty, Empty},
+            {Empty, Empty, Empty, Empty, Empty, Empty, Empty, Empty},
+            {Empty, Empty, Empty, Empty, Empty, Empty, Empty, Empty},
+            {Empty, Empty, Empty, Empty, W_Rook, Empty, Empty, Empty},
+            {Empty, Empty, Empty, Empty, Empty, Empty, Empty, Empty},
+            {Empty, Empty, Empty, Empty, Empty, Empty, Empty, Empty},
+            {Empty, Empty, Empty, Empty, Empty, Empty, Empty, Empty},
+        };
+    }
 }

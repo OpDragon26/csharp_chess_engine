@@ -1994,10 +1994,12 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   Side: 0
   Depth: 2
-  DebugMode: 0
+  DebugMode: 1
   ShowBitboards: 1
   BitboardColor: 0
-  bitboardCooords: 0000000000000000
+  ShowBits: 1
+  bitboardCooords: 0400000004000000
+  blockerIndex: 0
   Status: 0
   DepthLabel: {fileID: 980157037}
   StatusLabel: {fileID: 1037855146}

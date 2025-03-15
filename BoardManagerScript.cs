@@ -36,7 +36,8 @@ public class BoardManagerScript : MonoBehaviour
     public bool BitboardColor = false;
     public bool ShowBits;
 
-    public int[] bitboardCooords = {0,0};
+    public int[] bitboardCooords = { 0, 0 };
+    public int blockerIndex = 0;
 
     public Match.Match match = new Match.Match(false, 2, false, false);
 
@@ -113,10 +114,7 @@ public class BoardManagerScript : MonoBehaviour
 
         if (DebugMode)
         {
-            match.board.MakeMove(Move.Move.FromString("g1-f3"), false, true);
-            match.board.UnmakeMove();
-            match.board.MakeMove(Move.Move.FromString("g1-f3"), false, true);
-            UpdatePieceTextures();
+            match.board.board = Board.TestCases.RookBitboards;
         }
     }
 
@@ -298,6 +296,12 @@ public class BoardManagerScript : MonoBehaviour
                 break;
             }
         }
+        else
+        {
+            // UpdateBitboard(RookMask[bitboardCooords[0], bitboardCooords[1]]);
+            UpdatePieceTextures();
+            UpdateBitboard(RookBlockerCombinations[bitboardCooords[0], bitboardCooords[1]][blockerIndex]);
+        }
     }
 
     void UpdatePieceTextures()
@@ -312,11 +316,9 @@ public class BoardManagerScript : MonoBehaviour
                 PieceScripts[i, j].UpdateTexture(match.board.board[coords.Item1, coords.Item2]);
             }
         }
-
+        
+        UpdateBitboard(match.board.SideBitboards[BitboardColor]);
         UpdateMaterialVisualisers();
-        // UpdateBitboard(match.board.SideBitboards[BitboardColor]);
-        UpdateBitboard(RookBlockerMask[bitboardCooords[0], bitboardCooords[1]]);
-
     }
 
     public void Click((int, int) coords)
