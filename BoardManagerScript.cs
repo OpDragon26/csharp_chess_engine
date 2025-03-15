@@ -123,6 +123,30 @@ public class BoardManagerScript : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
+        UpdatePieceTextures();
+        
+        // update bitboards
+        if (Bishop)
+        {
+            if (Blockers)
+                UpdateBitboard(BishopBlockerCombinations[bitboardCooords[0], bitboardCooords[1]][blockerIndex]);
+            else
+                UpdateBitboard(BishopDict[((bitboardCooords[1], bitboardCooords[0]), // coords
+                    BishopMask[bitboardCooords[1], bitboardCooords[0]] & (match.board.SideBitboards[false] | match.board.SideBitboards[true]))] // get the pieces that collide with the mask
+                    & ~match.board.SideBitboards[match.board.Side] // subtract the pieces that cannot be captured
+                    );
+        }
+        else
+        {
+            if (Blockers)
+                UpdateBitboard(RookBlockerCombinations[bitboardCooords[0], bitboardCooords[1]][blockerIndex]);
+            else
+                UpdateBitboard(RookDict[((bitboardCooords[1], bitboardCooords[0]), // coords
+                    RookMask[bitboardCooords[1], bitboardCooords[0]] & (match.board.SideBitboards[false] | match.board.SideBitboards[true]))] // get the pieces that collide with the mask
+                    & ~match.board.SideBitboards[match.board.Side] // subtract the pieces that cannot be captured
+                    );
+        }
+        
         if (!DebugMode)
         {
             switch (Status)
@@ -300,22 +324,6 @@ public class BoardManagerScript : MonoBehaviour
         }
         else
         {
-            UpdatePieceTextures();
-            if (Bishop)
-            {
-                if (Blockers)
-                    UpdateBitboard(BishopBlockerCombinations[bitboardCooords[0], bitboardCooords[1]][blockerIndex]);
-                else
-                    UpdateBitboard(BishopMoves[bitboardCooords[0], bitboardCooords[1]][blockerIndex]);
-            }
-            else
-            {
-                if (Blockers)
-                    UpdateBitboard(RookBlockerCombinations[bitboardCooords[0], bitboardCooords[1]][blockerIndex]);
-                else
-                    UpdateBitboard(RookMoves[bitboardCooords[0], bitboardCooords[1]][blockerIndex]);
-            }
-            
             //UpdateBitboard(BishopMask[bitboardCooords[0], bitboardCooords[1]]);
             //UpdateBitboard(DownDiagonal);
         }
@@ -327,8 +335,7 @@ public class BoardManagerScript : MonoBehaviour
         {
             for (int j = 0; j < 8; j++)
             {
-                (int, int) coords =
-                    BoardManagerInfo.BoardManagerInfo.Switch((i, j), !match.PlayerSide, false); // The *magic function* requires the opposite side for some reason
+                (int, int) coords = BoardManagerInfo.BoardManagerInfo.Switch((i, j), !match.PlayerSide, false); // The *magic function* requires the opposite side for some reason
 
                 PieceScripts[i, j].UpdateTexture(match.board.board[coords.Item1, coords.Item2]);
             }

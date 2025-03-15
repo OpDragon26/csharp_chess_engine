@@ -4,6 +4,7 @@ using static Piece.Presets;
 using System.Collections.Generic;
 using Unity.Mathematics;
 using UnityEngine;
+using static Bitboards.Bitboards;
 
 namespace Board
 {
@@ -205,6 +206,22 @@ namespace Board
                 }
             }
             return MoveList;
+        }
+
+        private static List<Move.Move> GetMovesFromBitboard(ulong bitboard, (int, int) pos)
+        {
+            List<Move.Move> moves = new List<Move.Move>();
+
+            for (int i = 0; i < 8; i++)
+            {
+                for (int j = 0; j < 8; j++)
+                {
+                    if ((bitboard & SquareBitboards[j, i]) != 0) // if the square isn't empty in the bitboard
+                        moves.Add(new Move.Move(pos, (i,j), Empty));
+                }
+            }
+
+            return moves;
         }
 
         public static bool Attacked(Board board, (int,int) pos, bool color) // color refers to the color that is attacking the square

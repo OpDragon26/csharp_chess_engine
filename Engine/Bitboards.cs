@@ -1,9 +1,8 @@
-using UnityEngine;
 using System;
 using System.Collections.Generic;
 using Board;
-using NUnit.Framework;
 using Piece;
+using UnityEngine;
 
 // Todo:
 // Create a bitboard for the legal moves based on a bitboard
@@ -12,23 +11,24 @@ namespace Bitboards
 {
     public static class Bitboards
     {
-        public static ulong[,] SquareBitboards = new ulong[8, 8];
-        public static bool initialized;
+        public static readonly ulong[,] SquareBitboards = new ulong[8, 8];
+        private static bool initialized;
         
         // rooks
-        public static ulong[,] RookMask = new ulong[8, 8];
-        public static ulong rank = 0xFF00000000000000;
-        public static ulong file = 0x8080808080808080;
-        public static ulong[,][] RookBlockerCombinations = new ulong[8, 8][];
-        public static ulong[,][] RookMoves = new ulong[8, 8][];
+        public static readonly ulong[,] RookMask = new ulong[8, 8];
+        private static readonly ulong rank = 0xFF00000000000000;
+        private static readonly ulong file = 0x8080808080808080;
+        public static readonly ulong[,][] RookBlockerCombinations = new ulong[8, 8][];
+        public static readonly ulong[,][] RookMoves = new ulong[8, 8][];
+        public static Dictionary<((int,int), ulong), ulong> RookDict = new();
         
         // bishops
-        public static ulong[,] BishopMask = new ulong[8, 8];
-        public static ulong UpDiagonal = 0x102040810204080;
-        public static ulong DownDiagonal = 0x8040201008040201;
-        public static ulong[,][] BishopBlockerCombinations = new ulong[8, 8][];
-        public static ulong[,][] BishopMoves = new ulong[8, 8][];
-
+        public static readonly ulong[,] BishopMask = new ulong[8, 8];
+        private static readonly ulong UpDiagonal = 0x102040810204080;
+        private static readonly ulong DownDiagonal = 0x8040201008040201;
+        public static readonly ulong[,][] BishopBlockerCombinations = new ulong[8, 8][];
+        public static readonly ulong[,][] BishopMoves = new ulong[8, 8][];
+        public static Dictionary<((int,int), ulong), ulong> BishopDict = new();
 
         public static void Init()
         {
@@ -95,10 +95,23 @@ namespace Bitboards
                 {
                     for (int j = 0; j < 8; j++)
                     {
+                        // rooks
                         RookBlockerCombinations[i, j] = BlockerCombinations(RookMask[i, j]);
                         RookMoves[i,j] = GetMoves(RookBlockerCombinations[i, j], (i,j), PieceType.Rook);
+                        int l = RookBlockerCombinations[i, j].Length;
+                        for (int k = 0; k < l; k++)
+                        {
+                            RookDict.Add(((i, j), RookBlockerCombinations[i, j][k]), RookMoves[i,j][k]);
+                        }
+                        
+                        // bishops
                         BishopBlockerCombinations[i, j] = BlockerCombinations(BishopMask[i, j]);
                         BishopMoves[i, j] = GetMoves(BishopBlockerCombinations[i, j], (i,j), PieceType.Bishop);
+                        l = BishopBlockerCombinations[i, j].Length;
+                        for (int k = 0; k < l; k++)
+                        {
+                            BishopDict.Add(((i, j), BishopBlockerCombinations[i, j][k]), BishopMoves[i,j][k]);
+                        }
                         
                     }
                 }
@@ -107,7 +120,7 @@ namespace Bitboards
             }
         }
 
-        public static ulong[] BlockerCombinations(ulong blockerMask)
+        private static ulong[] BlockerCombinations(ulong blockerMask)
         {
             // count how many on bits are there in the blockerMask, that's going to give us the amount of combinations
             List<int> indices = new List<int>();
@@ -138,7 +151,7 @@ namespace Bitboards
             return combinations;
         }
 
-        public static ulong[] GetMoves(ulong[] blockers, (int,int) pos, PieceType piece)
+        private static ulong[] GetMoves(ulong[] blockers, (int,int) pos, PieceType piece)
         {
             ulong[] moves = new ulong[blockers.Length];
             Pattern PiecePattern = Patterns.PiecePatterns[piece];
