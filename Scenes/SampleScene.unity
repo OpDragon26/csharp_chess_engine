@@ -1998,7 +1998,7 @@ MonoBehaviour:
   ShowBitboards: 1
   BitboardColor: 0
   ShowBits: 1
-  bitboardCooords: 0400000004000000
+  bitboardCooords: 0000000000000000
   blockerIndex: 0
   Status: 0
   DepthLabel: {fileID: 980157037}
