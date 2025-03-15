@@ -73,7 +73,6 @@ public class BoardManagerScript : MonoBehaviour
         ExitButton.gameObject.SetActive(false);
 
         HashCodeHelper.ZobristHash.Init();
-        Bitboards.Bitboards.Init();
 
         PromotionSelection = GameObject.FindGameObjectWithTag("Promotion");
         PromotionSelection.SetActive(false);
@@ -315,7 +314,7 @@ public class BoardManagerScript : MonoBehaviour
 
         UpdateMaterialVisualisers();
         // UpdateBitboard(match.board.SideBitboards[BitboardColor]);
-        UpdateBitboard(RookMoveMask[bitboardCooords[0], bitboardCooords[1]]);
+        UpdateBitboard(RookBlockerMask[bitboardCooords[0], bitboardCooords[1]]);
 
     }
 
