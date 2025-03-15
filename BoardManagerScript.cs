@@ -35,6 +35,8 @@ public class BoardManagerScript : MonoBehaviour
     public bool ShowBitboards = true;
     public bool BitboardColor = false;
     public bool ShowBits;
+    public bool Blockers = true;
+    public bool Bishop = false;
 
     public int[] bitboardCooords = { 0, 0 };
     public int blockerIndex = 0;
@@ -299,7 +301,21 @@ public class BoardManagerScript : MonoBehaviour
         else
         {
             UpdatePieceTextures();
-            UpdateBitboard(BishopBlockerCombinations[bitboardCooords[0], bitboardCooords[1]][blockerIndex]);
+            if (Bishop)
+            {
+                if (Blockers)
+                    UpdateBitboard(BishopBlockerCombinations[bitboardCooords[0], bitboardCooords[1]][blockerIndex]);
+                else
+                    UpdateBitboard(BishopMoves[bitboardCooords[0], bitboardCooords[1]][blockerIndex]);
+            }
+            else
+            {
+                if (Blockers)
+                    UpdateBitboard(RookBlockerCombinations[bitboardCooords[0], bitboardCooords[1]][blockerIndex]);
+                else
+                    UpdateBitboard(RookMoves[bitboardCooords[0], bitboardCooords[1]][blockerIndex]);
+            }
+            
             //UpdateBitboard(BishopMask[bitboardCooords[0], bitboardCooords[1]]);
             //UpdateBitboard(DownDiagonal);
         }

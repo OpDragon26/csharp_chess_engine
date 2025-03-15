@@ -1,10 +1,12 @@
 using UnityEngine;
 using System;
 using System.Collections.Generic;
+using Board;
 using NUnit.Framework;
+using Piece;
 
 // Todo:
-// count the on bits in a capture mask and generate every int 
+// Create a bitboard for the legal moves based on a bitboard
 
 namespace Bitboards
 {
@@ -18,12 +20,14 @@ namespace Bitboards
         public static ulong rank = 0xFF00000000000000;
         public static ulong file = 0x8080808080808080;
         public static ulong[,][] RookBlockerCombinations = new ulong[8, 8][];
+        public static ulong[,][] RookMoves = new ulong[8, 8][];
         
         // bishops
         public static ulong[,] BishopMask = new ulong[8, 8];
         public static ulong UpDiagonal = 0x102040810204080;
         public static ulong DownDiagonal = 0x8040201008040201;
         public static ulong[,][] BishopBlockerCombinations = new ulong[8, 8][];
+        public static ulong[,][] BishopMoves = new ulong[8, 8][];
 
 
         public static void Init()
@@ -91,8 +95,11 @@ namespace Bitboards
                 {
                     for (int j = 0; j < 8; j++)
                     {
-                        RookBlockerCombinations[i, j] = blockerCombinations(RookMask[i, j]);
-                        BishopBlockerCombinations[i, j] = blockerCombinations(BishopMask[i, j]);
+                        RookBlockerCombinations[i, j] = BlockerCombinations(RookMask[i, j]);
+                        RookMoves[i,j] = GetMoves(RookBlockerCombinations[i, j], (i,j), PieceType.Rook);
+                        BishopBlockerCombinations[i, j] = BlockerCombinations(BishopMask[i, j]);
+                        BishopMoves[i, j] = GetMoves(BishopBlockerCombinations[i, j], (i,j), PieceType.Bishop);
+                        
                     }
                 }
             
@@ -100,7 +107,7 @@ namespace Bitboards
             }
         }
 
-        public static ulong[] blockerCombinations(ulong blockerMask)
+        public static ulong[] BlockerCombinations(ulong blockerMask)
         {
             // count how many on bits are there in the blockerMask, that's going to give us the amount of combinations
             List<int> indices = new List<int>();
@@ -129,6 +136,38 @@ namespace Bitboards
             }
 
             return combinations;
+        }
+
+        public static ulong[] GetMoves(ulong[] blockers, (int,int) pos, PieceType piece)
+        {
+            ulong[] moves = new ulong[blockers.Length];
+            Pattern PiecePattern = Patterns.PiecePatterns[piece];
+            
+            for (int k = 0; k < blockers.Length; k++)
+            {
+                ulong blocker = blockers[k];
+                ulong move = 0;
+                
+                int[] iterators = PiecePattern.Iterator.GetIterators(pos);
+
+                for (int l = 0; l < 4; l++)
+                {
+                    int it = iterators[l];
+                    (int,int) Pattern = PiecePattern.MovePattern[l];
+
+                    for (int h = 0; h < it; h++)
+                    {
+                        (int,int) Target = (pos.Item1 + Pattern.Item1 * (h + 1),  pos.Item2 + Pattern.Item2 * (h + 1));
+                        move |= SquareBitboards[Target.Item2, Target.Item1]; // add the given square to the bitboard
+
+                        if ((SquareBitboards[Target.Item2, Target.Item1] & blocker) != 0) // if the square isn't empty
+                            break;
+                    }
+                } 
+                moves[k] = move;
+            }
+            
+            return moves;
         }
     }
 }
