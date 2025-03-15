@@ -45,7 +45,15 @@ namespace Board
 
         private static List<Move.Move> SearchPiece(Board board, PieceType role, bool color, (int,int) pos)
         {
-           List<Move.Move> MoveList = new List<Move.Move>();
+            List<Move.Move> MoveList = new List<Move.Move>();
+
+            // look up bitboards for rooks, bishops and queens
+            if (role == PieceType.Bishop) 
+                return GetMovesFromBitboard(BishopDict[(pos, BishopMask[pos.Item1, pos.Item2] & (board.SideBitboards[false] | board.SideBitboards[true]))] & ~board.SideBitboards[color], pos);
+            if (role == PieceType.Rook) 
+                return GetMovesFromBitboard(RookDict[(pos, RookMask[pos.Item1, pos.Item2] & (board.SideBitboards[false] | board.SideBitboards[true]))] & ~board.SideBitboards[color], pos);
+            if (role == PieceType.Queen) 
+                return GetMovesFromBitboard((RookDict[(pos, RookMask[pos.Item1, pos.Item2] & (board.SideBitboards[false] | board.SideBitboards[true]))] & ~board.SideBitboards[color]) | (BishopDict[(pos, BishopMask[pos.Item1, pos.Item2] & (board.SideBitboards[false] | board.SideBitboards[true]))] & ~board.SideBitboards[color]), pos);
 
             if (role != PieceType.Pawn) 
             {
