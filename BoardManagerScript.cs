@@ -6,6 +6,7 @@ using UnityEngine;
 using UnityEngine.UI;
 using System.Collections.Generic;
 using Presets = Piece.Presets;
+using static Bitboards.Bitboards;
 
 // 2951
 
@@ -33,6 +34,8 @@ public class BoardManagerScript : MonoBehaviour
     
     public bool ShowBitboards = true;
     public bool BitboardColor = false;
+
+    public int[] bitboardCooords = {0,0};
 
     public Match.Match match = new Match.Match(false, 2, false, false);
 
@@ -311,7 +314,9 @@ public class BoardManagerScript : MonoBehaviour
         }
 
         UpdateMaterialVisualisers();
-        UpdateBitboard(match.board.SideBitboards[BitboardColor]);
+        // UpdateBitboard(match.board.SideBitboards[BitboardColor]);
+        UpdateBitboard(RookMoveMask[bitboardCooords[0], bitboardCooords[1]]);
+
     }
 
     public void Click((int, int) coords)

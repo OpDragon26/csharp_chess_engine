@@ -1995,6 +1995,9 @@ MonoBehaviour:
   Side: 0
   Depth: 2
   DebugMode: 0
+  ShowBitboards: 1
+  BitboardColor: 0
+  bitboardCooords: 0000000000000000
   Status: 0
   DepthLabel: {fileID: 980157037}
   StatusLabel: {fileID: 1037855146}
@@ -2006,7 +2009,6 @@ MonoBehaviour:
   ExitButton: {fileID: 385282730}
   WAdvantage: {fileID: 614286334}
   BAdvantage: {fileID: 843990734}
-  ShowBitboards: 1
 --- !u!4 &816662428
 Transform:
   m_ObjectHideFlags: 0
