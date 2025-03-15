@@ -76,11 +76,10 @@ namespace Bitboards
                         
                         ulong bishopMask = relativeUD ^ relativeDD;
                         
-                        // remove the edges, as they won't be necessary
-                        //bishopMask &= ~file;
-                        //bishopMask &= ~(file >> 7);
-                        //bishopMask &= ~(rank);
-                        //bishopMask &= ~(rank >> 56);
+                        bishopMask &= ~file;
+                        bishopMask &= ~(file >> 7);
+                        bishopMask &= ~(rank);
+                        bishopMask &= ~(rank >> 56);
                         
                         // add the mask to the array
                         BishopMask[i, j] = bishopMask;
