@@ -311,10 +311,7 @@ public class BoardManagerScript : MonoBehaviour
         }
 
         UpdateMaterialVisualisers();
-        if (BitboardColor)
-            UpdateBitboard(Board.Presets.StartingBoard.BlackPieces);
-        else
-            UpdateBitboard(Board.Presets.StartingBoard.WhitePieces);
+        UpdateBitboard(match.board.SideBitboards[BitboardColor]);
     }
 
     public void Click((int, int) coords)
