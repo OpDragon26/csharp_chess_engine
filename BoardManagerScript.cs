@@ -34,6 +34,7 @@ public class BoardManagerScript : MonoBehaviour
     
     public bool ShowBitboards = true;
     public bool BitboardColor = false;
+    public bool ShowBits;
 
     public int[] bitboardCooords = {0,0};
 
@@ -484,7 +485,7 @@ public class BoardManagerScript : MonoBehaviour
                 {
                     (int, int) coords = BoardManagerInfo.BoardManagerInfo.Switch((i,j), !match.PlayerSide, false);
                     
-                    BitboardVisualiserScripts[coords.Item1, coords.Item2].UpdateTexture(bits[i * 8 + j] == char.Parse("0") ? 1 : 2);
+                    BitboardVisualiserScripts[coords.Item1, coords.Item2].UpdateTexture((bits[i * 8 + j] == char.Parse("0") ? 1 : 2) + (ShowBits ? 0 : 2));
                 }
             }
         }

@@ -2,7 +2,7 @@ using UnityEngine;
 using System;
 
 // Todo:
-// cut off the edge of rook 
+// count the on bits in a capture mask and generate every int 
 
 namespace Bitboards
 {
