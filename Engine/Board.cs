@@ -2,6 +2,7 @@ using Piece;
 using static Piece.Presets;
 using System.Collections.Generic;
 using UnityEngine;
+using System;
 
 namespace Board
 {
@@ -34,6 +35,12 @@ namespace Board
 
         private ReverseMove LastMove;
         
+        public Dictionary<bool, ulong> SideBitboards = new Dictionary<bool, ulong>
+        {
+            {false, 0},
+            {true, 0},
+        };
+        
         public bool MakeMove(Move.Move move, bool filter, bool generateReverse)
         {
             if (filter)
@@ -46,8 +53,6 @@ namespace Board
             }
              
             // local variables storing data that is accessed over and over
-            (int, int) MoveTo = (move.To.Item1,move.To.Item2);
-            (int, int) MoveFrom = (move.From.Item1, move.From.Item2);
             Piece.Piece OriginPiece = this.board[move.From.Item2,move.From.Item1];
             Piece.Piece TargetPiece = this.board[move.To.Item2,move.To.Item1];
             bool OriginColor = OriginPiece.Color;
@@ -65,13 +70,16 @@ namespace Board
 
             if (TargetPiece.Role != PieceType.Empty)
             {
-                this.PiecePositions[TargetColor].Remove(MoveTo);
+                this.PiecePositions[TargetColor].Remove(move.To);
+                this.SideBitboards[TargetColor] ^= Bitboards.Bitboards.SquareBitboards[move.To.Item2, move.To.Item1];
                 if (TargetPiece.Role != PieceType.Pawn)
                     this.PieceCounter -= TargetPiece.LocalValue;
             }
             
-            this.PiecePositions[OriginColor].Remove(MoveFrom);
-            this.PiecePositions[OriginColor].Add(MoveTo);
+            this.PiecePositions[OriginColor].Remove(move.From);
+            this.PiecePositions[OriginColor].Add(move.To);
+            this.SideBitboards[OriginColor] ^= Bitboards.Bitboards.SquareBitboards[move.From.Item2, move.From.Item1];
+            this.SideBitboards[OriginColor] ^= Bitboards.Bitboards.SquareBitboards[move.To.Item2, move.To.Item1];
             
             if (this.Side) 
                 this.MoveChain++;
@@ -94,6 +102,8 @@ namespace Board
                     this.board[Presets.WRShortCastleDest.Item2,Presets.WRShortCastleDest.Item1] = W_Rook;
                     this.PiecePositions[false].Add(Presets.WRShortCastleDest);
                     this.PiecePositions[false].Remove(Presets.WRShortCastlePos);
+                    this.SideBitboards[OriginColor] ^= Bitboards.Bitboards.SquareBitboards[Presets.WRShortCastlePos.Item2, Presets.WRShortCastlePos.Item1];
+                    this.SideBitboards[OriginColor] ^= Bitboards.Bitboards.SquareBitboards[Presets.WRShortCastleDest.Item2, Presets.WRShortCastleDest.Item1];
                     this.Castling[false] = new[] {false, false};
 
                     extraMove = (Presets.WRShortCastlePos, Presets.WRShortCastleDest);
@@ -104,6 +114,8 @@ namespace Board
                     this.board[Presets.WRLongCastleDest.Item2,Presets.WRLongCastleDest.Item1] = W_Rook;
                     this.PiecePositions[false].Add(Presets.WRLongCastleDest);
                     this.PiecePositions[false].Remove(Presets.WRLongCastlePos);
+                    this.SideBitboards[OriginColor] ^= Bitboards.Bitboards.SquareBitboards[Presets.WRLongCastlePos.Item2, Presets.WRLongCastlePos.Item1];
+                    this.SideBitboards[OriginColor] ^= Bitboards.Bitboards.SquareBitboards[Presets.WRLongCastleDest.Item2, Presets.WRLongCastleDest.Item1];
                     this.Castling[false] = new[] {false, false};
                     
                     extraMove = (Presets.WRLongCastlePos, Presets.WRLongCastleDest);
@@ -117,6 +129,8 @@ namespace Board
                     this.board[Presets.BRShortCastleDest.Item2,Presets.BRShortCastleDest.Item1] = B_Rook;
                     this.PiecePositions[true].Add(Presets.BRShortCastleDest);
                     this.PiecePositions[true].Remove(Presets.BRShortCastlePos);
+                    this.SideBitboards[OriginColor] ^= Bitboards.Bitboards.SquareBitboards[Presets.BRShortCastlePos.Item2, Presets.BRShortCastlePos.Item1];
+                    this.SideBitboards[OriginColor] ^= Bitboards.Bitboards.SquareBitboards[Presets.BRShortCastleDest.Item2, Presets.BRShortCastleDest.Item1];
                     this.Castling[true] = new[] {false, false};
                     
                     extraMove = (Presets.BRShortCastlePos, Presets.BRShortCastleDest);
@@ -127,6 +141,8 @@ namespace Board
                     this.board[Presets.BRLongCastleDest.Item2,Presets.BRLongCastleDest.Item1] = B_Rook;
                     this.PiecePositions[true].Add(Presets.BRLongCastleDest);
                     this.PiecePositions[true].Remove(Presets.BRLongCastlePos);
+                    this.SideBitboards[OriginColor] ^= Bitboards.Bitboards.SquareBitboards[Presets.BRLongCastlePos.Item2, Presets.BRLongCastlePos.Item1];
+                    this.SideBitboards[OriginColor] ^= Bitboards.Bitboards.SquareBitboards[Presets.BRLongCastleDest.Item2, Presets.BRLongCastleDest.Item1];
                     this.Castling[true] = new[] {false, false};
                     
                     extraMove = (Presets.BRLongCastlePos, Presets.BRLongCastlePos);
@@ -153,12 +169,14 @@ namespace Board
                     if (this.board[move.To.Item2 + 1,move.To.Item1].Role == PieceType.Pawn)
                     {
                         this.PiecePositions[this.board[move.To.Item2 + 1,move.To.Item1].Color].Remove((move.To.Item1,move.To.Item2 + 1));
+                        this.SideBitboards[this.board[move.To.Item2 + 1, move.To.Item1].Color] ^= Bitboards.Bitboards.SquareBitboards[move.To.Item1, move.To.Item2 + 1];
                         this.board[move.To.Item2 + 1,move.To.Item1] = Empty;
                         enpassant = (move.To.Item2 + 1,move.To.Item1);
                     }
                     else if (this.board[move.To.Item2 - 1,move.To.Item1].Role == PieceType.Pawn)
                     {
                         this.PiecePositions[this.board[move.To.Item2 - 1,move.To.Item1].Color].Remove((move.To.Item1,move.To.Item2 - 1));
+                        this.SideBitboards[this.board[move.To.Item2 - 1, move.To.Item1].Color] ^= Bitboards.Bitboards.SquareBitboards[move.To.Item1, move.To.Item2 - 1];
                         this.board[move.To.Item2 - 1,move.To.Item1] = Empty;
                         enpassant = (move.To.Item2 - 1,move.To.Item1);
                     }
@@ -179,7 +197,7 @@ namespace Board
                 this.EnpassantSquare = (8,8);
             
             if (generateReverse)
-                LastMove = new ReverseMove((MoveFrom, MoveTo), extraMove, TargetPiece, move.Promotion != Empty, enpassant, prevEnpassant, moveChain, whiteCastle, blackCastle, wKingPos, bKingPos);
+                LastMove = new ReverseMove((move.From, move.To), extraMove, TargetPiece, move.Promotion != Empty, enpassant, prevEnpassant, moveChain, whiteCastle, blackCastle, wKingPos, bKingPos);
             
             this.Side = !this.Side;
             
@@ -201,9 +219,11 @@ namespace Board
             else
                 this.board[LastMove.OriginMove.Item1.Item2, LastMove.OriginMove.Item1.Item1] = this.board[LastMove.OriginMove.Item2.Item2, LastMove.OriginMove.Item2.Item1];
             this.PiecePositions[!this.Side].Add(LastMove.OriginMove.Item1);
+            this.SideBitboards[!this.Side] ^= Bitboards.Bitboards.SquareBitboards[LastMove.OriginMove.Item1.Item2, LastMove.OriginMove.Item1.Item1];
             
             this.board[LastMove.OriginMove.Item2.Item2, LastMove.OriginMove.Item2.Item1] = LastMove.CapturedPiece;
             this.PiecePositions[this.Side].Remove(LastMove.OriginMove.Item2);
+            this.SideBitboards[this.Side] ^= Bitboards.Bitboards.SquareBitboards[LastMove.OriginMove.Item2.Item2, LastMove.OriginMove.Item2.Item1];
             
             if (LastMove.CapturedPiece.Role != PieceType.Pawn)
                 this.PieceCounter += LastMove.CapturedPiece.LocalValue;
@@ -216,6 +236,8 @@ namespace Board
                 
                 this.PiecePositions[!this.Side].Add(LastMove.ExtraMove.Item1);
                 this.PiecePositions[!this.Side].Remove(LastMove.ExtraMove.Item2);
+                this.SideBitboards[!this.Side] ^= Bitboards.Bitboards.SquareBitboards[LastMove.ExtraMove.Item1.Item2, LastMove.ExtraMove.Item1.Item1];
+                this.SideBitboards[!this.Side] ^= Bitboards.Bitboards.SquareBitboards[LastMove.ExtraMove.Item2.Item2, LastMove.ExtraMove.Item2.Item1];
             }
             
             // if there was an en passant capture, put the pawn back
@@ -223,6 +245,7 @@ namespace Board
             {
                 this.board[LastMove.Enpassant.Item2, LastMove.Enpassant.Item1] = Pawns[this.Side];
                 this.PiecePositions[this.Side].Add(LastMove.Enpassant);
+                this.SideBitboards[!this.Side] ^= Bitboards.Bitboards.SquareBitboards[LastMove.Enpassant.Item2, LastMove.Enpassant.Item1];
             }
             
             this.MoveChain = LastMove.MoveChain;
@@ -239,6 +262,8 @@ namespace Board
 
         public static Board Constructor(Piece.Piece[,] board, bool side, bool[] whiteCastle, bool[] blackCastle, (int,int) enpassantSquare, int moveChain)
         {
+            Bitboards.Bitboards.Init();
+            
             Board NewBoard = new Board();
             NewBoard.board = board;
             NewBoard.Castling = new Dictionary<bool, bool[]> {{false, blackCastle},{true, whiteCastle}};
@@ -251,6 +276,16 @@ namespace Board
             NewBoard.PiecePositions[true] = NewBoard.GetPiecePositions(true);
             NewBoard.Endgame();
             NewBoard.LocalValue();
+            
+            for (int i = 0; i < 8; i++)
+            {
+                for (int j = 0; j < 8; j++)
+                {
+                    if (board[i, j].Role != PieceType.Empty)
+                        NewBoard.SideBitboards[board[i, j].Color] |= Bitboards.Bitboards.SquareBitboards[i, j];
+                }
+            }
+            
             return NewBoard;
         }
 
@@ -282,6 +317,9 @@ namespace Board
                 {false, (bool[])this.Castling[false].Clone()},
                 {true, (bool[])this.Castling[true].Clone()}
             };
+            
+            Clone.SideBitboards[false] = this.SideBitboards[false];
+            Clone.SideBitboards[true] = this.SideBitboards[true];
             
             return Clone;
         }
@@ -561,5 +599,20 @@ namespace Board
             WKingPos = wKingPos;
             BKingPos = bKingPos;
         }
+    }
+
+    public static class TestCases
+    {
+        public static Piece.Piece[,] RookBitboards =
+        {
+            {Empty, Empty, Empty, Empty, Empty, Empty, Empty, Empty},
+            {Empty, Empty, Empty, Empty, Empty, Empty, Empty, Empty},
+            {Empty, Empty, Empty, Empty, Empty, Empty, Empty, Empty},
+            {Empty, Empty, Empty, Empty, Empty, Empty, Empty, Empty},
+            {Empty, Empty, Empty, Empty, W_Rook, Empty, Empty, Empty},
+            {Empty, Empty, Empty, Empty, Empty, Empty, Empty, Empty},
+            {Empty, Empty, Empty, Empty, Empty, Empty, Empty, Empty},
+            {Empty, Empty, Empty, Empty, Empty, Empty, Empty, Empty},
+        };
     }
 }

@@ -1,3 +1,4 @@
+using System;
 using Board;
 using BoardManagerInfo;
 using Piece;
@@ -5,14 +6,9 @@ using UnityEngine;
 using UnityEngine.UI;
 using System.Collections.Generic;
 using Presets = Piece.Presets;
+using static Bitboards.Bitboards;
+using static MagicNumbers.MagicNumbers;
 
-// Todo:
-// Add Zobrist hashing
-// Add quiescence search
-// - Add QuiescenceSearch function in MoveFinder
-// - Add a MinimaxQuiescence function
-// Add endgame tables
-// Add opening book
 // 2951
 
 public class BoardManagerScript : MonoBehaviour
@@ -20,27 +16,38 @@ public class BoardManagerScript : MonoBehaviour
     public readonly GameObject[,] Squares = new GameObject[8, 8];
     public readonly GameObject[,] Pieces = new GameObject[8, 8];
     public readonly GameObject[,] Overlays = new GameObject[8, 8];
+    public readonly GameObject[,] BitboardVisualisers = new GameObject[8, 8];
     public readonly GameObject[] WMaterialVisualisers = new GameObject[16];
     public readonly GameObject[] BMaterialVisualisers = new GameObject[16];
-    
+
     SquareScript[,] SquareScripts = new SquareScript[8, 8];
     PieceScript[,] PieceScripts = new PieceScript[8, 8];
     OverlayScript[,] OverlayScripts = new OverlayScript[8, 8];
+    BitboardVisualiserScript[,] BitboardVisualiserScripts = new BitboardVisualiserScript[8, 8];
     MaterialVisualiserScript[] WMaterialVisualiserScripts = new MaterialVisualiserScript[16];
     MaterialVisualiserScript[] BMaterialVisualiserScripts = new MaterialVisualiserScript[16];
-    
+
     GameObject PromotionSelection;
 
     public bool Side;
     public int Depth = 2;
     public bool DebugMode;
+    
+    public bool ShowBitboards = true;
+    public bool BitboardColor = false;
+    public bool ShowBits;
+    public bool Blockers = true;
+    public bool Bishop = false;
+
+    public int[] bitboardCooords = { 0, 0 };
+    public int blockerIndex = 0;
 
     public Match.Match match = new Match.Match(false, 2, false, false);
 
     public BmStatus Status = BmStatus.Idle;
-    
-    (int,int) Selected = (0,0);
-    (int, int) Moved = (0,0);
+
+    (int, int) Selected = (0, 0);
+    (int, int) Moved = (0, 0);
 
     private Piece.Piece PromotionPiece = Presets.Empty;
     private bool Frozen;
@@ -53,7 +60,7 @@ public class BoardManagerScript : MonoBehaviour
     public Text WinLabel;
     public Text LoseLabel;
     public Text DrawLabel;
-    
+
     public Button ResetButton;
     public Button ExitButton;
 
@@ -69,9 +76,9 @@ public class BoardManagerScript : MonoBehaviour
         DrawLabel.gameObject.SetActive(false);
         ResetButton.gameObject.SetActive(false);
         ExitButton.gameObject.SetActive(false);
-        
+
         HashCodeHelper.ZobristHash.Init();
-        
+
         PromotionSelection = GameObject.FindGameObjectWithTag("Promotion");
         PromotionSelection.SetActive(false);
         StatusLabel.gameObject.SetActive(false);
@@ -86,13 +93,15 @@ public class BoardManagerScript : MonoBehaviour
         {
             for (int j = 0; j < 8; j++)
             {
-                SquareScripts[i,j] = Squares[i,j].GetComponent<SquareScript>();
-                SquareScripts[i,j].UpdateTexture((i + j) % 2);
-                SquareScripts[i,j].Coords = (j, i);
-                
-                PieceScripts[i,j] = Pieces[i,j].GetComponent<PieceScript>();
-                
-                OverlayScripts[i,j] = Overlays[i,j].GetComponent<OverlayScript>();
+                SquareScripts[i, j] = Squares[i, j].GetComponent<SquareScript>();
+                SquareScripts[i, j].UpdateTexture((i + j) % 2);
+                SquareScripts[i, j].Coords = (j, i);
+
+                PieceScripts[i, j] = Pieces[i, j].GetComponent<PieceScript>();
+
+                OverlayScripts[i, j] = Overlays[i, j].GetComponent<OverlayScript>();
+
+                BitboardVisualiserScripts[i, j] = BitboardVisualisers[i, j].GetComponent<BitboardVisualiserScript>();
             }
         }
 
@@ -101,37 +110,40 @@ public class BoardManagerScript : MonoBehaviour
             WMaterialVisualiserScripts[i] = WMaterialVisualisers[i].GetComponent<MaterialVisualiserScript>();
             BMaterialVisualiserScripts[i] = BMaterialVisualisers[i].GetComponent<MaterialVisualiserScript>();
         }
-        
+
         UpdatePieceTextures();
-        
+
         DepthLabel.text = "Depth: " + (match.Depth + 1).ToString();
-        
+
         if (DebugMode)
         {
-            match.board.MakeMove(Move.Move.FromString("g1-f3"), false, true);
-            match.board.UnmakeMove();
-            match.board.MakeMove(Move.Move.FromString("g1-f3"), false, true);
-            UpdatePieceTextures();
+            match.board.board = Board.TestCases.RookBitboards;
         }
     }
 
     // Update is called once per frame
     void Update()
     {
+        UpdatePieceTextures();
+        
+        // update bitboards
+        
         if (!DebugMode)
-        { 
+        {
             switch (Status)
             {
-                case  BmStatus.Idle:
+                case BmStatus.Idle:
                     GameOverOverlay.SetActive(false);
-                    
+
                     Frozen = false;
                 break;
-                
-                case  BmStatus.PlayerTurn:
+
+                case BmStatus.PlayerTurn:
                     Frozen = false;
 
-                    if (match.board.board[Selected.Item2, Selected.Item1].Role == PieceType.Pawn && BoardManagerInfo.BoardManagerInfo.PromotionSquare(Moved, match.PlayerSide) && PromotionPiece == Presets.Empty)
+                    if (match.board.board[Selected.Item2, Selected.Item1].Role == PieceType.Pawn &&
+                        BoardManagerInfo.BoardManagerInfo.PromotionSquare(Moved, match.PlayerSide) &&
+                        PromotionPiece == Presets.Empty)
                     {
                         PromotionSelection.SetActive(true);
 
@@ -140,11 +152,11 @@ public class BoardManagerScript : MonoBehaviour
                     }
 
                     Move.Move playerMove = new Move.Move(Selected, Moved, PromotionPiece, 0);
-                    
+
                     // true if the move was legal and it was made on the board
                     bool moveMade = match.MakeMove(playerMove);
                     PromotionPiece = Presets.Empty;
-                    
+
                     Selected = (8, 8);
                     Moved = (8, 8);
 
@@ -152,7 +164,7 @@ public class BoardManagerScript : MonoBehaviour
                     {
                         UpdatePieceTextures();
                         HighlightMove(playerMove, !match.PlayerSide);
-                        
+
                         StatusLabel.gameObject.SetActive(true);
                         WinLabel.gameObject.SetActive(false);
                         LoseLabel.gameObject.SetActive(false);
@@ -171,7 +183,7 @@ public class BoardManagerScript : MonoBehaviour
                             Status = BmStatus.PlayerWon;
                             break;
                         }
-                        
+
                         Status = BmStatus.BotTurn; // switch to the bot's turn
                         Debug.Log("Move successful");
                     }
@@ -186,16 +198,16 @@ public class BoardManagerScript : MonoBehaviour
                 case BmStatus.BotTurn:
                     Frozen = false;
                     Selected = (0, 0);
-                    Moved = (0,0);
+                    Moved = (0, 0);
 
                     Debug.Log("Bot move");
                     // Make the bot's move
                     Move.Move botMove = match.MakeBotMove();
-                    
+
                     UpdatePieceTextures();
                     HighlightMove(botMove, !match.PlayerSide);
                     StatusLabel.gameObject.SetActive(false);
-                    
+
                     Outcome BoardStatus2 = match.board.Status().Item1;
                     if (BoardStatus2 == Outcome.Draw)
                     {
@@ -207,15 +219,15 @@ public class BoardManagerScript : MonoBehaviour
                         Status = BmStatus.BotWon;
                         break;
                     }
-                    
+
                     Status = BmStatus.Idle; // Wait for a player move
 
                 break;
-                
+
                 case BmStatus.WaitingForPromotion:
                     Frozen = true;
                 break;
-                
+
                 case BmStatus.PromotionQueen:
                     Frozen = false;
 
@@ -225,7 +237,7 @@ public class BoardManagerScript : MonoBehaviour
                         PromotionPiece = Presets.W_Queen;
                     Status = BmStatus.PlayerTurn;
                 break;
-                
+
                 case BmStatus.PromotionRook:
                     Frozen = false;
 
@@ -235,7 +247,7 @@ public class BoardManagerScript : MonoBehaviour
                         PromotionPiece = Presets.W_Rook;
                     Status = BmStatus.PlayerTurn;
                 break;
-                
+
                 case BmStatus.PromotionBishop:
                     Frozen = false;
 
@@ -245,7 +257,7 @@ public class BoardManagerScript : MonoBehaviour
                         PromotionPiece = Presets.W_Bishop;
                     Status = BmStatus.PlayerTurn;
                 break;
-                
+
                 case BmStatus.PromotionKnight:
                     Frozen = false;
 
@@ -255,14 +267,14 @@ public class BoardManagerScript : MonoBehaviour
                         PromotionPiece = Presets.W_Knight;
                     Status = BmStatus.PlayerTurn;
                 break;
-                
+
                 case BmStatus.PromotionEmpty:
                     Frozen = false;
 
                     PromotionPiece = Presets.B_King;
                     Status = BmStatus.PlayerTurn;
                 break;
-                
+
                 case BmStatus.PlayerWon:
                     Frozen = true;
 
@@ -271,24 +283,43 @@ public class BoardManagerScript : MonoBehaviour
                     GameOverOverlay.SetActive(true);
                     WinLabel.gameObject.SetActive(true);
                 break;
-                
+
                 case BmStatus.BotWon:
                     Frozen = true;
-                    
+
                     ResetButton.gameObject.SetActive(true);
                     ExitButton.gameObject.SetActive(true);
                     GameOverOverlay.SetActive(true);
                     LoseLabel.gameObject.SetActive(true);
                 break;
-                
+
                 case BmStatus.Draw:
                     Frozen = true;
-                    
+
                     ResetButton.gameObject.SetActive(true);
                     ExitButton.gameObject.SetActive(true);
                     GameOverOverlay.SetActive(true);
                     DrawLabel.gameObject.SetActive(true);
                 break;
+            }
+        }
+        else
+        {
+            //UpdateBitboard(BishopMask[bitboardCooords[0], bitboardCooords[1]]);
+            //UpdateBitboard(DownDiagonal);
+            if (Bishop)
+            {
+                if (Blockers)
+                    UpdateBitboard(BishopBlockerCombinations[bitboardCooords[0], bitboardCooords[1]][blockerIndex]);
+                else
+                    UpdateBitboard(BishopMoves[bitboardCooords[0], bitboardCooords[1]][blockerIndex]);
+            }
+            else
+            {
+                if (Blockers)
+                    UpdateBitboard(RookBlockerCombinations[bitboardCooords[0], bitboardCooords[1]][blockerIndex]);
+                else
+                    UpdateBitboard(RookMoves[bitboardCooords[0], bitboardCooords[1]][blockerIndex]);
             }
         }
     }
@@ -299,22 +330,36 @@ public class BoardManagerScript : MonoBehaviour
         {
             for (int j = 0; j < 8; j++)
             {
-                (int,int) coords = BoardManagerInfo.BoardManagerInfo.Switch((i, j), !match.PlayerSide, false); // The *magic function* requires the opposite side for some reason
-                
-                PieceScripts[i,j].UpdateTexture(match.board.board[coords.Item1, coords.Item2]);
+                (int, int) coords = BoardManagerInfo.BoardManagerInfo.Switch((i, j), !match.PlayerSide, false); // The *magic function* requires the opposite side for some reason
+
+                PieceScripts[i, j].UpdateTexture(match.board.board[coords.Item1, coords.Item2]);
+            }
+        }
+        
+        if (Selected.Item1 == 8)
+        {
+            UpdateBitboard(match.board.SideBitboards[BitboardColor]);
+        }
+        else
+        {
+            PieceType role = match.board.board[Selected.Item2, Selected.Item1].Role;
+
+            if (role == PieceType.Bishop)
+            {
+                UpdateBitboard(BishopDict[(Selected, BishopMask[Selected.Item1, Selected.Item2] & (match.board.SideBitboards[false] | match.board.SideBitboards[true]))] & ~match.board.SideBitboards[match.board.board[Selected.Item2, Selected.Item1].Color]);
             }
         }
         
         UpdateMaterialVisualisers();
     }
 
-    public void Click((int,int) coords)
+    public void Click((int, int) coords)
     {
         if (match.PlayerSide == match.board.Side && !Frozen)
         {
-            (int,int) ocoords = BoardManagerInfo.BoardManagerInfo.Switch(coords, match.PlayerSide, false); 
+            (int, int) ocoords = BoardManagerInfo.BoardManagerInfo.Switch(coords, match.PlayerSide, false);
             // Get the piece using objective coords - match.match.board[ocoords.Item2, coords.Item1]
-        
+
             if (match.board.board[ocoords.Item2, ocoords.Item1].Role != PieceType.Empty &&
                 match.board.board[ocoords.Item2, ocoords.Item1].Color == match.PlayerSide)
             {
@@ -328,17 +373,17 @@ public class BoardManagerScript : MonoBehaviour
                         OverlayScripts[i, j].UpdateTexture(0);
                     }
                 }
-        
+
                 OverlayScripts[coords.Item2, coords.Item1].UpdateTexture(set);
-        
+
                 //Debug.Log(match.board.board[ocoords.Item2, ocoords.Item1].Role);
                 //Debug.Log(match.board.board[ocoords.Item2, ocoords.Item1].Color);
 
                 if (Selected == ocoords)
                 {
-                    Selected = (8,8);
+                    Selected = (8, 8);
                 }
-                
+
                 Selected = ocoords;
             }
             else
@@ -353,7 +398,7 @@ public class BoardManagerScript : MonoBehaviour
                 }
 
                 Moved = ocoords;
-            
+
                 Status = BmStatus.PlayerTurn;
             }
         }
@@ -368,9 +413,10 @@ public class BoardManagerScript : MonoBehaviour
                 OverlayScripts[i, j].UpdateTexture(0);
             }
         }
-        (int,int) to = BoardManagerInfo.BoardManagerInfo.Switch((move.To.Item2, move.To.Item1), side, false);
-        (int,int) from = BoardManagerInfo.BoardManagerInfo.Switch((move.From.Item2, move.From.Item1), side, false);
-        
+
+        (int, int) to = BoardManagerInfo.BoardManagerInfo.Switch((move.To.Item2, move.To.Item1), side, false);
+        (int, int) from = BoardManagerInfo.BoardManagerInfo.Switch((move.From.Item2, move.From.Item1), side, false);
+
         OverlayScripts[to.Item1, to.Item2].UpdateTexture(2);
         OverlayScripts[from.Item1, from.Item2].UpdateTexture(2);
     }
@@ -378,22 +424,23 @@ public class BoardManagerScript : MonoBehaviour
     public void UpdateMaterialVisualisers()
     {
         (int, List<PieceType>, List<PieceType>) imbalance = match.GetMaterialImbalance();
-        
+
         List<PieceType> WhitePieces = imbalance.Item2;
         List<PieceType> BlackPieces = imbalance.Item3;
-        
-        WhitePieces.Sort((x,y) => Piece.Piece.SortValues[y].CompareTo(Piece.Piece.SortValues[x]));
-        
+
+        WhitePieces.Sort((x, y) => Piece.Piece.SortValues[y].CompareTo(Piece.Piece.SortValues[x]));
+
         WAdvantage.text = "";
         BAdvantage.text = "";
-        
+
         if (match.PlayerSide)
         {
             for (int i = 0; i < 16; i++)
             {
                 try
                 {
-                    BMaterialVisualiserScripts[i].UpdateTexture(BoardManagerInfo.BoardManagerInfo.MVIndexes[WhitePieces[i]]);
+                    BMaterialVisualiserScripts[i]
+                        .UpdateTexture(BoardManagerInfo.BoardManagerInfo.MVIndexes[WhitePieces[i]]);
                 }
                 catch
                 {
@@ -405,7 +452,8 @@ public class BoardManagerScript : MonoBehaviour
             {
                 try
                 {
-                    WMaterialVisualiserScripts[i].UpdateTexture(BoardManagerInfo.BoardManagerInfo.MVIndexes[BlackPieces[i]]);
+                    WMaterialVisualiserScripts[i]
+                        .UpdateTexture(BoardManagerInfo.BoardManagerInfo.MVIndexes[BlackPieces[i]]);
                 }
                 catch
                 {
@@ -447,7 +495,7 @@ public class BoardManagerScript : MonoBehaviour
                     BMaterialVisualiserScripts[i].UpdateTexture(6);
                 }
             }
-            
+
             if (imbalance.Item1 > 0)
             {
                 BAdvantage.text = "+" + imbalance.Item1.ToString();
@@ -459,7 +507,35 @@ public class BoardManagerScript : MonoBehaviour
         }
     }
 
-    public void Reset(bool color)
+    public void UpdateBitboard(ulong bitboard)
+    {
+        if (ShowBitboards)
+        {
+            string bits = Convert.ToString((long)bitboard, 2).PadLeft(64, '0');
+
+            for (int i = 0; i < 8; i++)
+            {
+                for (int j = 0; j < 8; j++)
+                {
+                    (int, int) coords = BoardManagerInfo.BoardManagerInfo.Switch((i,j), !match.PlayerSide, DebugMode);
+                    
+                    BitboardVisualiserScripts[coords.Item1, coords.Item2].UpdateTexture((bits[i * 8 + j] == char.Parse("0") ? 1 : 2) + (ShowBits ? 0 : 2));
+                }
+            }
+        }
+        else
+        {
+            for (int i = 0; i < 8; i++)
+            {
+                for (int j = 0; j < 8; j++)
+                {
+                    BitboardVisualiserScripts[i,j].UpdateTexture(0);
+                }
+            }
+        }
+    }
+
+public void Reset(bool color)
     {
         GameOverOverlay.SetActive(false);
         WinLabel.gameObject.SetActive(false);
@@ -519,6 +595,32 @@ public class BoardManagerScript : MonoBehaviour
     public void QuitGame()
     {
         Application.Quit();
+    }
+
+    private void OnDestroy()
+    {
+        Debug.Log("Game closed");
+        
+        // generate magic numbers
+        /*
+        InitMagicNumbers(PieceType.Rook);
+        InitMagicNumbers(PieceType.Bishop);
+
+        
+        for (int i = 0; i < 1000; i++)
+        {
+            if (i % 500 == 0)
+                MagicNumbers.MagicNumberGenerator.RandGen = new();
+            UpdateMagicNumbers(PieceType.Rook);
+            UpdateMagicNumbers(PieceType.Bishop);
+        }
+        
+        
+        Debug.Log("Rooks:");
+        Debug.Log(GetNumString(PieceType.Rook));
+        Debug.Log("Bishops:");
+        Debug.Log(GetNumString(PieceType.Bishop));
+        */
     }
 }
 

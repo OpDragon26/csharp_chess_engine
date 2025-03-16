@@ -51,7 +51,7 @@ namespace HashCodeHelper
             new int[8,8],
         };
         private static int BlackToMove;
-        private static readonly Random RandGen = new();
+        public static readonly Random RandGen = new();
 
         public static void Init()
         {
