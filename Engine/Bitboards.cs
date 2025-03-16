@@ -21,7 +21,7 @@ namespace Bitboards
         private static readonly ulong file = 0x8080808080808080;
         public static readonly ulong[,][] RookBlockerCombinations = new ulong[8, 8][];
         public static readonly ulong[,][] RookMoves = new ulong[8, 8][];
-        public static Dictionary<((int,int), ulong), ulong> RookDict = new();
+        //public static Dictionary<((int,int), ulong), ulong> RookDict = new();
         public static readonly ulong[,][] RookLookup = new ulong[8, 8][];
         
         // bishops
@@ -30,8 +30,11 @@ namespace Bitboards
         private static readonly ulong DownDiagonal = 0x8040201008040201;
         public static readonly ulong[,][] BishopBlockerCombinations = new ulong[8, 8][];
         public static readonly ulong[,][] BishopMoves = new ulong[8, 8][];
-        public static Dictionary<((int,int), ulong), ulong> BishopDict = new();
+        //public static Dictionary<((int,int), ulong), ulong> BishopDict = new();
         public static readonly ulong[,][] BishopLookup = new ulong[8, 8][];
+        
+        // kings
+        public static readonly ulong[,] KingMask = new ulong[8, 8];
 
         public static void Init()
         {
@@ -90,6 +93,30 @@ namespace Bitboards
                         
                         // add the mask to the array
                         BishopMask[i, j] = bishopMask;
+                        
+                        // create king masks
+                        ulong kingMask = ulong.MaxValue;
+
+                        
+                        for (int k = 0; k < 8; k++)
+                        {
+                            if (!(k == j || k == j - 1 || k == j + 1))
+                            {
+                                kingMask &= ~(file >> k);
+                            }
+                        }
+                        
+                        for (int k = 0; k < 8; k++)
+                        {
+                            if (!(k == i || k == i - 1 || k == i + 1))
+                            {
+                                kingMask &= ~(rank >> (k * 8));
+                            }
+                        }
+                        
+                        kingMask &= ~SquareBitboards[i, j];
+                        
+                        KingMask[i, j] = kingMask;
                     }
                 }
 
@@ -101,21 +128,25 @@ namespace Bitboards
                         // rooks
                         RookBlockerCombinations[i, j] = BlockerCombinations(RookMask[i, j]);
                         RookMoves[i,j] = GetMoves(RookBlockerCombinations[i, j], (i,j), PieceType.Rook);
+                        /*
                         int l = RookBlockerCombinations[i, j].Length;
                         for (int k = 0; k < l; k++)
                         {
                             RookDict.Add(((i, j), RookBlockerCombinations[i, j][k]), RookMoves[i,j][k]);
                         }
+                        */
                         
                         
                         // bishops
                         BishopBlockerCombinations[i, j] = BlockerCombinations(BishopMask[i, j]);
                         BishopMoves[i, j] = GetMoves(BishopBlockerCombinations[i, j], (i,j), PieceType.Bishop);
+                        /*
                         l = BishopBlockerCombinations[i, j].Length;
                         for (int k = 0; k < l; k++)
                         {
                             BishopDict.Add(((i, j), BishopBlockerCombinations[i, j][k]), BishopMoves[i,j][k]);
                         }
+                        */
                     }
                 }
                 
@@ -193,31 +224,33 @@ namespace Bitboards
         {
             ulong[] moves = new ulong[blockers.Length];
             Pattern PiecePattern = Patterns.PiecePatterns[piece];
-            
-            for (int k = 0; k < blockers.Length; k++)
+
+            if (PiecePattern.Repeat)
             {
-                ulong blocker = blockers[k];
-                ulong move = 0;
-                
-                int[] iterators = PiecePattern.Iterator.GetIterators(pos);
-
-                for (int l = 0; l < 4; l++)
+                for (int k = 0; k < blockers.Length; k++)
                 {
-                    int it = iterators[l];
-                    (int,int) Pattern = PiecePattern.MovePattern[l];
+                    ulong blocker = blockers[k];
+                    ulong move = 0;
+                
+                    int[] iterators = PiecePattern.Iterator.GetIterators(pos);
 
-                    for (int h = 0; h < it; h++)
+                    for (int l = 0; l < 4; l++)
                     {
-                        (int,int) Target = (pos.Item1 + Pattern.Item1 * (h + 1),  pos.Item2 + Pattern.Item2 * (h + 1));
-                        move |= SquareBitboards[Target.Item2, Target.Item1]; // add the given square to the bitboard
+                        int it = iterators[l];
+                        (int,int) Pattern = PiecePattern.MovePattern[l];
 
-                        if ((SquareBitboards[Target.Item2, Target.Item1] & blocker) != 0) // if the square isn't empty
-                            break;
-                    }
-                } 
-                moves[k] = move;
+                        for (int h = 0; h < it; h++)
+                        {
+                            (int,int) Target = (pos.Item1 + Pattern.Item1 * (h + 1),  pos.Item2 + Pattern.Item2 * (h + 1));
+                            move |= SquareBitboards[Target.Item2, Target.Item1]; // add the given square to the bitboard
+
+                            if ((SquareBitboards[Target.Item2, Target.Item1] & blocker) != 0) // if the square isn't empty
+                                break;
+                        }
+                    } 
+                    moves[k] = move;
+                }
             }
-            
             return moves;
         }
     }

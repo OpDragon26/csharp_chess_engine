@@ -1997,11 +1997,11 @@ MonoBehaviour:
   DebugMode: 0
   ShowBitboards: 0
   BitboardColor: 0
-  ShowBits: 1
+  ShowBits: 0
   Blockers: 1
-  Bishop: 0
-  bitboardCooords: 0500000007000000
-  blockerIndex: 1
+  piece: 2
+  bitboardCooords: 0000000000000000
+  blockerIndex: 0
   Status: 0
   DepthLabel: {fileID: 980157037}
   StatusLabel: {fileID: 1037855146}

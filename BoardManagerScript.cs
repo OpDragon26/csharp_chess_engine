@@ -37,8 +37,8 @@ public class BoardManagerScript : MonoBehaviour
     public bool BitboardColor = false;
     public bool ShowBits;
     public bool Blockers = true;
-    public bool Bishop = false;
-
+    public int piece = 0;
+    
     public int[] bitboardCooords = { 0, 0 };
     public int blockerIndex = 0;
 
@@ -307,19 +307,24 @@ public class BoardManagerScript : MonoBehaviour
         {
             //UpdateBitboard(BishopMask[bitboardCooords[0], bitboardCooords[1]]);
             //UpdateBitboard(DownDiagonal);
-            if (Bishop)
+
+            switch (piece)
             {
-                if (Blockers)
-                    UpdateBitboard(BishopBlockerCombinations[bitboardCooords[0], bitboardCooords[1]][blockerIndex]);
-                else
-                    UpdateBitboard(BishopMoves[bitboardCooords[0], bitboardCooords[1]][blockerIndex]);
-            }
-            else
-            {
-                if (Blockers)
-                    UpdateBitboard(RookBlockerCombinations[bitboardCooords[0], bitboardCooords[1]][blockerIndex]);
-                else
-                    UpdateBitboard(RookMoves[bitboardCooords[0], bitboardCooords[1]][blockerIndex]);
+                case 0:
+                    if (Blockers)
+                        UpdateBitboard(RookBlockerCombinations[bitboardCooords[0], bitboardCooords[1]][blockerIndex]);
+                    else
+                        UpdateBitboard(RookMoves[bitboardCooords[0], bitboardCooords[1]][blockerIndex]);
+                break;
+                case 1:
+                    if (Blockers)
+                        UpdateBitboard(BishopBlockerCombinations[bitboardCooords[0], bitboardCooords[1]][blockerIndex]);
+                    else
+                        UpdateBitboard(BishopMoves[bitboardCooords[0], bitboardCooords[1]][blockerIndex]);
+                break;
+                case 2:
+                    UpdateBitboard(KingMask[bitboardCooords[0], bitboardCooords[1]]);
+                break;
             }
         }
     }
@@ -339,15 +344,6 @@ public class BoardManagerScript : MonoBehaviour
         if (Selected.Item1 == 8)
         {
             UpdateBitboard(match.board.SideBitboards[BitboardColor]);
-        }
-        else
-        {
-            PieceType role = match.board.board[Selected.Item2, Selected.Item1].Role;
-
-            if (role == PieceType.Bishop)
-            {
-                UpdateBitboard(BishopDict[(Selected, BishopMask[Selected.Item1, Selected.Item2] & (match.board.SideBitboards[false] | match.board.SideBitboards[true]))] & ~match.board.SideBitboards[match.board.board[Selected.Item2, Selected.Item1].Color]);
-            }
         }
         
         UpdateMaterialVisualisers();
