@@ -3,6 +3,7 @@ using Piece;
 using static Piece.Presets;
 using System.Collections.Generic;
 using Unity.Mathematics;
+using Unity.VisualScripting;
 using UnityEngine;
 using UnityEngine.UI;
 using static Bitboards.Bitboards;
@@ -93,7 +94,30 @@ namespace Board
 
             if (role == PieceType.King)
             {
-                return GetMovesFromBitboard(KingMask[pos.Item2, pos.Item1]& ~board.SideBitboards[color], pos);
+                for (int i = 0; i < 2; i++)
+                {
+                    if (board.Castling[color][i])
+                    {
+                        (int, int) Target = (pos.Item1 + Patterns.CastlingPattern.MovePattern[i].Item1, pos.Item2 + Patterns.CastlingPattern.MovePattern[i].Item2);
+                        (int, int) SkipSquare = (pos.Item1 + Patterns.SkipPattern.MovePattern[i].Item1, pos.Item2 + Patterns.SkipPattern.MovePattern[i].Item2);
+                        bool Castling = board.board[Target.Item2,Target.Item1] == Empty && board.board[SkipSquare.Item2,SkipSquare.Item1] == Empty;
+
+                        if (i == 1)
+                        {
+                            (int,int) LongCastleSkip = (pos.Item1 + Patterns.LongCastleSkip[0], pos.Item2 + Patterns.LongCastleSkip[1]);
+                            Castling = Castling && board.board[LongCastleSkip.Item2,LongCastleSkip.Item1] == Empty && !Attacked(board, LongCastleSkip, !color);
+                        }
+
+                        if (Castling && !board.KingInCheck(color) && !Attacked(board, SkipSquare, !color))
+                        {
+                            MoveList.Add(new Move.Move(pos, Target, Empty, 9));
+                        }
+                    }
+                }
+
+                List<Move.Move> Moves = GetMovesFromBitboard(KingMask[pos.Item2, pos.Item1] & ~board.SideBitboards[color], pos);
+                Moves.AddRange(MoveList);
+                return Moves;
             }
 
             if (role != PieceType.Pawn) 
@@ -145,30 +169,6 @@ namespace Board
                                 MoveList.Add(new Move.Move(pos, Target, Empty, PiecePattern.Importance));
                             else if (TargetPiece.Color != color) 
                                 MoveList.Add(new Move.Move(pos, Target, Empty, 5 - PiecePattern.Importance + TargetPiece.LocalValue));
-                        }
-                    }
-
-                    if (role == PieceType.King)
-                    {
-                        for (int i = 0; i < 2; i++)
-                        {
-                            if (board.Castling[color][i])
-                            {
-                                (int, int) Target = (pos.Item1 + Patterns.CastlingPattern.MovePattern[i].Item1, pos.Item2 + Patterns.CastlingPattern.MovePattern[i].Item2);
-                                (int, int) SkipSquare = (pos.Item1 + Patterns.SkipPattern.MovePattern[i].Item1, pos.Item2 + Patterns.SkipPattern.MovePattern[i].Item2);
-                                bool Castling = board.board[Target.Item2,Target.Item1] == Empty && board.board[SkipSquare.Item2,SkipSquare.Item1] == Empty;
-
-                                if (i == 1)
-                                {
-                                    (int,int) LongCastleSkip = (pos.Item1 + Patterns.LongCastleSkip[0], pos.Item2 + Patterns.LongCastleSkip[1]);
-                                    Castling = Castling && board.board[LongCastleSkip.Item2,LongCastleSkip.Item1] == Empty && !Attacked(board, LongCastleSkip, !color);
-                                }
-
-                                if (Castling && !board.KingInCheck(color) && !Attacked(board, SkipSquare, !color))
-                                {
-                                    MoveList.Add(new Move.Move(pos, Target, Empty, 9));
-                                }
-                            }
                         }
                     }
                 }
