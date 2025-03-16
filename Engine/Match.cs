@@ -42,42 +42,45 @@ namespace Match
             return board.Status().Item1 == Outcome.Ongoing;
         }
 
-        private void UpdateCapturedPieces(Move.Move move)
+        private void UpdateCapturedPieces(bool color, PieceType piece, Piece.Piece promotion, bool enPassant)
         {
-            if (board.board[move.To.Item2, move.To.Item1].Role != PieceType.Empty)
+            if (piece != PieceType.Empty)
             {
-                if (CapturedPieces[!board.board[move.To.Item2, move.To.Item1].Color].Contains(board.board[move.To.Item2, move.To.Item1].Role))
-                    CapturedPieces[!board.board[move.To.Item2, move.To.Item1].Color].Remove(board.board[move.To.Item2, move.To.Item1].Role);
+                if (CapturedPieces[!color].Contains(piece))
+                    CapturedPieces[!color].Remove(piece);
                 else
-                    CapturedPieces[board.board[move.To.Item2,move.To.Item1].Color].Add(board.board[move.To.Item2,move.To.Item1].Role);
+                    CapturedPieces[color].Add(piece);
             }
-            else if (move.EnPassant)
+            else if (enPassant)
             {
-                if (CapturedPieces[!board.board[move.To.Item2, move.To.Item1].Color].Contains(PieceType.Pawn))
-                    CapturedPieces[!board.board[move.To.Item2, move.To.Item1].Color].Remove(PieceType.Pawn);
+                if (CapturedPieces[!color].Contains(PieceType.Pawn))
+                    CapturedPieces[!color].Remove(PieceType.Pawn);
                 else
-                    CapturedPieces[board.board[move.To.Item2,move.To.Item1].Color].Add(PieceType.Pawn);
+                    CapturedPieces[color].Add(PieceType.Pawn);
             }
 
-            if (move.Promotion != Empty)
+            if (promotion != Empty)
             {
-                if (CapturedPieces[!move.Promotion.Color].Contains(move.Promotion.Role))
-                    CapturedPieces[!move.Promotion.Color].Remove(move.Promotion.Role);
+                if (CapturedPieces[!promotion.Color].Contains(promotion.Role))
+                    CapturedPieces[!promotion.Color].Remove(promotion.Role);
                 else
-                    CapturedPieces[move.Promotion.Color].Add(move.Promotion.Role);
+                    CapturedPieces[promotion.Color].Add(promotion.Role);
 
-                if (CapturedPieces[move.Promotion.Color].Contains(PieceType.Pawn))
-                    CapturedPieces[move.Promotion.Color].Remove(PieceType.Pawn);
+                if (CapturedPieces[promotion.Color].Contains(PieceType.Pawn))
+                    CapturedPieces[promotion.Color].Remove(PieceType.Pawn);
                 else
-                    CapturedPieces[!move.Promotion.Color].Add(PieceType.Pawn);
+                    CapturedPieces[!promotion.Color].Add(PieceType.Pawn);
             }
         }
 
         public bool MakeMove(Move.Move move)
         {
+            bool MoveColor = board.board[move.To.Item2, move.To.Item1].Color;
+            PieceType MovePiece = board.board[move.To.Item2, move.To.Item1].Role;
+            
             if (board.MakeMove(move, true, false))
             {
-                UpdateCapturedPieces(move);
+                UpdateCapturedPieces(MoveColor, MovePiece, move.Promotion, move.EnPassant);
                 return true;
             }
             return false;
@@ -90,7 +93,10 @@ namespace Match
                 Node.Node node = new Node.Node(this.board);
                 Move.Move BotMove = node.BestMove(this.Depth);
                 
-                UpdateCapturedPieces(BotMove);
+                bool MoveColor = board.board[BotMove.To.Item2, BotMove.To.Item1].Color;
+                PieceType MovePiece = board.board[BotMove.To.Item2, BotMove.To.Item1].Role;
+                
+                UpdateCapturedPieces(MoveColor, MovePiece, BotMove.Promotion, BotMove.EnPassant);
                 
                 board.MakeMove(BotMove, false, false);
                 return BotMove;
