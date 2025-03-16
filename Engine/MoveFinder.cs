@@ -4,7 +4,9 @@ using static Piece.Presets;
 using System.Collections.Generic;
 using Unity.Mathematics;
 using UnityEngine;
+using UnityEngine.UI;
 using static Bitboards.Bitboards;
+using static MagicNumbers.MagicNumbers;
 
 namespace Board
 {
@@ -48,15 +50,46 @@ namespace Board
             List<Move.Move> MoveList = new List<Move.Move>();
 
             // look up bitboards for rooks, bishops and queens
-            if (role == PieceType.Bishop) 
-                return GetMovesFromBitboard(BishopLookup[pos.Item1, pos.Item2]
-                    [((BishopMask[pos.Item1, pos.Item2] & (board.SideBitboards[false] | board.SideBitboards[true]))
-                      * MagicNumbers.MagicNumbers.BishopNumbers[pos.Item1, pos.Item2].number) >> MagicNumbers.MagicNumbers.BishopNumbers[pos.Item1, pos.Item2].push] 
-                    & ~board.SideBitboards[color], pos); // 
-            if (role == PieceType.Rook) 
-                return GetMovesFromBitboard(RookDict[(pos, RookMask[pos.Item1, pos.Item2] & (board.SideBitboards[false] | board.SideBitboards[true]))] & ~board.SideBitboards[color], pos);
-            if (role == PieceType.Queen) 
-                return GetMovesFromBitboard((RookDict[(pos, RookMask[pos.Item1, pos.Item2] & (board.SideBitboards[false] | board.SideBitboards[true]))] & ~board.SideBitboards[color]) | (BishopDict[(pos, BishopMask[pos.Item1, pos.Item2] & (board.SideBitboards[false] | board.SideBitboards[true]))] & ~board.SideBitboards[color]), pos);
+            if (role == PieceType.Bishop)
+            {
+                (ulong number, int push, ulong highest) magicNumber = BishopNumbers[pos.Item1, pos.Item2];
+                
+                ulong allPieces = board.SideBitboards[false] | board.SideBitboards[true];
+                ulong blockers = allPieces & BishopMask[pos.Item1, pos.Item2];
+                
+                ulong moves = BishopLookup[pos.Item1, pos.Item2][(blockers * magicNumber.number) >> magicNumber.push];
+                return GetMovesFromBitboard(moves & ~board.SideBitboards[color], pos);
+                //return GetMovesFromBitboard(BishopDict[(pos, BishopMask[pos.Item1, pos.Item2] & (board.SideBitboards[false] | board.SideBitboards[true]))] & ~board.SideBitboards[color], pos);
+            }
+
+            if (role == PieceType.Rook)
+            {
+                (ulong number, int push, ulong highest) magicNumber = RookNumbers[pos.Item1, pos.Item2];
+                
+                ulong allPieces = board.SideBitboards[false] | board.SideBitboards[true];
+                ulong blockers = allPieces & RookMask[pos.Item1, pos.Item2];
+                
+                ulong moves = RookLookup[pos.Item1, pos.Item2][(blockers * magicNumber.number) >> magicNumber.push];
+                return GetMovesFromBitboard(moves & ~board.SideBitboards[color], pos);
+                //return GetMovesFromBitboard(RookDict[(pos, RookMask[pos.Item1, pos.Item2] & (board.SideBitboards[false] | board.SideBitboards[true]))] & ~board.SideBitboards[color], pos);
+            }
+
+            if (role == PieceType.Queen)
+            {
+                (ulong number, int push, ulong highest) rookMagicNumber = RookNumbers[pos.Item1, pos.Item2];
+                (ulong number, int push, ulong highest) bishopMagicNumber = BishopNumbers[pos.Item1, pos.Item2];
+                
+                ulong allPieces = board.SideBitboards[false] | board.SideBitboards[true];
+
+                ulong rookBlockers = allPieces & RookMask[pos.Item1, pos.Item2];
+                ulong bishopBlockers = allPieces & BishopMask[pos.Item1, pos.Item2];
+                
+                ulong rookMoves = RookLookup[pos.Item1, pos.Item2][(rookBlockers * rookMagicNumber.number) >> rookMagicNumber.push];
+                ulong bishopMoves = BishopLookup[pos.Item1, pos.Item2][(bishopBlockers * bishopMagicNumber.number) >> bishopMagicNumber.push];
+                ulong allMoves =  rookMoves | bishopMoves;
+                return GetMovesFromBitboard(allMoves & ~board.SideBitboards[color], pos);
+                //return GetMovesFromBitboard((RookDict[(pos, RookMask[pos.Item1, pos.Item2] & (board.SideBitboards[false] | board.SideBitboards[true]))] & ~board.SideBitboards[color]) | (BishopDict[(pos, BishopMask[pos.Item1, pos.Item2] & (board.SideBitboards[false] | board.SideBitboards[true]))] & ~board.SideBitboards[color]), pos);
+            }
 
             if (role != PieceType.Pawn) 
             {

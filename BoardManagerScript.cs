@@ -327,6 +327,20 @@ public class BoardManagerScript : MonoBehaviour
         {
             //UpdateBitboard(BishopMask[bitboardCooords[0], bitboardCooords[1]]);
             //UpdateBitboard(DownDiagonal);
+            if (Bishop)
+            {
+                if (Blockers)
+                    UpdateBitboard(BishopBlockerCombinations[bitboardCooords[0], bitboardCooords[1]][blockerIndex]);
+                else
+                    UpdateBitboard(BishopMoves[bitboardCooords[0], bitboardCooords[1]][blockerIndex] & ~match.board.SideBitboards[false]);
+            }
+            else
+            {
+                if (Blockers)
+                    UpdateBitboard(RookBlockerCombinations[bitboardCooords[0], bitboardCooords[1]][blockerIndex]);
+                else
+                    UpdateBitboard(RookMoves[bitboardCooords[0], bitboardCooords[1]][blockerIndex]);
+            }
         }
     }
 
@@ -599,8 +613,10 @@ public void Reset(bool color)
         InitMagicNumbers(PieceType.Rook);
         InitMagicNumbers(PieceType.Bishop);
 
-        for (int i = 0; i < 1000; i++)
+        for (int i = 0; i < 2500; i++)
         {
+            if (i % 500 == 0)
+                MagicNumbers.MagicNumberGenerator.RandGen = new();
             UpdateMagicNumbers(PieceType.Rook);
             UpdateMagicNumbers(PieceType.Bishop);
         }
