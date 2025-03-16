@@ -51,6 +51,13 @@ namespace Match
                 else
                     CapturedPieces[board.board[move.To.Item2,move.To.Item1].Color].Add(board.board[move.To.Item2,move.To.Item1].Role);
             }
+            else if (move.EnPassant)
+            {
+                if (CapturedPieces[!board.board[move.To.Item2, move.To.Item1].Color].Contains(PieceType.Pawn))
+                    CapturedPieces[!board.board[move.To.Item2, move.To.Item1].Color].Remove(PieceType.Pawn);
+                else
+                    CapturedPieces[board.board[move.To.Item2,move.To.Item1].Color].Add(PieceType.Pawn);
+            }
 
             if (move.Promotion != Empty)
             {
@@ -68,9 +75,12 @@ namespace Match
 
         public bool MakeMove(Move.Move move)
         {
-            UpdateCapturedPieces(move);
-            
-            return board.MakeMove(move, true, false);
+            if (board.MakeMove(move, true, false))
+            {
+                UpdateCapturedPieces(move);
+                return true;
+            }
+            return false;
         }
 
         public Move.Move MakeBotMove()

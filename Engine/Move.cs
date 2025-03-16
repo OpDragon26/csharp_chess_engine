@@ -9,10 +9,11 @@ namespace Move
         public (int,int) From;
         public (int,int) To;
         public readonly int Importance;
+        public bool EnPassant;
 
         public Piece.Piece Promotion; // Empty for no promotion
 
-        static Dictionary<string, int> FileIndex = new Dictionary<string, int>{
+        private static readonly Dictionary<string, int> FileIndex = new Dictionary<string, int>{
             {"a",0},
             {"b",1},
             {"c",2},
@@ -23,7 +24,7 @@ namespace Move
             {"h",7},
         };
 
-        static Dictionary<string, Piece.Piece> Promotions = new Dictionary<string, Piece.Piece>{
+        private static readonly Dictionary<string, Piece.Piece> Promotions = new Dictionary<string, Piece.Piece>{
             {"Q",W_Queen},
             {"R",W_Rook},
             {"N",W_Knight},
@@ -34,12 +35,13 @@ namespace Move
             {"b",B_Bishop},
         };
 
-        public Move((int,int) from, (int,int) to, Piece.Piece promotion, int importance=0)
+        public Move((int,int) from, (int,int) to, Piece.Piece promotion, int importance=0, bool enPassant=false)
         {
             From = from;
             To = to;
             Promotion = promotion;
             Importance = importance;
+            EnPassant = enPassant;
         }
 
         public static Move FromString(string move) // Format: from-to(-promotion) a2-b1(-Q)

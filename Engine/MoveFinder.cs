@@ -222,7 +222,7 @@ namespace Board
                     {
                         TargetPiece = board.board[Target.Item2,Target.Item1];
 
-                        if (TargetPiece.Role != PieceType.Empty && TargetPiece.Color != color || Target == board.EnpassantSquare)
+                        if (TargetPiece.Role != PieceType.Empty && TargetPiece.Color != color)
                         {
                             if (Target.Item2 == 0 || Target.Item2 == 7) // promotion
                             { 
@@ -245,6 +245,10 @@ namespace Board
                             {
                                 MoveList.Add(new Move.Move(pos, Target, Empty, 6 + TargetPiece.LocalValue));
                             }
+                        }
+                        else if (Target == board.EnpassantSquare)
+                        {
+                            MoveList.Add(new Move.Move(pos, Target, Empty, 6 + TargetPiece.LocalValue, true));
                         }
                     }
                 }
