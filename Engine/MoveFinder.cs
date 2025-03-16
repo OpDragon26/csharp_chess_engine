@@ -92,6 +92,9 @@ namespace Board
                 //return GetMovesFromBitboard((RookDict[(pos, RookMask[pos.Item1, pos.Item2] & (board.SideBitboards[false] | board.SideBitboards[true]))] & ~board.SideBitboards[color]) | (BishopDict[(pos, BishopMask[pos.Item1, pos.Item2] & (board.SideBitboards[false] | board.SideBitboards[true]))] & ~board.SideBitboards[color]), pos);
             }
 
+            if (role == PieceType.Knight)
+                return GetMovesFromBitboard(KnightMask[pos.Item2, pos.Item1] & ~board.SideBitboards[color], pos);
+
             if (role == PieceType.King)
             {
                 for (int i = 0; i < 2; i++)

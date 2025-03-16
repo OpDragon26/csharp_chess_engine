@@ -4,6 +4,7 @@ using Board;
 using Piece;
 using UnityEngine;
 using static MagicNumbers.MagicNumbers;
+using Presets = Piece.Presets;
 
 // Todo:
 // Create a bitboard for the legal moves based on a bitboard
@@ -33,8 +34,9 @@ namespace Bitboards
         //public static Dictionary<((int,int), ulong), ulong> BishopDict = new();
         public static readonly ulong[,][] BishopLookup = new ulong[8, 8][];
         
-        // kings
+        // kings & knights
         public static readonly ulong[,] KingMask = new ulong[8, 8];
+        public static readonly ulong[,] KnightMask = new ulong[8, 8];
 
         public static void Init()
         {
@@ -117,6 +119,25 @@ namespace Bitboards
                         kingMask &= ~SquareBitboards[i, j];
                         
                         KingMask[i, j] = kingMask;
+                        
+                        // knights
+                        // due to the relatively complex shape of the knight's movement pattern, I'll just use the regular method to find moves
+                        ulong knightMask = 0;
+                        
+                        Pattern KnighPattern = Patterns.PiecePatterns[PieceType.King];
+
+                        for (int k = 0; k < KnighPattern.MovePattern.Length; k++) // loop through the patterns
+                        {
+                            (int,int) Pattern = KnighPattern.MovePattern[k];
+                            (int, int) Target = (i + Pattern.Item1, j + Pattern.Item2);
+                            
+                            if (KnighPattern.Validator.Validators[k](Target))
+                            {
+                                knightMask ^= SquareBitboards[Target.Item1, Target.Item2];
+                            }
+                        }
+                        
+                        KnightMask[i, j] = knightMask;
                     }
                 }
 
