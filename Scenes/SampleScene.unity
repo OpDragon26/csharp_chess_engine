@@ -2000,8 +2000,8 @@ MonoBehaviour:
   ShowBits: 1
   Blockers: 1
   Bishop: 0
-  bitboardCooords: 0400000004000000
-  blockerIndex: 0
+  bitboardCooords: 0500000007000000
+  blockerIndex: 1
   Status: 0
   DepthLabel: {fileID: 980157037}
   StatusLabel: {fileID: 1037855146}
