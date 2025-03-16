@@ -49,7 +49,10 @@ namespace Board
 
             // look up bitboards for rooks, bishops and queens
             if (role == PieceType.Bishop) 
-                return GetMovesFromBitboard(BishopDict[(pos, BishopMask[pos.Item1, pos.Item2] & (board.SideBitboards[false] | board.SideBitboards[true]))] & ~board.SideBitboards[color], pos);
+                return GetMovesFromBitboard(BishopLookup[pos.Item1, pos.Item2]
+                    [((BishopMask[pos.Item1, pos.Item2] & (board.SideBitboards[false] | board.SideBitboards[true]))
+                      * MagicNumbers.MagicNumbers.BishopNumbers[pos.Item1, pos.Item2].number) >> MagicNumbers.MagicNumbers.BishopNumbers[pos.Item1, pos.Item2].push] 
+                    & ~board.SideBitboards[color], pos); // 
             if (role == PieceType.Rook) 
                 return GetMovesFromBitboard(RookDict[(pos, RookMask[pos.Item1, pos.Item2] & (board.SideBitboards[false] | board.SideBitboards[true]))] & ~board.SideBitboards[color], pos);
             if (role == PieceType.Queen) 

@@ -84,8 +84,8 @@ namespace MagicNumbers
 
     public static class MagicNumbers
     {
-        private static (ulong number, int push, ulong highest)[,] RookNumbers = new (ulong number, int push, ulong highest)[8,8];
-        private static (ulong number, int push, ulong highest)[,] BishopNumbers = new (ulong number, int push, ulong highest)[8,8];
+        public static (ulong number, int push, ulong highest)[,] RookNumbers = new (ulong number, int push, ulong highest)[8,8];
+        public static (ulong number, int push, ulong highest)[,] BishopNumbers = new (ulong number, int push, ulong highest)[8,8];
 
         public static string GetNumString(PieceType piece)
         {
@@ -167,7 +167,7 @@ namespace MagicNumbers
             }
         }
 
-        public static void StaticInit()
+        public static void StaticInitMagicNumbers()
         {
             RookNumbers = new (ulong number, int push, ulong highest)[,]
             {

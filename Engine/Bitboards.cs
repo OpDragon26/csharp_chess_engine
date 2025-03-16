@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using Board;
 using Piece;
 using UnityEngine;
+using static MagicNumbers.MagicNumbers;
 
 // Todo:
 // Create a bitboard for the legal moves based on a bitboard
@@ -19,21 +20,25 @@ namespace Bitboards
         private static readonly ulong rank = 0xFF00000000000000;
         private static readonly ulong file = 0x8080808080808080;
         public static readonly ulong[,][] RookBlockerCombinations = new ulong[8, 8][];
-        public static readonly ulong[,][] RookMoves = new ulong[8, 8][];
+        private static readonly ulong[,][] RookMoves = new ulong[8, 8][];
         public static Dictionary<((int,int), ulong), ulong> RookDict = new();
+        public static readonly ulong[,][] RookLookup = new ulong[8, 8][];
         
         // bishops
         public static readonly ulong[,] BishopMask = new ulong[8, 8];
         private static readonly ulong UpDiagonal = 0x102040810204080;
         private static readonly ulong DownDiagonal = 0x8040201008040201;
         public static readonly ulong[,][] BishopBlockerCombinations = new ulong[8, 8][];
-        public static readonly ulong[,][] BishopMoves = new ulong[8, 8][];
+        private static readonly ulong[,][] BishopMoves = new ulong[8, 8][];
         public static Dictionary<((int,int), ulong), ulong> BishopDict = new();
+        public static readonly ulong[,][] BishopLookup = new ulong[8, 8][];
 
         public static void Init()
         {
             if (!initialized)
             {
+                StaticInitMagicNumbers();
+                
                 ulong init = 0x8000000000000000; // The first square
 
                 for (int i = 0; i < 8; i++)
@@ -89,7 +94,17 @@ namespace Bitboards
                         BishopMask[i, j] = bishopMask;
                     }
                 }
-                
+
+                // init lookup tables
+                for (int i = 0; i < 8; i++)
+                {
+                    for (int j = 0; j < 8; j++)
+                    {
+                        RookLookup[i, j] = new ulong[RookNumbers[i,j].highest + 1];
+                        BishopLookup[i, j] = new ulong[BishopNumbers[i,j].highest + 1];
+                    }
+                }
+
                 // Get all the possible blocker combinations for a bitboard, find the legal moves from there, and add them to the dict
                 for (int i = 0; i < 8; i++)
                 {
@@ -102,7 +117,13 @@ namespace Bitboards
                         for (int k = 0; k < l; k++)
                         {
                             RookDict.Add(((i, j), RookBlockerCombinations[i, j][k]), RookMoves[i,j][k]);
+                            
+                            // Add the moves to the lookup table
+                            Debug.Log((RookBlockerCombinations[j, i][k] * RookNumbers[j, i].number) >> RookNumbers[j, i].push);
+                            Debug.Log(RookLookup[i, j].Length);
+                            RookLookup[i, j][(RookBlockerCombinations[i, j][k] * RookNumbers[i, j].number) >> RookNumbers[i, j].push] = RookMoves[i, j][k];
                         }
+                        
                         
                         // bishops
                         BishopBlockerCombinations[i, j] = BlockerCombinations(BishopMask[i, j]);
@@ -111,6 +132,9 @@ namespace Bitboards
                         for (int k = 0; k < l; k++)
                         {
                             BishopDict.Add(((i, j), BishopBlockerCombinations[i, j][k]), BishopMoves[i,j][k]);
+                            
+                            // Add the moves to the lookup table
+                            BishopLookup[i, j][(BishopBlockerCombinations[i, j][k] * BishopNumbers[i, j].number) >> BishopNumbers[i, j].push] = BishopMoves[i, j][k];
                         }
                         
                     }
