@@ -588,6 +588,11 @@ public void Reset(bool color)
     {
         Application.Quit();
     }
+
+    private void OnDestroy()
+    {
+        Debug.Log("Game closed");
+    }
 }
 
 namespace BoardManagerInfo

@@ -1,0 +1,87 @@
+using System.Collections.Generic;
+using static Bitboards.Bitboards;
+using System;
+using System.Linq;
+
+namespace MagicNumbers
+{
+    public static class MagicNumberGenerator
+    {
+        private static readonly List<ulong> UsedNumbers = new();
+        private static readonly Random RandGen = new();
+
+        public static (ulong number, int push, ulong highest) FindMagicNumber(ulong[] combinations)
+        {
+            ulong magicNumber = 0;
+            int push = 0;
+            
+            ulong[] results = new ulong[combinations.Length];
+            
+            while (true) // keep generating magic numbers until one is found
+            {
+                // generate random ulong
+                ulong candidateNumber = RandomUlong();
+                
+                // multiply every combination with the magic number and push them right by 48, only leaving the leftmost 16 bits
+                for (int i = 0; i < combinations.Length; i++)
+                {
+                    unchecked
+                    {
+                        results[i] = (combinations[i] * candidateNumber) >> 48;
+                    }
+                }
+
+                // if the result array contains duplicates, the number isn't magic, so don't bother checking it for further pushes
+                if (results.GroupBy(x => x).Any(g => g.Count() > 1)) 
+                    continue;
+                
+                // this part only happens if the number was magic, to some extent
+                // push further right by a certain amount, and check for duplicates again
+                ulong[] temp = (ulong[])results.Clone();
+                
+                for (int i = 1; i < 16; i++)
+                {
+                    for (int j = 0; j < temp.Length; j++)
+                    {
+                        temp[j] >>= 1;
+                    }
+                    
+                    // if there are duplicates, break the loop
+                    if (results.GroupBy(x => x).Any(g => g.Count() > 1)) 
+                        break;
+                    
+                    // if there are no duplicates, push results too
+                    for (int j = 0; j < results.Length; j++)
+                    {
+                        results[j] >>= 1;
+                    }
+
+                    push++;
+                }
+                break;
+            }
+            
+            return (magicNumber, push, results.Max());
+        }
+        
+        private static ulong RandomUlong()
+        {
+            while (true)
+            {
+                var buffer = new byte[sizeof(ulong)];
+                RandGen.NextBytes(buffer);
+                ulong result = BitConverter.ToUInt64(buffer, 0);
+                if (!UsedNumbers.Contains(result))
+                {
+                    UsedNumbers.Add(result);
+                    return result;
+                }
+            }
+        }
+    }
+
+    public static class MagicNumbers
+    {
+        
+    }
+}
