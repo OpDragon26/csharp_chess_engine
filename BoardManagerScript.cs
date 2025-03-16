@@ -595,10 +595,11 @@ public void Reset(bool color)
         Debug.Log("Game closed");
         
         // generate magic numbers
+        /*
         InitMagicNumbers(PieceType.Rook);
         InitMagicNumbers(PieceType.Bishop);
 
-        for (int i = 0; i < 100; i++)
+        for (int i = 0; i < 1000; i++)
         {
             UpdateMagicNumbers(PieceType.Rook);
             UpdateMagicNumbers(PieceType.Bishop);
@@ -608,6 +609,7 @@ public void Reset(bool color)
         Debug.Log(GetNumString(PieceType.Rook));
         Debug.Log("Bishops:");
         Debug.Log(GetNumString(PieceType.Bishop));
+        */
     }
 }
 
