@@ -108,5 +108,30 @@ namespace MagicNumbers
             
             return result;
         }
+
+        public static void InitMagicNumbers(PieceType piece)
+        {
+            if (piece == PieceType.Rook)
+            {
+                // loop through the bitboards and find a magic number for each blocker combination
+                for (int i = 0; i < 8; i++)
+                {
+                    for (int j = 0; j < 8; j++)
+                    {
+                        RookNumbers[i,j] = MagicNumberGenerator.FindMagicNumber(RookBlockerCombinations[i,j]);
+                    }
+                }
+            }
+            else
+            {
+                for (int i = 0; i < 8; i++)
+                {
+                    for (int j = 0; j < 8; j++)
+                    {
+                        BishopNumbers[i,j] = MagicNumberGenerator.FindMagicNumber(BishopBlockerCombinations[i,j]);
+                    }
+                }
+            }
+        }
     }
 }
