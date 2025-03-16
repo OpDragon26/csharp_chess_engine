@@ -2,6 +2,7 @@ using System.Collections.Generic;
 using static Bitboards.Bitboards;
 using System;
 using System.Linq;
+using Piece;
 
 namespace MagicNumbers
 {
@@ -36,11 +37,11 @@ namespace MagicNumbers
                     continue;
                 
                 // this part only happens if the number was magic, to some extent
-                // push further right by a certain amount, and check for duplicates again
                 ulong[] temp = (ulong[])results.Clone();
                 
                 for (int i = 1; i < 16; i++)
                 {
+                    // push further right by a certain amount, and check for duplicates again
                     for (int j = 0; j < temp.Length; j++)
                     {
                         temp[j] >>= 1;
@@ -82,6 +83,30 @@ namespace MagicNumbers
 
     public static class MagicNumbers
     {
-        
+        private static readonly (ulong number, int push, ulong highest)[,] RookNumbers = new (ulong number, int push, ulong highest)[8,8];
+        private static readonly (ulong number, int push, ulong highest)[,] BishopNumbers = new (ulong number, int push, ulong highest)[8,8];
+        private static int found = 0;
+
+        public static string GetNumString(PieceType piece)
+        {
+            string result = "";
+            
+            for (int i = 0; i < 8; i++)
+            {
+                string temp = "{";
+                
+                for (int j = 0; j < 8; j++)
+                {
+                    if (piece == PieceType.Rook)
+                        temp += $"({RookNumbers[i,j].number}, {RookNumbers[i,j].push}, {RookNumbers[i,j].highest})";
+                    else
+                        temp += $"({BishopNumbers[i,j].number}, {BishopNumbers[i,j].push}, {BishopNumbers[i,j].highest})";
+                }
+                
+                result += temp + "},\n";
+            }
+            
+            return result;
+        }
     }
 }
