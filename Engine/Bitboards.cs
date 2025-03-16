@@ -121,7 +121,7 @@ namespace Bitboards
                 
                 // generate magic numbers
                 StaticInitMagicNumbers();
-                //InitMagicNumbers(PieceType.Rook);
+                //InitMagicNumbers(PieceType.Rook)
                 //InitMagicNumbers(PieceType.Bishop);
                 
                 // init lookup tables

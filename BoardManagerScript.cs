@@ -127,26 +127,6 @@ public class BoardManagerScript : MonoBehaviour
         UpdatePieceTextures();
         
         // update bitboards
-        if (Bishop)
-        {
-            if (Blockers)
-                UpdateBitboard(BishopBlockerCombinations[bitboardCooords[0], bitboardCooords[1]][blockerIndex]);
-            else
-                UpdateBitboard(BishopDict[((bitboardCooords[1], bitboardCooords[0]), // coords
-                    BishopMask[bitboardCooords[1], bitboardCooords[0]] & (match.board.SideBitboards[false] | match.board.SideBitboards[true]))] // get the pieces that collide with the mask
-                    & ~match.board.SideBitboards[match.board.Side] // subtract the pieces that cannot be captured
-                    );
-        }
-        else
-        {
-            if (Blockers)
-                UpdateBitboard(RookBlockerCombinations[bitboardCooords[0], bitboardCooords[1]][blockerIndex]);
-            else
-                UpdateBitboard(RookDict[((bitboardCooords[1], bitboardCooords[0]), // coords
-                    RookMask[bitboardCooords[1], bitboardCooords[0]] & (match.board.SideBitboards[false] | match.board.SideBitboards[true]))] // get the pieces that collide with the mask
-                    & ~match.board.SideBitboards[match.board.Side] // subtract the pieces that cannot be captured
-                    );
-        }
         
         if (!DebugMode)
         {
@@ -332,7 +312,7 @@ public class BoardManagerScript : MonoBehaviour
                 if (Blockers)
                     UpdateBitboard(BishopBlockerCombinations[bitboardCooords[0], bitboardCooords[1]][blockerIndex]);
                 else
-                    UpdateBitboard(BishopMoves[bitboardCooords[0], bitboardCooords[1]][blockerIndex] & ~match.board.SideBitboards[false]);
+                    UpdateBitboard(BishopMoves[bitboardCooords[0], bitboardCooords[1]][blockerIndex]);
             }
             else
             {
@@ -356,7 +336,20 @@ public class BoardManagerScript : MonoBehaviour
             }
         }
         
-        UpdateBitboard(match.board.SideBitboards[BitboardColor]);
+        if (Selected.Item1 == 8)
+        {
+            UpdateBitboard(match.board.SideBitboards[BitboardColor]);
+        }
+        else
+        {
+            PieceType role = match.board.board[Selected.Item2, Selected.Item1].Role;
+
+            if (role == PieceType.Bishop)
+            {
+                UpdateBitboard(BishopDict[(Selected, BishopMask[Selected.Item1, Selected.Item2] & (match.board.SideBitboards[false] | match.board.SideBitboards[true]))] & ~match.board.SideBitboards[match.board.board[Selected.Item2, Selected.Item1].Color]);
+            }
+        }
+        
         UpdateMaterialVisualisers();
     }
 
@@ -613,13 +606,15 @@ public void Reset(bool color)
         InitMagicNumbers(PieceType.Rook);
         InitMagicNumbers(PieceType.Bishop);
 
-        for (int i = 0; i < 2500; i++)
+        
+        for (int i = 0; i < 1000; i++)
         {
             if (i % 500 == 0)
                 MagicNumbers.MagicNumberGenerator.RandGen = new();
             UpdateMagicNumbers(PieceType.Rook);
             UpdateMagicNumbers(PieceType.Bishop);
         }
+        
         
         Debug.Log("Rooks:");
         Debug.Log(GetNumString(PieceType.Rook));
