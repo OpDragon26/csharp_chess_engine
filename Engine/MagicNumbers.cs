@@ -59,6 +59,7 @@ namespace MagicNumbers
 
                     push++;
                 }
+                magicNumber += candidateNumber;
                 break;
             }
             
@@ -85,7 +86,6 @@ namespace MagicNumbers
     {
         private static readonly (ulong number, int push, ulong highest)[,] RookNumbers = new (ulong number, int push, ulong highest)[8,8];
         private static readonly (ulong number, int push, ulong highest)[,] BishopNumbers = new (ulong number, int push, ulong highest)[8,8];
-        private static int found = 0;
 
         public static string GetNumString(PieceType piece)
         {
@@ -98,9 +98,9 @@ namespace MagicNumbers
                 for (int j = 0; j < 8; j++)
                 {
                     if (piece == PieceType.Rook)
-                        temp += $"({RookNumbers[i,j].number}, {RookNumbers[i,j].push}, {RookNumbers[i,j].highest})";
+                        temp += $"({RookNumbers[i,j].number}, {RookNumbers[i,j].push}, {RookNumbers[i,j].highest}), ";
                     else
-                        temp += $"({BishopNumbers[i,j].number}, {BishopNumbers[i,j].push}, {BishopNumbers[i,j].highest})";
+                        temp += $"({BishopNumbers[i,j].number}, {BishopNumbers[i,j].push}, {BishopNumbers[i,j].highest}), ";
                 }
                 
                 result += temp + "},\n";
@@ -129,6 +129,39 @@ namespace MagicNumbers
                     for (int j = 0; j < 8; j++)
                     {
                         BishopNumbers[i,j] = MagicNumberGenerator.FindMagicNumber(BishopBlockerCombinations[i,j]);
+                    }
+                }
+            }
+        }
+
+        public static void UpdateMagicNumbers(PieceType piece)
+        {
+            if (piece == PieceType.Rook)
+            {
+                // loop through the bitboards and find a magic number for each blocker combination
+                for (int i = 0; i < 8; i++)
+                {
+                    for (int j = 0; j < 8; j++)
+                    {
+                        (ulong number, int push, ulong highest) magicNumber = MagicNumberGenerator.FindMagicNumber(RookBlockerCombinations[i,j]);
+                        
+                        // if the new magic number has a higher push, or has equal push and a lower highest number, replace the old magic number for the square
+                        if (magicNumber.push > RookNumbers[i,j].push || (magicNumber.push == RookNumbers[i,j].push && magicNumber.highest < RookNumbers[i,j].highest))
+                            RookNumbers[i,j] = magicNumber;
+                    }
+                }
+            }
+            else
+            {
+                for (int i = 0; i < 8; i++)
+                {
+                    for (int j = 0; j < 8; j++)
+                    {
+                        (ulong number, int push, ulong highest) magicNumber = MagicNumberGenerator.FindMagicNumber(BishopBlockerCombinations[i,j]);
+                        
+                        // if the new magic number has a higher push, or has equal push and a lower highest number, replace the old magic number for the square
+                        if (magicNumber.push > BishopNumbers[i,j].push || (magicNumber.push == BishopNumbers[i,j].push && magicNumber.highest < BishopNumbers[i,j].highest))
+                            BishopNumbers[i,j] = magicNumber;
                     }
                 }
             }

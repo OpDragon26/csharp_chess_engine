@@ -1995,10 +1995,10 @@ MonoBehaviour:
   Side: 0
   Depth: 2
   DebugMode: 0
-  ShowBitboards: 1
+  ShowBitboards: 0
   BitboardColor: 0
-  ShowBits: 0
-  Blockers: 0
+  ShowBits: 1
+  Blockers: 1
   Bishop: 0
   bitboardCooords: 0400000004000000
   blockerIndex: 0

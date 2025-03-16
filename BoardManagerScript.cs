@@ -7,6 +7,7 @@ using UnityEngine.UI;
 using System.Collections.Generic;
 using Presets = Piece.Presets;
 using static Bitboards.Bitboards;
+using static MagicNumbers.MagicNumbers;
 
 // 2951
 
@@ -592,6 +593,21 @@ public void Reset(bool color)
     private void OnDestroy()
     {
         Debug.Log("Game closed");
+        
+        // generate magic numbers
+        InitMagicNumbers(PieceType.Rook);
+        InitMagicNumbers(PieceType.Bishop);
+
+        for (int i = 0; i < 100; i++)
+        {
+            UpdateMagicNumbers(PieceType.Rook);
+            UpdateMagicNumbers(PieceType.Bishop);
+        }
+        
+        Debug.Log("Rooks:");
+        Debug.Log(GetNumString(PieceType.Rook));
+        Debug.Log("Bishops:");
+        Debug.Log(GetNumString(PieceType.Bishop));
     }
 }
 
