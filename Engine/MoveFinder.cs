@@ -132,7 +132,7 @@ namespace Board
                     ulong moves = BlackPawnMask[pos.Item2, pos.Item1] & ~allPieces;
                     ulong captures = BlackPawnCaptureMask[pos.Item2, pos.Item1] & board.SideBitboards[false];
                     
-                    return GetMovesFromBitboard(moves | captures, pos);
+                    return GetPawnMovesFromBitboard(moves | captures, pos);
 
                 }
                 else
@@ -141,7 +141,7 @@ namespace Board
                     ulong moves = WhitePawnMask[pos.Item2, pos.Item1] & ~allPieces;
                     ulong captures = WhitePawnCaptureMask[pos.Item2, pos.Item1] & board.SideBitboards[true];
                     
-                    return GetMovesFromBitboard(moves | captures, pos);
+                    return GetPawnMovesFromBitboard(moves | captures, pos);
                 }
             }
             
@@ -158,6 +158,39 @@ namespace Board
                 {
                     if ((bitboard & SquareBitboards[j, i]) != 0) // if the square isn't empty in the bitboard
                         moves.Add(new Move.Move(pos, (i,j), Empty));
+                }
+            }
+
+            return moves;
+        }
+        
+        private static List<Move.Move> GetPawnMovesFromBitboard(ulong bitboard, (int, int) pos)
+        {
+            List<Move.Move> moves = new List<Move.Move>();
+
+            for (int i = 0; i < 8; i++) // for every file
+            {
+                for (int j = 1; j < 7; j++) // skip the 1st and 7th ranks as those are for promotions
+                {
+                    if ((bitboard & SquareBitboards[j, i]) != 0) // if the square isn't empty in the bitboard
+                        moves.Add(new Move.Move(pos, (i,j), Empty));
+                }
+                
+                // assume j = 0, so always a promotion for black
+                if ((bitboard & SquareBitboards[0, i]) != 0) // if the square isn't empty in the bitboard
+                {
+                    moves.Add(new Move.Move(pos, (i,0), B_Queen, 5));
+                    moves.Add(new Move.Move(pos, (i,0), B_Rook, -1));
+                    moves.Add(new Move.Move(pos, (i,0), B_Knight, -3));
+                    moves.Add(new Move.Move(pos, (i,0), B_Bishop, -3));
+                }
+                // assume j = 7, so always a promotion for white
+                if ((bitboard & SquareBitboards[7, i]) != 0) // if the square isn't empty in the bitboard
+                {
+                    moves.Add(new Move.Move(pos, (i,7), W_Queen, 5));
+                    moves.Add(new Move.Move(pos, (i,7), W_Rook, -1));
+                    moves.Add(new Move.Move(pos, (i,7), W_Knight, -3));
+                    moves.Add(new Move.Move(pos, (i,7), W_Bishop, -3));
                 }
             }
 
