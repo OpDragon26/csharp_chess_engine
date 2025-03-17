@@ -39,10 +39,10 @@ namespace Bitboards
         public static readonly ulong[,] KnightMask = new ulong[8, 8];
 
         // Pawns
-        public static readonly ulong[,] WhitePawnMask = new ulong[,];
-        public static readonly ulong[,] WhitePawnCaptureMask = new ulong[,];
-        public static readonly ulong[,] BlackPawnMask = new ulong[,];
-        public static readonly ulong[,] BlackPawnCaptureMask = new ulong[,];
+        public static readonly ulong[,] WhitePawnMask = new ulong[8,8];
+        public static readonly ulong[,] WhitePawnCaptureMask = new ulong[8,8];
+        public static readonly ulong[,] BlackPawnMask = new ulong[8,8];
+        public static readonly ulong[,] BlackPawnCaptureMask = new ulong[8,8];
         private static readonly ulong WDoubleMove = 0x808000000000;
         private static readonly ulong BDoubleMove = 0x80800000;
         private static readonly ulong WSingleMove = 0x8000000000;
@@ -117,10 +117,7 @@ namespace Bitboards
                             {
                                 kingMask &= ~(file >> k);
                             }
-                        }
-                        
-                        for (int k = 0; k < 8; k++)
-                        {
+                            
                             if (!(k == i || k == i - 1 || k == i + 1))
                             {
                                 kingMask &= ~(rank >> (k * 8));
@@ -132,19 +129,31 @@ namespace Bitboards
                         KingMask[i, j] = kingMask;
                         
                         // knights
-                        // due to the relatively complex shape of the knight's movement pattern, I'll just use the regular method to find moves
-                        ulong knightMask = 0;
-                        
-                        Pattern KnighPattern = Patterns.PiecePatterns[PieceType.King];
+                        ulong knightMask = UInt64.MaxValue;
 
-                        for (int k = 0; k < KnighPattern.MovePattern.Length; k++) // loop through the patterns
+                        for (int k = 0; k < 8; k++)
                         {
-                            (int,int) Pattern = KnighPattern.MovePattern[k];
-                            (int, int) Target = (i + Pattern.Item1, j + Pattern.Item2);
-                            
-                            if (KnighPattern.Validator.Validators[k](Target))
+                            if (k > j + 2 || k < j - 2 || k == j)
                             {
-                                knightMask ^= SquareBitboards[Target.Item1, Target.Item2];
+                                knightMask &= ~(file >> k);
+                            }
+                            
+                            if (k > i + 2 || k < i - 2 || k == i)
+                            {
+                                knightMask &= ~(rank >> (k * 8));
+                            }
+                        }
+
+                        knightMask &= ~kingMask;
+
+                        for (int k = -1; k < 2; k += 2)
+                        {
+                            for (int h = -1; h < 2; h += 2)
+                            {
+                                try
+                                {
+                                    knightMask &= ~((file >> (j + h * 2)) & (rank >> ((i + k * 2) * 8)));
+                                } catch {}
                             }
                         }
                         
@@ -152,7 +161,7 @@ namespace Bitboards
 
                         // pawns
 
-
+                        
                         if (i == 0 || i == 7)
                         {
                             WhitePawnMask[i, j] = 0;
@@ -168,32 +177,38 @@ namespace Bitboards
                             WhitePawnMask[i, j] = BDoubleMove >> j;
 
                             // capture
-                            ulong captureMask = rank >> (8 * i + 8);
+                            ulong wCaptureMask = rank >> (8 * i + 8);
+                            ulong bCaptureMask = rank >> (8 * i - 8);
                             for (int k = 0; k < 8; k++)
                             {
                                 if (!(k == j - 1 || k == j + 1))
                                 {
-                                    captureMask &= ~(file >> k);
+                                    wCaptureMask &= ~(file >> k);
+                                    bCaptureMask &= ~(file >> k);
                                 }
                             }
 
-                            WhitePawnCaptureMask[i, j] = captureMask;
+                            WhitePawnCaptureMask[i, j] = wCaptureMask;
+                            BlackPawnCaptureMask[i, j] = bCaptureMask;
                         }
                         else
                         {
-                            WhitePawnMask[i, j] = (WSingleMove >> j) >> (40 - i * 8);
-
-                            ulong captureMask = rank >> (8 * i + 8);
+                            ulong wCaptureMask = rank >> (8 * i + 8);
+                            ulong bCaptureMask = rank >> (8 * i - 8);
                             for (int k = 0; k < 8; k++)
                             {
                                 if (!(k == j - 1 || k == j + 1))
                                 {
-                                    captureMask &= ~(file >> k);
+                                    wCaptureMask &= ~(file >> k);
+                                    bCaptureMask &= ~(file >> k);
                                 }
                             }
 
-                            WhitePawnCaptureMask[i, j] = captureMask;
+                            WhitePawnCaptureMask[i, j] = wCaptureMask;
+                            BlackPawnCaptureMask[i, j] = bCaptureMask;
+                            
                         }
+                        
                     }
                 }
 

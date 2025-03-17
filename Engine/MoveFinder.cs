@@ -91,7 +91,7 @@ namespace Board
                 return GetMovesFromBitboard(allMoves & ~board.SideBitboards[color], pos);
                 //return GetMovesFromBitboard((RookDict[(pos, RookMask[pos.Item1, pos.Item2] & (board.SideBitboards[false] | board.SideBitboards[true]))] & ~board.SideBitboards[color]) | (BishopDict[(pos, BishopMask[pos.Item1, pos.Item2] & (board.SideBitboards[false] | board.SideBitboards[true]))] & ~board.SideBitboards[color]), pos);
             }
-
+            
             if (role == PieceType.Knight)
                 return GetMovesFromBitboard(KnightMask[pos.Item2, pos.Item1] & ~board.SideBitboards[color], pos);
 
@@ -122,7 +122,7 @@ namespace Board
                 Moves.AddRange(MoveList);
                 return Moves;
             }
-
+            
             if (role != PieceType.Pawn) 
             {
                 Pattern PiecePattern = Patterns.PiecePatterns[role];

@@ -303,7 +303,7 @@ public class BoardManagerScript : MonoBehaviour
                 break;
             }
         }
-        else
+        else // debug mode is on
         {
             //UpdateBitboard(BishopMask[bitboardCooords[0], bitboardCooords[1]]);
             //UpdateBitboard(DownDiagonal);
@@ -323,7 +323,22 @@ public class BoardManagerScript : MonoBehaviour
                         UpdateBitboard(BishopMoves[bitboardCooords[0], bitboardCooords[1]][blockerIndex]);
                 break;
                 case 2:
+                    if (Blockers)
+                        UpdateBitboard(RookBlockerCombinations[bitboardCooords[0], bitboardCooords[1]][blockerIndex] | BishopBlockerCombinations[bitboardCooords[0], bitboardCooords[1]][blockerIndex]);
+                    else
+                        UpdateBitboard(RookMoves[bitboardCooords[0], bitboardCooords[1]][blockerIndex] | BishopMoves[bitboardCooords[0], bitboardCooords[1]][blockerIndex]);
+                break;
+                case 3:
                     UpdateBitboard(KingMask[bitboardCooords[0], bitboardCooords[1]]);
+                break;
+                case 4:
+                    UpdateBitboard(KnightMask[bitboardCooords[0], bitboardCooords[1]]);
+                break;
+                case 5:
+                    if (BitboardColor)
+                        UpdateBitboard(BlackPawnMask[bitboardCooords[0], bitboardCooords[1]] | WhitePawnMask[bitboardCooords[0], bitboardCooords[1]]);
+                    else
+                        UpdateBitboard(BlackPawnMask[bitboardCooords[0], bitboardCooords[1]] | WhitePawnMask[bitboardCooords[0], bitboardCooords[1]]);
                 break;
             }
         }
