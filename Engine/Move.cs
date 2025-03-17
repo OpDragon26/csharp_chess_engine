@@ -35,8 +35,7 @@ namespace Move
             {"b",B_Bishop},
         };
 
-        public Move((int,int) from, (int,int) to, Piece.Piece promotion, int importance=0, bool enPassant=false)
-        {
+        public Move((int,int) from, (int,int) to, Piece.Piece promotion, int importance=0, bool enPassant=false)        {
             From = from;
             To = to;
             Promotion = promotion;

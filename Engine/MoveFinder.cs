@@ -63,6 +63,7 @@ namespace Board
                 //return GetMovesFromBitboard(BishopDict[(pos, BishopMask[pos.Item1, pos.Item2] & (board.SideBitboards[false] | board.SideBitboards[true]))] & ~board.SideBitboards[color], pos);
             }
 
+
             if (role == PieceType.Rook)
             {
                 (ulong number, int push, ulong highest) magicNumber = RookNumbers[pos.Item1, pos.Item2];
@@ -91,10 +92,10 @@ namespace Board
                 return GetMovesFromBitboard(allMoves & ~board.SideBitboards[color], pos);
                 //return GetMovesFromBitboard((RookDict[(pos, RookMask[pos.Item1, pos.Item2] & (board.SideBitboards[false] | board.SideBitboards[true]))] & ~board.SideBitboards[color]) | (BishopDict[(pos, BishopMask[pos.Item1, pos.Item2] & (board.SideBitboards[false] | board.SideBitboards[true]))] & ~board.SideBitboards[color]), pos);
             }
-            
+
             if (role == PieceType.Knight)
                 return GetMovesFromBitboard(KnightMask[pos.Item2, pos.Item1] & ~board.SideBitboards[color], pos);
-
+            
             if (role == PieceType.King)
             {
                 for (int i = 0; i < 2; i++)
@@ -122,145 +123,28 @@ namespace Board
                 Moves.AddRange(MoveList);
                 return Moves;
             }
-            
-            if (role != PieceType.Pawn) 
+
+            if (role == PieceType.Pawn)
             {
-                Pattern PiecePattern = Patterns.PiecePatterns[role];
-
-                if (PiecePattern.Repeat)
+                if (color)
                 {
-                    int[] iterators = PiecePattern.Iterator.GetIterators(pos);
-                    int l = PiecePattern.MovePattern.Length;
-                    for (int i = 0; i < l; i++)
-                    {
-                        int it = iterators[i];
-                        for (int j = 0; j < it; j++)
-                        {
-                            (int,int) Pattern = PiecePattern.MovePattern[i];
-                            (int,int) Target = (pos.Item1 + Pattern.Item1 * (j + 1),  pos.Item2 + Pattern.Item2 * (j + 1));
-                            
-                            Piece.Piece TargetPiece = board.board[Target.Item2,Target.Item1];
+                    ulong allPieces = board.SideBitboards[false] | board.SideBitboards[true];
+                    ulong moves = BlackPawnMask[pos.Item2, pos.Item1] & ~allPieces;
+                    ulong captures = BlackPawnCaptureMask[pos.Item2, pos.Item1] & board.SideBitboards[false];
+                    
+                    return GetMovesFromBitboard(moves | captures, pos);
 
-                            if (TargetPiece.Role == PieceType.Empty)
-                            {
-                                MoveList.Add(new Move.Move(pos, Target, Empty, PiecePattern.Importance + TargetPiece.LocalValue));
-                            }
-                            else if (TargetPiece.Color != color)
-                            {
-                                MoveList.Add(new Move.Move(pos, Target, Empty, 5 - PiecePattern.Importance + TargetPiece.LocalValue));
-                                break;
-                            }
-                            else
-                            {
-                                break;
-                            }
-                        }
-                    }
                 }
                 else
                 {
-                    int l  = PiecePattern.MovePattern.Length;
-                    for (int i = 0; i < l; i++)
-                    {
-                        (int,int) Pattern = PiecePattern.MovePattern[i];
-                        (int, int) Target = (pos.Item1 + Pattern.Item1, pos.Item2 + Pattern.Item2);
-                        if (PiecePattern.Validator.Validators[i](Target))
-                        {
-                            Piece.Piece TargetPiece = board.board[Target.Item2,Target.Item1];
-
-                            if (TargetPiece == Empty) 
-                                MoveList.Add(new Move.Move(pos, Target, Empty, PiecePattern.Importance));
-                            else if (TargetPiece.Color != color) 
-                                MoveList.Add(new Move.Move(pos, Target, Empty, 5 - PiecePattern.Importance + TargetPiece.LocalValue));
-                        }
-                    }
+                    ulong allPieces = board.SideBitboards[false] | board.SideBitboards[true];
+                    ulong moves = WhitePawnMask[pos.Item2, pos.Item1] & ~allPieces;
+                    ulong captures = WhitePawnCaptureMask[pos.Item2, pos.Item1] & board.SideBitboards[true];
+                    
+                    return GetMovesFromBitboard(moves | captures, pos);
                 }
             }
-            else
-            {
-                PawnPattern pawnPattern = Patterns.PawnPatterns[color];
-
-                // forward moves
-                (int, int) Target = (pos.Item1 + pawnPattern.MovePattern[0].Item1, pos.Item2 + pawnPattern.MovePattern[0].Item2);
-                Piece.Piece TargetPiece = board.board[Target.Item2,Target.Item1];
-                bool SingleMove = false;
-
-                if (TargetPiece.Role == PieceType.Empty)
-                {
-                    if (Target.Item2 == 0 || Target.Item2 == 7) // promotion
-                    { 
-                        if (color)
-                        {
-                            MoveList.Add(new Move.Move(pos, Target, B_Queen, 6));
-                            MoveList.Add(new Move.Move(pos, Target, B_Rook, -3));
-                            MoveList.Add(new Move.Move(pos, Target, B_Knight, -3));
-                            MoveList.Add(new Move.Move(pos, Target, B_Bishop, -3));
-                        }
-                        else
-                        {
-                            MoveList.Add(new Move.Move(pos, Target, W_Queen, 6));
-                            MoveList.Add(new Move.Move(pos, Target, W_Rook, -3));
-                            MoveList.Add(new Move.Move(pos, Target, W_Knight, -3));
-                            MoveList.Add(new Move.Move(pos, Target, W_Bishop, -3));
-                        }
-                    }
-                    else // simple move
-                    {
-                        MoveList.Add(new Move.Move(pos, Target, Empty, -1));
-                        
-                        SingleMove = true;
-                    }
-                }
-                // double move
-                if (pos.Item2 == PawnPattern.DoubleMoveRanks[color] && SingleMove)
-                {
-                    Target = (pos.Item1 + pawnPattern.MovePattern[0].Item1 * 2, pos.Item2 + pawnPattern.MovePattern[0].Item2 * 2);
-                    TargetPiece = board.board[Target.Item2,Target.Item1];
-
-                    if (TargetPiece == Empty)
-                    {
-                        MoveList.Add(new Move.Move(pos, Target, Empty, 1));
-                    }
-                }
-                // captures
-                for (int i= 0; i < 2; i++)
-                {
-                    Target = (pos.Item1 + pawnPattern.CapturePattern[i].Item2, pos.Item2 + pawnPattern.CapturePattern[i].Item1);
-                    if (pawnPattern.Validator.Validators[i](Target.Item1)) 
-                    {
-                        TargetPiece = board.board[Target.Item2,Target.Item1];
-
-                        if (TargetPiece.Role != PieceType.Empty && TargetPiece.Color != color)
-                        {
-                            if (Target.Item2 == 0 || Target.Item2 == 7) // promotion
-                            { 
-                                if (color)
-                                {
-                                    MoveList.Add(new Move.Move(pos, Target, B_Queen, 8));
-                                    MoveList.Add(new Move.Move(pos, Target, B_Rook, -3));
-                                    MoveList.Add(new Move.Move(pos, Target, B_Knight, -3));
-                                    MoveList.Add(new Move.Move(pos, Target, B_Bishop, -3));
-                                }
-                                else
-                                {
-                                    MoveList.Add(new Move.Move(pos, Target, W_Queen, 8 + TargetPiece.LocalValue));
-                                    MoveList.Add(new Move.Move(pos, Target, W_Rook, -3 + TargetPiece.LocalValue));
-                                    MoveList.Add(new Move.Move(pos, Target, W_Knight, -3 + TargetPiece.LocalValue));
-                                    MoveList.Add(new Move.Move(pos, Target, W_Bishop, -3 + TargetPiece.LocalValue));
-                                }
-                            }
-                            else // simple move
-                            {
-                                MoveList.Add(new Move.Move(pos, Target, Empty, 6 + TargetPiece.LocalValue));
-                            }
-                        }
-                        else if (Target == board.EnpassantSquare)
-                        {
-                            MoveList.Add(new Move.Move(pos, Target, Empty, 6 + TargetPiece.LocalValue, true));
-                        }
-                    }
-                }
-            }
+            
             return MoveList;
         }
 
