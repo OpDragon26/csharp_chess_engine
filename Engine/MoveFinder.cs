@@ -26,7 +26,7 @@ namespace Board
 
                 if (Selected.Color == color && Selected.Role != PieceType.Empty) // probably can be deleted
                 {
-                    MoveList.AddRange(SearchPiece(board, Selected.Role, color, coords));
+                    MoveList.AddRange(SearchPieces(board, Selected.Role, color, coords));
                 }
             }
             
@@ -46,11 +46,9 @@ namespace Board
             return MoveList;
         }
 
-        private static List<Move.Move> SearchPiece(Board board, PieceType role, bool color, (int,int) pos)
+        private static List<Move.Move> SearchPieces(Board board, PieceType role, bool color, (int,int) pos)
         {
-            List<Move.Move> MoveList = new List<Move.Move>();
-
-            // look up bitboards for rooks, bishops and queens
+            // look up bitboards
             if (role == PieceType.Bishop)
             {
                 (ulong number, int push, ulong highest) magicNumber = BishopNumbers[pos.Item1, pos.Item2];
@@ -62,8 +60,7 @@ namespace Board
                 return GetMovesFromBitboard(moves & ~board.SideBitboards[color], pos);
                 //return GetMovesFromBitboard(BishopDict[(pos, BishopMask[pos.Item1, pos.Item2] & (board.SideBitboards[false] | board.SideBitboards[true]))] & ~board.SideBitboards[color], pos);
             }
-
-
+            
             if (role == PieceType.Rook)
             {
                 (ulong number, int push, ulong highest) magicNumber = RookNumbers[pos.Item1, pos.Item2];
@@ -98,6 +95,8 @@ namespace Board
             
             if (role == PieceType.King)
             {
+                List<Move.Move> MoveList = new List<Move.Move>();
+
                 for (int i = 0; i < 2; i++)
                 {
                     if (board.Castling[color][i])
@@ -145,7 +144,7 @@ namespace Board
                 }
             }
             
-            return MoveList;
+            return new List<Move.Move>();
         }
 
         private static List<Move.Move> GetMovesFromBitboard(ulong bitboard, (int, int) pos)

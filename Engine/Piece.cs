@@ -5,13 +5,13 @@ namespace Piece
 
     public enum PieceType
     {
-        Empty,
-        Pawn,
-        Knight,
-        Bishop,
-        Rook,
-        Queen,
-        King
+        Empty = 6,
+        Pawn = 5,
+        Knight = 3,
+        Bishop = 1,
+        Rook = 0,
+        Queen = 2,
+        King = 4
     }
 
     public class Piece
