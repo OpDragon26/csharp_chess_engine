@@ -128,7 +128,7 @@ namespace Board
                 if (color)
                 {
                     ulong allPieces = board.SideBitboards[false] | board.SideBitboards[true];
-                    ulong moves = BlackPawnMask[pos.Item2, pos.Item1] & ~allPieces;
+                    ulong moves = BlackPawnMask[pos.Item2, pos.Item1] & ~(allPieces | ((allPieces & ~SquareBitboards[pos.Item2, pos.Item1]) << 8));
                     ulong captures = BlackPawnCaptureMask[pos.Item2, pos.Item1] & board.SideBitboards[false];
                     
                     return GetPawnMovesFromBitboard(moves | captures, pos);
@@ -137,7 +137,7 @@ namespace Board
                 else
                 {
                     ulong allPieces = board.SideBitboards[false] | board.SideBitboards[true];
-                    ulong moves = WhitePawnMask[pos.Item2, pos.Item1] & ~allPieces;
+                    ulong moves = WhitePawnMask[pos.Item2, pos.Item1] & ~(allPieces | ((allPieces & ~SquareBitboards[pos.Item2, pos.Item1]) >> 8));
                     ulong captures = WhitePawnCaptureMask[pos.Item2, pos.Item1] & board.SideBitboards[true];
                     
                     return GetPawnMovesFromBitboard(moves | captures, pos);
