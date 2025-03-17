@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using Board;
 using Piece;
+using UnityEditor;
 using UnityEngine;
 using static MagicNumbers.MagicNumbers;
 using Presets = Piece.Presets;
@@ -164,35 +165,15 @@ namespace Bitboards
                         
                         if (i == 0 || i == 7)
                         {
+                            // if pawns cannot appear on the given square, set the bitboard to 0
                             WhitePawnMask[i, j] = 0;
                             WhitePawnCaptureMask[i, j] = 0;
                             BlackPawnMask[i, j] = 0;
                             BlackPawnCaptureMask[i, j] = 0;
                         }
-
-                        else if (i == 6)
-                        {
-                            // move
-                            WhitePawnMask[i, j] = WDoubleMove >> j;
-                            WhitePawnMask[i, j] = BDoubleMove >> j;
-
-                            // capture
-                            ulong wCaptureMask = rank >> (8 * i + 8);
-                            ulong bCaptureMask = rank >> (8 * i - 8);
-                            for (int k = 0; k < 8; k++)
-                            {
-                                if (!(k == j - 1 || k == j + 1))
-                                {
-                                    wCaptureMask &= ~(file >> k);
-                                    bCaptureMask &= ~(file >> k);
-                                }
-                            }
-
-                            WhitePawnCaptureMask[i, j] = wCaptureMask;
-                            BlackPawnCaptureMask[i, j] = bCaptureMask;
-                        }
                         else
                         {
+                            // add captures
                             ulong wCaptureMask = rank >> (8 * i + 8);
                             ulong bCaptureMask = rank >> (8 * i - 8);
                             for (int k = 0; k < 8; k++)
@@ -207,7 +188,25 @@ namespace Bitboards
                             WhitePawnCaptureMask[i, j] = wCaptureMask;
                             BlackPawnCaptureMask[i, j] = bCaptureMask;
                             
+                            // add singular forward moves
+                            
+                            // white
+                            ulong wPawnMask = 0;
+                            if (i == 1)
+                                wPawnMask |= WDoubleMove >> j;
+                            else
+                                wPawnMask |= WSingleMove >> (j + (i - 2) * 8);
+                            WhitePawnMask[i, j] = wPawnMask;
+                            
+                            // black
+                            ulong bPawnMask = 0;
+                            if (i == 6)
+                                bPawnMask |= BDoubleMove >> j;
+                            else
+                                bPawnMask |= (BSingleMove >> j) << (40 - i * 8);
+                            BlackPawnMask[i, j] = bPawnMask;
                         }
+
                         
                     }
                 }

@@ -336,9 +336,15 @@ public class BoardManagerScript : MonoBehaviour
                 break;
                 case 5:
                     if (BitboardColor)
-                        UpdateBitboard(BlackPawnMask[bitboardCooords[0], bitboardCooords[1]] | WhitePawnMask[bitboardCooords[0], bitboardCooords[1]]);
+                        UpdateBitboard(BlackPawnMask[bitboardCooords[0], bitboardCooords[1]]);
                     else
-                        UpdateBitboard(BlackPawnMask[bitboardCooords[0], bitboardCooords[1]] | WhitePawnMask[bitboardCooords[0], bitboardCooords[1]]);
+                        UpdateBitboard(WhitePawnMask[bitboardCooords[0], bitboardCooords[1]]);
+                break;
+                case 6:
+                    if (BitboardColor)
+                        UpdateBitboard(BlackPawnCaptureMask[bitboardCooords[0], bitboardCooords[1]]);
+                    else
+                        UpdateBitboard(WhitePawnCaptureMask[bitboardCooords[0], bitboardCooords[1]]);
                 break;
             }
         }

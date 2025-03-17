@@ -1994,12 +1994,12 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   Side: 0
   Depth: 2
-  DebugMode: 0
-  ShowBitboards: 0
+  DebugMode: 1
+  ShowBitboards: 1
   BitboardColor: 0
   ShowBits: 1
   Blockers: 1
-  piece: 4
+  piece: 5
   bitboardCooords: 0300000004000000
   blockerIndex: 0
   Status: 0
