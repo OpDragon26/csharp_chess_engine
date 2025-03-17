@@ -38,6 +38,17 @@ namespace Bitboards
         public static readonly ulong[,] KingMask = new ulong[8, 8];
         public static readonly ulong[,] KnightMask = new ulong[8, 8];
 
+        // Pawns
+        public static readonly ulong[,] WhitePawnMask = new ulong[,];
+        public static readonly ulong[,] WhitePawnCaptureMask = new ulong[,];
+        public static readonly ulong[,] BlackPawnMask = new ulong[,];
+        public static readonly ulong[,] BlackPawnCaptureMask = new ulong[,];
+        private static readonly ulong WDoubleMove = 0x808000000000;
+        private static readonly ulong BDoubleMove = 0x80800000;
+        private static readonly ulong WSingleMove = 0x8000000000;
+        private static readonly ulong BSingleMove = 0x80000000;
+
+
         public static void Init()
         {
             if (!initialized)
@@ -138,6 +149,51 @@ namespace Bitboards
                         }
                         
                         KnightMask[i, j] = knightMask;
+
+                        // pawns
+
+
+                        if (i == 0 || i == 7)
+                        {
+                            WhitePawnMask[i, j] = 0;
+                            WhitePawnCaptureMask[i, j] = 0;
+                            BlackPawnMask[i, j] = 0;
+                            BlackPawnCaptureMask[i, j] = 0;
+                        }
+
+                        else if (i == 6)
+                        {
+                            // move
+                            WhitePawnMask[i, j] = WDoubleMove >> j;
+                            WhitePawnMask[i, j] = BDoubleMove >> j;
+
+                            // capture
+                            ulong captureMask = rank >> (8 * i + 8);
+                            for (int k = 0; k < 8; k++)
+                            {
+                                if (!(k == j - 1 || k == j + 1))
+                                {
+                                    captureMask &= ~(file >> k);
+                                }
+                            }
+
+                            WhitePawnCaptureMask[i, j] = captureMask;
+                        }
+                        else
+                        {
+                            WhitePawnMask[i, j] = (WSingleMove >> j) >> (40 - i * 8);
+
+                            ulong captureMask = rank >> (8 * i + 8);
+                            for (int k = 0; k < 8; k++)
+                            {
+                                if (!(k == j - 1 || k == j + 1))
+                                {
+                                    captureMask &= ~(file >> k);
+                                }
+                            }
+
+                            WhitePawnCaptureMask[i, j] = captureMask;
+                        }
                     }
                 }
 
