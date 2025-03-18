@@ -129,16 +129,17 @@ namespace Board
                 {
                     ulong allPieces = board.SideBitboards[false] | board.SideBitboards[true];
                     ulong moves = BlackPawnMask[pos.Item2, pos.Item1] & ~(allPieces | ((allPieces & ~SquareBitboards[pos.Item2, pos.Item1]) << 8));
-                    ulong captures = BlackPawnCaptureMask[pos.Item2, pos.Item1] & board.SideBitboards[false];
+                    ulong enPassant = board.EnpassantSquare.Item1 != 8 ? SquareBitboards[board.EnpassantSquare.Item2, board.EnpassantSquare.Item1] : 0;
+                    ulong captures = BlackPawnCaptureMask[pos.Item2, pos.Item1] & (board.SideBitboards[false] | enPassant);
                     
                     return GetPawnMovesFromBitboard(moves | captures, pos);
-
                 }
                 else
                 {
                     ulong allPieces = board.SideBitboards[false] | board.SideBitboards[true];
                     ulong moves = WhitePawnMask[pos.Item2, pos.Item1] & ~(allPieces | ((allPieces & ~SquareBitboards[pos.Item2, pos.Item1]) >> 8));
-                    ulong captures = WhitePawnCaptureMask[pos.Item2, pos.Item1] & board.SideBitboards[true];
+                    ulong enPassant = board.EnpassantSquare.Item1 != 8 ? SquareBitboards[board.EnpassantSquare.Item2, board.EnpassantSquare.Item1] : 0;
+                    ulong captures = WhitePawnCaptureMask[pos.Item2, pos.Item1] & (board.SideBitboards[true] | enPassant);
                     
                     return GetPawnMovesFromBitboard(moves | captures, pos);
                 }
