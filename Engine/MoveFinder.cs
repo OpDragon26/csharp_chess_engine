@@ -3,9 +3,6 @@ using Piece;
 using static Piece.Presets;
 using System.Collections.Generic;
 using Unity.Mathematics;
-using Unity.VisualScripting;
-using UnityEngine;
-using UnityEngine.UI;
 using static Bitboards.Bitboards;
 using static MagicNumbers.MagicNumbers;
 
@@ -24,7 +21,7 @@ namespace Board
                 (int, int) coords = Pieces[i];
                 Piece.Piece Selected = board.board[coords.Item2, coords.Item1];
 
-                if (Selected.Color == color && Selected.Role != PieceType.Empty) // probably can be deleted
+                if (Selected.Color == color) // probably can be deleted
                 {
                     MoveList.AddRange(SearchPieces(board, Selected.Role, color, coords));
                 }
@@ -57,7 +54,7 @@ namespace Board
                 ulong blockers = allPieces & BishopMask[pos.Item1, pos.Item2];
                 
                 ulong moves = BishopLookup[pos.Item1, pos.Item2][(blockers * magicNumber.number) >> magicNumber.push];
-                return GetMovesFromBitboard(moves & ~board.SideBitboards[color], pos);
+                return GetMovesFromBitboard(moves & ~board.SideBitboards[color], pos, 1);
                 //return GetMovesFromBitboard(BishopDict[(pos, BishopMask[pos.Item1, pos.Item2] & (board.SideBitboards[false] | board.SideBitboards[true]))] & ~board.SideBitboards[color], pos);
             }
             
@@ -69,7 +66,7 @@ namespace Board
                 ulong blockers = allPieces & RookMask[pos.Item1, pos.Item2];
                 
                 ulong moves = RookLookup[pos.Item1, pos.Item2][(blockers * magicNumber.number) >> magicNumber.push];
-                return GetMovesFromBitboard(moves & ~board.SideBitboards[color], pos);
+                return GetMovesFromBitboard(moves & ~board.SideBitboards[color], pos, 0);
                 //return GetMovesFromBitboard(RookDict[(pos, RookMask[pos.Item1, pos.Item2] & (board.SideBitboards[false] | board.SideBitboards[true]))] & ~board.SideBitboards[color], pos);
             }
 
@@ -86,12 +83,12 @@ namespace Board
                 ulong rookMoves = RookLookup[pos.Item1, pos.Item2][(rookBlockers * rookMagicNumber.number) >> rookMagicNumber.push];
                 ulong bishopMoves = BishopLookup[pos.Item1, pos.Item2][(bishopBlockers * bishopMagicNumber.number) >> bishopMagicNumber.push];
                 ulong allMoves =  rookMoves | bishopMoves;
-                return GetMovesFromBitboard(allMoves & ~board.SideBitboards[color], pos);
+                return GetMovesFromBitboard(allMoves & ~board.SideBitboards[color], pos, 1);
                 //return GetMovesFromBitboard((RookDict[(pos, RookMask[pos.Item1, pos.Item2] & (board.SideBitboards[false] | board.SideBitboards[true]))] & ~board.SideBitboards[color]) | (BishopDict[(pos, BishopMask[pos.Item1, pos.Item2] & (board.SideBitboards[false] | board.SideBitboards[true]))] & ~board.SideBitboards[color]), pos);
             }
 
             if (role == PieceType.Knight)
-                return GetMovesFromBitboard(KnightMask[pos.Item2, pos.Item1] & ~board.SideBitboards[color], pos);
+                return GetMovesFromBitboard(KnightMask[pos.Item2, pos.Item1] & ~board.SideBitboards[color], pos, 2);
             
             if (role == PieceType.King)
             {
@@ -118,7 +115,7 @@ namespace Board
                     }
                 }
 
-                List<Move.Move> Moves = GetMovesFromBitboard(KingMask[pos.Item2, pos.Item1] & ~board.SideBitboards[color], pos);
+                List<Move.Move> Moves = GetMovesFromBitboard(KingMask[pos.Item2, pos.Item1] & ~board.SideBitboards[color], pos, -1);
                 Moves.AddRange(MoveList);
                 return Moves;
             }
@@ -148,6 +145,75 @@ namespace Board
             return new List<Move.Move>();
         }
 
+        public static ulong GetAttackBitboard(Board board, bool color)
+        {
+            List<(int, int)> Pieces = board.PiecePositions[color];
+            int l = Pieces.Count;
+            ulong bitboard = 0;
+
+            for (int k = 0; k < l; k++)
+            {
+                (int, int) coords = Pieces[k];
+                PieceType role = board.board[coords.Item2, coords.Item1].Role;
+                
+                if (role == PieceType.Bishop)
+                {
+                    (ulong number, int push, ulong highest) magicNumber = BishopNumbers[coords.Item1, coords.Item2];
+                        
+                    ulong allPieces = board.SideBitboards[false] | board.SideBitboards[true];
+                    ulong blockers = allPieces & BishopMask[coords.Item1, coords.Item2]; // & ~((file >> board.KingPos[!color].Item1) & (rank >> (board.KingPos[!color].Item2 * 8)));
+                        
+                    ulong moves = BishopLookup[coords.Item1, coords.Item2][(blockers * magicNumber.number) >> magicNumber.push];
+                    bitboard |= moves;
+                }
+                    
+                else if (role  == PieceType.Rook)
+                {
+                    (ulong number, int push, ulong highest) magicNumber = RookNumbers[coords.Item1, coords.Item2];
+                        
+                    ulong allPieces = board.SideBitboards[false] | board.SideBitboards[true];
+                    ulong blockers = allPieces & RookMask[coords.Item1, coords.Item2]; // & ~((file >> board.KingPos[!color].Item1) & (rank >> (board.KingPos[!color].Item2 * 8)));
+                        
+                    ulong moves = RookLookup[coords.Item1, coords.Item2][(blockers * magicNumber.number) >> magicNumber.push];
+                    bitboard |= moves;
+                }
+
+                else if (role  == PieceType.Queen)
+                {
+                    (ulong number, int push, ulong highest) rookMagicNumber = RookNumbers[coords.Item1, coords.Item2];
+                    (ulong number, int push, ulong highest) bishopMagicNumber = BishopNumbers[coords.Item1, coords.Item2];
+                        
+                    ulong allPieces = board.SideBitboards[false] | board.SideBitboards[true];
+
+                    ulong rookBlockers = allPieces & RookMask[coords.Item1, coords.Item2]; // & ~((file >> board.KingPos[!color].Item1) & (rank >> (board.KingPos[!color].Item2 * 8)));
+                    ulong bishopBlockers = allPieces & BishopMask[coords.Item1, coords.Item2]; // & ~((file >> board.KingPos[!color].Item1) & (rank >> (board.KingPos[!color].Item2 * 8)));
+                        
+                    ulong rookMoves = RookLookup[coords.Item1, coords.Item2][(rookBlockers * rookMagicNumber.number) >> rookMagicNumber.push];
+                    ulong bishopMoves = BishopLookup[coords.Item1, coords.Item2][(bishopBlockers * bishopMagicNumber.number) >> bishopMagicNumber.push];
+                    ulong allMoves =  rookMoves | bishopMoves;
+                    bitboard |= allMoves;
+                }
+
+                else if (role  == PieceType.Knight)
+                    bitboard |= KnightMask[coords.Item2, coords.Item1];
+                    
+                else if (role == PieceType.King)
+                    bitboard |= KingMask[coords.Item2, coords.Item1];
+                    
+
+                else if (role == PieceType.Pawn)
+                {
+                    if (color)
+                        bitboard |= BlackPawnCaptureMask[coords.Item2, coords.Item1];
+                    else
+                        bitboard |= WhitePawnCaptureMask[coords.Item2, coords.Item1];
+                }
+            }
+
+            return bitboard;
+        }
+        
+
         public static List<Move.Move> FilterChecks(List<Move.Move> moves, Board board, bool color)
         {
             Board MoveBoard = board.DeepCopy();
@@ -164,7 +230,7 @@ namespace Board
             return moves;
         }
 
-        private static List<Move.Move> GetMovesFromBitboard(ulong bitboard, (int, int) pos)
+        private static List<Move.Move> GetMovesFromBitboard(ulong bitboard, (int, int) pos, int importance)
         {
             List<Move.Move> moves = new List<Move.Move>();
 
@@ -173,7 +239,7 @@ namespace Board
                 for (int j = 0; j < 8; j++)
                 {
                     if ((bitboard & SquareBitboards[j, i]) != 0) // if the square isn't empty in the bitboard
-                        moves.Add(new Move.Move(pos, (i,j), Empty));
+                        moves.Add(new Move.Move(pos, (i,j), Empty, importance));
                 }
             }
 
@@ -196,7 +262,7 @@ namespace Board
                 if ((bitboard & SquareBitboards[0, i]) != 0) // if the square isn't empty in the bitboard
                 {
                     moves.Add(new Move.Move(pos, (i,0), B_Queen, 5));
-                    moves.Add(new Move.Move(pos, (i,0), B_Rook, -1));
+                    moves.Add(new Move.Move(pos, (i,0), B_Rook, -2));
                     moves.Add(new Move.Move(pos, (i,0), B_Knight, -3));
                     moves.Add(new Move.Move(pos, (i,0), B_Bishop, -3));
                 }
@@ -204,7 +270,7 @@ namespace Board
                 if ((bitboard & SquareBitboards[7, i]) != 0) // if the square isn't empty in the bitboard
                 {
                     moves.Add(new Move.Move(pos, (i,7), W_Queen, 5));
-                    moves.Add(new Move.Move(pos, (i,7), W_Rook, -1));
+                    moves.Add(new Move.Move(pos, (i,7), W_Rook, -2));
                     moves.Add(new Move.Move(pos, (i,7), W_Knight, -3));
                     moves.Add(new Move.Move(pos, (i,7), W_Bishop, -3));
                 }
@@ -286,17 +352,15 @@ namespace Board
 
     internal class Pattern
     {
-        public (int,int)[] MovePattern; // file, rank
-        public bool Repeat;
-        public int Importance;
-        public PatternIterator Iterator;
-        public PatternValidator Validator;
+        public readonly (int,int)[] MovePattern; // file, rank
+        public readonly bool Repeat;
+        public readonly PatternIterator Iterator;
+        public readonly PatternValidator Validator;
 
-        public Pattern((int,int)[] pattern, bool repeat, int  importance)
+        public Pattern((int,int)[] pattern, bool repeat)
         {
             MovePattern = pattern;
             Repeat = repeat;
-            Importance = importance;
 
             if (repeat)
                 Iterator = new PatternIterator(MovePattern);
@@ -309,7 +373,7 @@ namespace Board
     {
         public readonly (int,int)[] MovePattern;
         public readonly (int,int)[] CapturePattern;
-        public PawnPatternValidator Validator;
+        public readonly PawnPatternValidator Validator;
 
         public PawnPattern((int,int)[] movePattern, (int,int)[] capturePattern)
         {
@@ -338,8 +402,7 @@ namespace Board
                     (-1,2),
                     (-1,-2),
                 },
-                false,
-                2
+                false
             )},
             {PieceType.Rook, new Pattern(
                 new[] {
@@ -348,8 +411,7 @@ namespace Board
                     (1,0),
                     (-1,0),
                 },
-                true,
-                0
+                true
             )},
             {PieceType.Bishop, new Pattern(
                 new[] {
@@ -358,8 +420,7 @@ namespace Board
                     (-1,-1),
                     (-1,1),
                 },
-                true,
-                2
+                true
             )},
             {PieceType.Queen, new Pattern(
                 new[] {
@@ -372,8 +433,7 @@ namespace Board
                     (-1,-1),
                     (-1,1),
                 },
-                true,
-                0
+                true
             )},
             {PieceType.King, new Pattern(
                 new[] {
@@ -386,31 +446,28 @@ namespace Board
                     (-1,-1),
                     (-1,1),
                 },
-                false,
-                -1
+                false
             )},
         };
 
-        internal static Pattern CastlingPattern = new Pattern(
+        internal static readonly Pattern CastlingPattern = new Pattern(
             new[] {
                 (2,0),
                 (-2,0),
             },
-            false,
-            2
+            false
         );
-        internal static Pattern SkipPattern = new Pattern(
+        internal static readonly Pattern SkipPattern = new Pattern(
             new[] {
                 (1,0),
                 (-1,0),
             },
-            false,
-            0
+            false
         );
 
-        internal static int[] LongCastleSkip = {-3,0};
+        internal static readonly int[] LongCastleSkip = {-3,0};
 
-        internal static Dictionary<bool, PawnPattern> PawnPatterns = new Dictionary<bool, PawnPattern>{
+        internal static readonly Dictionary<bool, PawnPattern> PawnPatterns = new Dictionary<bool, PawnPattern>{
             {false,
                 new PawnPattern(new[] {
                     (0,1)
@@ -429,7 +486,7 @@ namespace Board
             },
         };
 
-        internal static PieceType[] CheckPieces = {
+        internal static readonly PieceType[] CheckPieces = {
             PieceType.Knight,
             PieceType.Bishop,
             PieceType.Queen,
@@ -440,8 +497,8 @@ namespace Board
 
     class PatternIterator
     {
-        private (PatternState, PatternState)[] PatternStates;
-        private List<Func<(int,int) ,int>> IteratorCalculators  = new List<Func<(int,int),int>>();
+        private readonly (PatternState, PatternState)[] PatternStates;
+        private readonly List<Func<(int,int) ,int>> IteratorCalculators  = new List<Func<(int,int),int>>();
 
         public PatternIterator((int,int)[] pattern)
         {
@@ -517,7 +574,7 @@ namespace Board
 
     class PatternValidator
     {
-        public List<Func<(int, int), bool>> Validators = new List<Func<(int, int), bool>>();
+        public readonly List<Func<(int, int), bool>> Validators = new List<Func<(int, int), bool>>();
 
         public PatternValidator((int, int)[] pattern)
         {
@@ -573,7 +630,6 @@ namespace Board
 
     class PawnPatternValidator
     {
-        public List<Func<int, bool>> Validators = new List<Func<int, bool>>();
         public List<Func<(int,int), bool>> CheckValidators = new List<Func<(int,int), bool>>();
 
         public PawnPatternValidator((int, int)[] pattern)
@@ -592,16 +648,6 @@ namespace Board
                     first = PatternState.Positive;
                 else
                     first = PatternState.Negative;
-                
-                switch (second)
-                {
-                    case PatternState.Positive:
-                        Validators.Add((pos) =>  pos < 8);
-                    break;
-                    case PatternState.Negative:
-                        Validators.Add((pos) =>  pos >= 0);
-                    break;
-                }
 
                 switch ((second, first))
                 {
