@@ -39,7 +39,7 @@ namespace MagicNumbers
                 {
                     ulong[] temp = (ulong[])results.Clone();
                 
-                    for (int i = 1; i < 16; i++)
+                    for (int i = 0; i < 16; i++)
                     {
                         // push further right by a certain amount, and check for duplicates again
                         for (int j = 0; j < temp.Length; j++)
@@ -50,12 +50,15 @@ namespace MagicNumbers
                         // if there are no duplicates in temp
                         if (!temp.GroupBy(x => x).Any(g => g.Count() > 1))
                         {
-                            for (int j = 0; j < results.Length; j++)
+                            if (i != 0)
                             {
-                                results[j] >>= 1;
-                            }
+                                for (int j = 0; j < results.Length; j++)
+                                {
+                                    results[j] >>= 1;
+                                }
 
-                            push++;
+                                push++;
+                            }
                         }
                         else break;
                         
