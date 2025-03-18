@@ -38,6 +38,10 @@ namespace MagicNumbers
                 if (!results.GroupBy(x => x).Any(g => g.Count() > 1))
                 {
                     ulong[] temp = (ulong[])results.Clone();
+                    if (!results.SequenceEquals(temp))
+                    {
+                        Debug.Log("wtf");
+                    }
                 
                     for (int i = 0; i < 16; i++)
                     {
