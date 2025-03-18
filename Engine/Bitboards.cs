@@ -255,7 +255,6 @@ namespace Bitboards
                         BishopLookup[i, j] = new ulong[BishopNumbers[i,j].highest + 1];
                     }
                 }
-                Debug.Log(BishopLookup[2, 0].Length == (int)BishopNumbers[2,0].highest + 1);
                 
                 // fill up the lookup tables using the magic numbers
                 for (int i = 0; i < 8; i++)
