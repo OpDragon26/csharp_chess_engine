@@ -46,7 +46,7 @@ namespace Board
             return MoveList;
         }
 
-        private static List<Move.Move> SearchPieces(Board board, PieceType role, bool color, (int,int) pos)
+        public static List<Move.Move> SearchPieces(Board board, PieceType role, bool color, (int,int) pos)
         {
             // look up bitboards
             if (role == PieceType.Bishop)
@@ -145,6 +145,22 @@ namespace Board
             }
             
             return new List<Move.Move>();
+        }
+
+        public static List<Move.Move> FilterChecks(List<Move.Move> moves, Board board, bool color)
+        {
+            Board MoveBoard = board.DeepCopy();
+            int l = moves.Count;
+            for (int i = l - 1; i >= 0; i--)
+            {
+                MoveBoard.MakeMove(moves[i], false, true);
+                if (MoveBoard.KingInCheck(color))
+                    moves.RemoveAt(i);
+                
+                MoveBoard.UnmakeMove();
+            }
+
+            return moves;
         }
 
         private static List<Move.Move> GetMovesFromBitboard(ulong bitboard, (int, int) pos)

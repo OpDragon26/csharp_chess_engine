@@ -337,7 +337,7 @@ namespace Bitboards
                             if ((SquareBitboards[Target.Item2, Target.Item1] & blocker) != 0) // if the square isn't empty
                                 break;
                         }
-                    } 
+                    }
                     moves[k] = move;
                 }
             }

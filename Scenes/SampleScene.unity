@@ -1995,7 +1995,7 @@ MonoBehaviour:
   Side: 0
   Depth: 2
   DebugMode: 0
-  ShowBitboards: 1
+  ShowBitboards: 0
   BitboardColor: 0
   ShowBits: 1
   Blockers: 1

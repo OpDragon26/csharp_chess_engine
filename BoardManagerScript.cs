@@ -399,9 +399,19 @@ public class BoardManagerScript : MonoBehaviour
                 if (Selected == ocoords)
                 {
                     Selected = (8, 8);
+                    Moved = (8, 8);
                 }
+                else
+                {
+                    Selected = ocoords;
 
-                Selected = ocoords;
+                    List<Move.Move> moves = MoveFinder.FilterChecks(MoveFinder.SearchPieces(match.board, match.board.board[ocoords.Item2, ocoords.Item1].Role, match.PlayerSide, ocoords), match.board, match.PlayerSide);
+                    foreach (Move.Move move in moves)
+                    {
+                        (int,int) scoords = BoardManagerInfo.BoardManagerInfo.Switch(move.To, match.PlayerSide, false);
+                        OverlayScripts[scoords.Item2, scoords.Item1].UpdateTexture(match.board.board[move.To.Item2, move.To.Item1].Role == PieceType.Empty ? 3 : 4);
+                    }
+                }
             }
             else
             {
