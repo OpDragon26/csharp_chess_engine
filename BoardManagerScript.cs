@@ -37,6 +37,7 @@ public class BoardManagerScript : MonoBehaviour
     public bool BitboardColor = false;
     public bool ShowBits;
     public bool Blockers = true;
+    public bool AllPieces = true;
     public int piece = 0;
     
     public int[] bitboardCooords = { 0, 0 };
@@ -127,6 +128,13 @@ public class BoardManagerScript : MonoBehaviour
         UpdatePieceTextures();
         
         // update bitboards
+        if (Selected.Item1 == 8)
+        {
+            if (AllPieces)
+                UpdateBitboard(match.board.SideBitboards[BitboardColor]);
+            else
+                UpdateBitboard(match.board.PieceBitboards[BitboardColor][piece]);
+        }
         
         if (!DebugMode)
         {
@@ -360,11 +368,6 @@ public class BoardManagerScript : MonoBehaviour
 
                 PieceScripts[i, j].UpdateTexture(match.board.board[coords.Item1, coords.Item2]);
             }
-        }
-        
-        if (Selected.Item1 == 8)
-        {
-            UpdateBitboard(match.board.SideBitboards[BitboardColor]);
         }
         
         UpdateMaterialVisualisers();

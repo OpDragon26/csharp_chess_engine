@@ -9,7 +9,7 @@ namespace Board
     public class Board
     {
         public Piece.Piece[,] board = new Piece.Piece[8,8];
-        public Dictionary<bool, bool[]> Castling = new Dictionary<bool, bool[]> {
+        public Dictionary<bool, bool[]> Castling = new() {
             {false, new [] {true, true}}, // Short, Long
             {true, new [] {true, true}},
         };
@@ -19,14 +19,14 @@ namespace Board
 
         // 50 move rule
         private int MoveChain;
-        private Dictionary<int, int> Repetition =  new Dictionary<int, int>();
+        private Dictionary<int, int> Repetition =  new();
         private Outcome DeclaredOutcome = Outcome.Ongoing;
         
-        private Dictionary<bool, (int,int)> KingPos = new Dictionary<bool, (int,int)>{
+        private Dictionary<bool, (int,int)> KingPos = new() {
             {true, (8,8)},
             {false, (8,8)},
         };
-        public Dictionary<bool, List<(int,int)>> PiecePositions = new Dictionary<bool, List<(int,int)>>{
+        public Dictionary<bool, List<(int,int)>> PiecePositions = new() {
             {false, new List<(int,int)>()},
             {true, new List<(int,int)>()},
         };
@@ -35,17 +35,23 @@ namespace Board
 
         private ReverseMove LastMove;
         
-        public Dictionary<bool, ulong> SideBitboards = new Dictionary<bool, ulong>
+        public readonly Dictionary<bool, ulong> SideBitboards = new()
         {
             {false, 0},
             {true, 0},
+        };
+
+        public readonly Dictionary<bool, ulong[]> PieceBitboards = new()
+        {
+            {false, new ulong[6]},
+            {true, new ulong[6]}
         };
         
         public bool MakeMove(Move.Move move, bool filter, bool generateReverse)
         {
             if (filter)
             {
-                List<Move.Move> LegalMoves = MoveFinder.Search(this, this.Side, false);
+                List<Move.Move> LegalMoves = MoveFinder.Search(this, Side, false);
                 if (!move.InMovelist(LegalMoves))
                 {
                     return false;
@@ -53,110 +59,139 @@ namespace Board
             }
              
             // local variables storing data that is accessed over and over
-            Piece.Piece OriginPiece = this.board[move.From.Item2,move.From.Item1];
-            Piece.Piece TargetPiece = this.board[move.To.Item2,move.To.Item1];
+            Piece.Piece OriginPiece = board[move.From.Item2,move.From.Item1];
+            Piece.Piece TargetPiece = board[move.To.Item2,move.To.Item1];
             bool OriginColor = OriginPiece.Color;
             bool TargetColor = TargetPiece.Color;
             
             // Local variables to store all the data that will be required to generate the ReverseMove
             ((int, int), (int, int)) extraMove = ((8, 8), (8, 8));
             (int, int) enpassant = (8,8);
-            int moveChain = this.MoveChain;
-            (int,int) prevEnpassant = this.EnpassantSquare;
-            bool[] whiteCastle = this.Castling[false];
-            bool[] blackCastle = this.Castling[true];
-            (int,int) wKingPos =  this.KingPos[false];
-            (int,int) bKingPos = this.KingPos[true];
+            int moveChain = MoveChain;
+            (int,int) prevEnpassant = EnpassantSquare;
+            bool[] whiteCastle = (bool[])Castling[false].Clone();
+            bool[] blackCastle = (bool[])Castling[true].Clone();
+            (int,int) wKingPos =  KingPos[false];
+            (int,int) bKingPos = KingPos[true];
+            ulong[] whiteBitboard = (ulong[])PieceBitboards[false].Clone();
+            ulong[] blackBitboard = (ulong[])PieceBitboards[true].Clone();
 
             if (TargetPiece.Role != PieceType.Empty)
             {
-                this.PiecePositions[TargetColor].Remove(move.To);
-                this.SideBitboards[TargetColor] ^= Bitboards.Bitboards.SquareBitboards[move.To.Item2, move.To.Item1];
+                PiecePositions[TargetColor].Remove(move.To);
+                // take the piece off the other side's bitboards
+                SideBitboards[TargetColor] ^= Bitboards.Bitboards.SquareBitboards[move.To.Item2, move.To.Item1];
+                PieceBitboards[TargetColor][(int)TargetPiece.Role] ^= Bitboards.Bitboards.SquareBitboards[move.To.Item2, move.To.Item1];
                 if (TargetPiece.Role != PieceType.Pawn)
-                    this.PieceCounter -= TargetPiece.LocalValue;
+                    PieceCounter -= TargetPiece.LocalValue;
             }
             
-            this.PiecePositions[OriginColor].Remove(move.From);
-            this.PiecePositions[OriginColor].Add(move.To);
-            this.SideBitboards[OriginColor] ^= Bitboards.Bitboards.SquareBitboards[move.From.Item2, move.From.Item1];
-            this.SideBitboards[OriginColor] ^= Bitboards.Bitboards.SquareBitboards[move.To.Item2, move.To.Item1];
+            PiecePositions[OriginColor].Remove(move.From);
+            PiecePositions[OriginColor].Add(move.To);
+            // update the piece's bitboard
+            SideBitboards[OriginColor] ^= Bitboards.Bitboards.SquareBitboards[move.From.Item2, move.From.Item1];
+            SideBitboards[OriginColor] ^= Bitboards.Bitboards.SquareBitboards[move.To.Item2, move.To.Item1];
             
-            if (this.Side) 
-                this.MoveChain++;
+            if (Side) 
+                MoveChain++;
             else if (OriginPiece.Role == PieceType.Pawn || TargetPiece.Role != PieceType.Empty)
-                this.MoveChain = 0;
+                MoveChain = 0;
             
+            // change the pieces in the actual board representation
             if (move.Promotion != Empty)
-                this.board[move.To.Item2,move.To.Item1] = move.Promotion;
+            {
+                board[move.To.Item2,move.To.Item1] = move.Promotion;
+                // if the move was a promotion, remove from the pawn bitboard and add to the promotion piece's
+                PieceBitboards[OriginColor][5] ^= Bitboards.Bitboards.SquareBitboards[move.From.Item2, move.From.Item1];
+                PieceBitboards[OriginColor][(int)move.Promotion.Role] ^= Bitboards.Bitboards.SquareBitboards[move.To.Item2, move.To.Item1];
+            }
             else
-                this.board[move.To.Item2,move.To.Item1] = OriginPiece;
+            {
+                board[move.To.Item2,move.To.Item1] = OriginPiece;
+                PieceBitboards[OriginColor][(int)OriginPiece.Role] ^= Bitboards.Bitboards.SquareBitboards[move.From.Item2, move.From.Item1];
+                PieceBitboards[OriginColor][(int)OriginPiece.Role] ^= Bitboards.Bitboards.SquareBitboards[move.To.Item2, move.To.Item1];
+            }
             
-            this.board[move.From.Item2,move.From.Item1] = Empty;
+            board[move.From.Item2,move.From.Item1] = Empty;
             
             // castling
             if (move.From == Presets.WKStartPos && OriginPiece.Role == PieceType.King)
             {
-                if (move.To == Presets.WKShortCastlePos && this.Castling[false][0])
+                if (move.To == Presets.WKShortCastlePos && Castling[false][0])
                 {
-                    this.board[Presets.WRShortCastlePos.Item2,Presets.WRShortCastlePos.Item1] = Empty;
-                    this.board[Presets.WRShortCastleDest.Item2,Presets.WRShortCastleDest.Item1] = W_Rook;
-                    this.PiecePositions[false].Add(Presets.WRShortCastleDest);
-                    this.PiecePositions[false].Remove(Presets.WRShortCastlePos);
-                    this.SideBitboards[OriginColor] ^= Bitboards.Bitboards.SquareBitboards[Presets.WRShortCastlePos.Item2, Presets.WRShortCastlePos.Item1];
-                    this.SideBitboards[OriginColor] ^= Bitboards.Bitboards.SquareBitboards[Presets.WRShortCastleDest.Item2, Presets.WRShortCastleDest.Item1];
-                    this.Castling[false] = new[] {false, false};
+                    board[Presets.WRShortCastlePos.Item2,Presets.WRShortCastlePos.Item1] = Empty;
+                    board[Presets.WRShortCastleDest.Item2,Presets.WRShortCastleDest.Item1] = W_Rook;
+                    PiecePositions[false].Add(Presets.WRShortCastleDest);
+                    PiecePositions[false].Remove(Presets.WRShortCastlePos);
+                    // update the bitboards
+                    SideBitboards[OriginColor] ^= Bitboards.Bitboards.SquareBitboards[Presets.WRShortCastlePos.Item2, Presets.WRShortCastlePos.Item1];
+                    SideBitboards[OriginColor] ^= Bitboards.Bitboards.SquareBitboards[Presets.WRShortCastleDest.Item2, Presets.WRShortCastleDest.Item1];
+                    PieceBitboards[OriginColor][0] ^= Bitboards.Bitboards.SquareBitboards[Presets.WRShortCastlePos.Item2, Presets.WRShortCastlePos.Item1];
+                    PieceBitboards[OriginColor][0] ^= Bitboards.Bitboards.SquareBitboards[Presets.WRShortCastleDest.Item2, Presets.WRShortCastleDest.Item1];
+                    
+                    Castling[false] = new[] {false, false};
 
                     extraMove = (Presets.WRShortCastlePos, Presets.WRShortCastleDest);
                 } 
-                else if (move.To == Presets.WKLongCastlePos && this.Castling[false][1])
+                else if (move.To == Presets.WKLongCastlePos && Castling[false][1])
                 {
-                    this.board[Presets.WRLongCastlePos.Item2,Presets.WRLongCastlePos.Item1] = Empty;
-                    this.board[Presets.WRLongCastleDest.Item2,Presets.WRLongCastleDest.Item1] = W_Rook;
-                    this.PiecePositions[false].Add(Presets.WRLongCastleDest);
-                    this.PiecePositions[false].Remove(Presets.WRLongCastlePos);
-                    this.SideBitboards[OriginColor] ^= Bitboards.Bitboards.SquareBitboards[Presets.WRLongCastlePos.Item2, Presets.WRLongCastlePos.Item1];
-                    this.SideBitboards[OriginColor] ^= Bitboards.Bitboards.SquareBitboards[Presets.WRLongCastleDest.Item2, Presets.WRLongCastleDest.Item1];
-                    this.Castling[false] = new[] {false, false};
+                    board[Presets.WRLongCastlePos.Item2,Presets.WRLongCastlePos.Item1] = Empty;
+                    board[Presets.WRLongCastleDest.Item2,Presets.WRLongCastleDest.Item1] = W_Rook;
+                    PiecePositions[false].Add(Presets.WRLongCastleDest);
+                    PiecePositions[false].Remove(Presets.WRLongCastlePos);
+                    // update bitboards
+                    SideBitboards[OriginColor] ^= Bitboards.Bitboards.SquareBitboards[Presets.WRLongCastlePos.Item2, Presets.WRLongCastlePos.Item1];
+                    SideBitboards[OriginColor] ^= Bitboards.Bitboards.SquareBitboards[Presets.WRLongCastleDest.Item2, Presets.WRLongCastleDest.Item1];
+                    PieceBitboards[OriginColor][0] ^= Bitboards.Bitboards.SquareBitboards[Presets.WRLongCastlePos.Item2, Presets.WRLongCastlePos.Item1];
+                    PieceBitboards[OriginColor][0] ^= Bitboards.Bitboards.SquareBitboards[Presets.WRLongCastleDest.Item2, Presets.WRLongCastleDest.Item1];
+                    
+                    Castling[false] = new[] {false, false};
                     
                     extraMove = (Presets.WRLongCastlePos, Presets.WRLongCastleDest);
                 }
             } 
             else if (move.From == Presets.BKStartPos && OriginPiece.Role == PieceType.King)
             {
-                if (move.To == Presets.BKShortCastlePos && this.Castling[true][0])
+                if (move.To == Presets.BKShortCastlePos && Castling[true][0])
                 {
-                    this.board[Presets.BRShortCastlePos.Item2,Presets.BRShortCastlePos.Item1] = Empty;
-                    this.board[Presets.BRShortCastleDest.Item2,Presets.BRShortCastleDest.Item1] = B_Rook;
-                    this.PiecePositions[true].Add(Presets.BRShortCastleDest);
-                    this.PiecePositions[true].Remove(Presets.BRShortCastlePos);
-                    this.SideBitboards[OriginColor] ^= Bitboards.Bitboards.SquareBitboards[Presets.BRShortCastlePos.Item2, Presets.BRShortCastlePos.Item1];
-                    this.SideBitboards[OriginColor] ^= Bitboards.Bitboards.SquareBitboards[Presets.BRShortCastleDest.Item2, Presets.BRShortCastleDest.Item1];
-                    this.Castling[true] = new[] {false, false};
+                    board[Presets.BRShortCastlePos.Item2,Presets.BRShortCastlePos.Item1] = Empty;
+                    board[Presets.BRShortCastleDest.Item2,Presets.BRShortCastleDest.Item1] = B_Rook;
+                    PiecePositions[true].Add(Presets.BRShortCastleDest);
+                    PiecePositions[true].Remove(Presets.BRShortCastlePos);
+                    // update bitboards
+                    SideBitboards[OriginColor] ^= Bitboards.Bitboards.SquareBitboards[Presets.BRShortCastlePos.Item2, Presets.BRShortCastlePos.Item1];
+                    SideBitboards[OriginColor] ^= Bitboards.Bitboards.SquareBitboards[Presets.BRShortCastleDest.Item2, Presets.BRShortCastleDest.Item1];
+                    PieceBitboards[OriginColor][0] ^= Bitboards.Bitboards.SquareBitboards[Presets.BRShortCastlePos.Item2, Presets.BRShortCastlePos.Item1];
+                    PieceBitboards[OriginColor][0] ^= Bitboards.Bitboards.SquareBitboards[Presets.BRShortCastleDest.Item2, Presets.BRShortCastleDest.Item1];
+                    Castling[true] = new[] {false, false};
                     
                     extraMove = (Presets.BRShortCastlePos, Presets.BRShortCastleDest);
                 } 
-                else if (move.To == Presets.BKLongCastlePos && this.Castling[true][1])
+                else if (move.To == Presets.BKLongCastlePos && Castling[true][1])
                 {
-                    this.board[Presets.BRLongCastlePos.Item2,Presets.BRLongCastlePos.Item1] = Empty;
-                    this.board[Presets.BRLongCastleDest.Item2,Presets.BRLongCastleDest.Item1] = B_Rook;
-                    this.PiecePositions[true].Add(Presets.BRLongCastleDest);
-                    this.PiecePositions[true].Remove(Presets.BRLongCastlePos);
-                    this.SideBitboards[OriginColor] ^= Bitboards.Bitboards.SquareBitboards[Presets.BRLongCastlePos.Item2, Presets.BRLongCastlePos.Item1];
-                    this.SideBitboards[OriginColor] ^= Bitboards.Bitboards.SquareBitboards[Presets.BRLongCastleDest.Item2, Presets.BRLongCastleDest.Item1];
-                    this.Castling[true] = new[] {false, false};
+                    board[Presets.BRLongCastlePos.Item2,Presets.BRLongCastlePos.Item1] = Empty;
+                    board[Presets.BRLongCastleDest.Item2,Presets.BRLongCastleDest.Item1] = B_Rook;
+                    PiecePositions[true].Add(Presets.BRLongCastleDest);
+                    PiecePositions[true].Remove(Presets.BRLongCastlePos);
+                    // update bitboards
+                    SideBitboards[OriginColor] ^= Bitboards.Bitboards.SquareBitboards[Presets.BRLongCastlePos.Item2, Presets.BRLongCastlePos.Item1];
+                    SideBitboards[OriginColor] ^= Bitboards.Bitboards.SquareBitboards[Presets.BRLongCastleDest.Item2, Presets.BRLongCastleDest.Item1];
+                    PieceBitboards[OriginColor][0] ^= Bitboards.Bitboards.SquareBitboards[Presets.BRLongCastlePos.Item2, Presets.BRLongCastlePos.Item1];
+                    PieceBitboards[OriginColor][0] ^= Bitboards.Bitboards.SquareBitboards[Presets.BRLongCastleDest.Item2, Presets.BRLongCastleDest.Item1];
+                    Castling[true] = new[] {false, false};
                     
                     extraMove = (Presets.BRLongCastlePos, Presets.BRLongCastlePos);
                 }
             }
             // Remove castling rights
             else if (move.To == Presets.WhiteRookHPos || move.From == Presets.WhiteRookHPos)
-                this.Castling[false][0] = false;
+                Castling[false][0] = false;
             else if (move.To == Presets.WhiteRookAPos || move.From == Presets.WhiteRookAPos)
-                this.Castling[false][1] = false;
+                Castling[false][1] = false;
             else if (move.To == Presets.BlackRookHPos || move.From == Presets.BlackRookHPos)
-                this.Castling[true][0] = false;
+                Castling[true][0] = false;
             else if (move.To == Presets.BlackRookAPos || move.From == Presets.BlackRookAPos)
-                this.Castling[true][1] = false;
+                Castling[true][1] = false;
             
 
             // en passant (Holy Hell!)
@@ -164,49 +199,55 @@ namespace Board
             {
                 int RankDistance = move.From.Item2 - move.To.Item2;
 
-                if (move.To == this.EnpassantSquare)
+                if (move.To == EnpassantSquare)
                 {
-                    if (this.board[move.To.Item2 + 1,move.To.Item1].Role == PieceType.Pawn)
+                    if (board[move.To.Item2 + 1,move.To.Item1].Role == PieceType.Pawn)
                     {
-                        this.PiecePositions[this.board[move.To.Item2 + 1,move.To.Item1].Color].Remove((move.To.Item1,move.To.Item2 + 1));
-                        this.SideBitboards[this.board[move.To.Item2 + 1, move.To.Item1].Color] ^= Bitboards.Bitboards.SquareBitboards[move.To.Item1, move.To.Item2 + 1];
-                        this.board[move.To.Item2 + 1,move.To.Item1] = Empty;
+                        PiecePositions[board[move.To.Item2 + 1,move.To.Item1].Color].Remove((move.To.Item1,move.To.Item2 + 1));
+                        // update bitboards
+                        SideBitboards[board[move.To.Item2 + 1, move.To.Item1].Color] ^= Bitboards.Bitboards.SquareBitboards[move.To.Item1, move.To.Item2 + 1];
+                        PieceBitboards[board[move.To.Item2 + 1, move.To.Item1].Color][5] ^= Bitboards.Bitboards.SquareBitboards[move.To.Item1, move.To.Item2 + 1];
+                        
+                        board[move.To.Item2 + 1,move.To.Item1] = Empty;
                         enpassant = (move.To.Item2 + 1,move.To.Item1);
                     }
-                    else if (this.board[move.To.Item2 - 1,move.To.Item1].Role == PieceType.Pawn)
+                    else if (board[move.To.Item2 - 1,move.To.Item1].Role == PieceType.Pawn)
                     {
-                        this.PiecePositions[this.board[move.To.Item2 - 1,move.To.Item1].Color].Remove((move.To.Item1,move.To.Item2 - 1));
-                        this.SideBitboards[this.board[move.To.Item2 - 1, move.To.Item1].Color] ^= Bitboards.Bitboards.SquareBitboards[move.To.Item1, move.To.Item2 - 1];
-                        this.board[move.To.Item2 - 1,move.To.Item1] = Empty;
+                        PiecePositions[board[move.To.Item2 - 1,move.To.Item1].Color].Remove((move.To.Item1,move.To.Item2 - 1));
+                        // update bitboards
+                        SideBitboards[board[move.To.Item2 - 1, move.To.Item1].Color] ^= Bitboards.Bitboards.SquareBitboards[move.To.Item1, move.To.Item2 - 1];
+                        PieceBitboards[board[move.To.Item2 + 1, move.To.Item1].Color][5] ^= Bitboards.Bitboards.SquareBitboards[move.To.Item1, move.To.Item2 - 1];
+                        
+                        board[move.To.Item2 - 1,move.To.Item1] = Empty;
                         enpassant = (move.To.Item2 - 1,move.To.Item1);
                     }
                 }
                 else if (RankDistance == 2 || RankDistance == -2) // if the pawn made 2 moves forward, set EnpassantSquare
-                    this.EnpassantSquare = (move.From.Item1, move.To.Item2 + (RankDistance / 2));
+                    EnpassantSquare = (move.From.Item1, move.To.Item2 + (RankDistance / 2));
                 else
-                    this.EnpassantSquare = (8,8);
+                    EnpassantSquare = (8,8);
                 
             }
             else if (OriginPiece.Role == PieceType.King) // Changing KingPos
             {
-                this.KingPos[OriginColor] = (move.To.Item1,move.To.Item2);
-                this.Castling[OriginColor] = new[] {false, false};
-                this.EnpassantSquare = (8,8);
+                KingPos[OriginColor] = (move.To.Item1,move.To.Item2);
+                Castling[OriginColor] = new[] {false, false};
+                EnpassantSquare = (8,8);
             }
             else
-                this.EnpassantSquare = (8,8);
+                EnpassantSquare = (8,8);
             
             if (generateReverse)
-                LastMove = new ReverseMove((move.From, move.To), extraMove, TargetPiece, move.Promotion != Empty, enpassant, prevEnpassant, moveChain, whiteCastle, blackCastle, wKingPos, bKingPos);
+                LastMove = new ReverseMove((move.From, move.To), extraMove, TargetPiece, move.Promotion != Empty, enpassant, prevEnpassant, moveChain, whiteCastle, blackCastle, wKingPos, bKingPos, whiteBitboard, blackBitboard);
             
-            this.Side = !this.Side;
+            Side = !Side;
             
-            this.AddSelf();
+            AddSelf();
 
             return true;
         }
 
-        private static Dictionary<bool, Piece.Piece> Pawns = new Dictionary<bool, Piece.Piece>
+        private static readonly Dictionary<bool, Piece.Piece> Pawns = new()
         {
             {false, W_Pawn},
             {true, B_Pawn}
@@ -215,48 +256,53 @@ namespace Board
         {
             // Unmaking the original move
             if (LastMove.Promotion)
-                this.board[LastMove.OriginMove.Item1.Item2, LastMove.OriginMove.Item1.Item1] = Pawns[!this.Side];
+                board[LastMove.OriginMove.Item1.Item2, LastMove.OriginMove.Item1.Item1] = Pawns[!Side];
             else
-                this.board[LastMove.OriginMove.Item1.Item2, LastMove.OriginMove.Item1.Item1] = this.board[LastMove.OriginMove.Item2.Item2, LastMove.OriginMove.Item2.Item1];
-            this.PiecePositions[!this.Side].Add(LastMove.OriginMove.Item1);
-            this.SideBitboards[!this.Side] ^= Bitboards.Bitboards.SquareBitboards[LastMove.OriginMove.Item1.Item2, LastMove.OriginMove.Item1.Item1];
+                board[LastMove.OriginMove.Item1.Item2, LastMove.OriginMove.Item1.Item1] = board[LastMove.OriginMove.Item2.Item2, LastMove.OriginMove.Item2.Item1];
             
-            this.board[LastMove.OriginMove.Item2.Item2, LastMove.OriginMove.Item2.Item1] = LastMove.CapturedPiece;
-            this.PiecePositions[this.Side].Remove(LastMove.OriginMove.Item2);
-            this.SideBitboards[this.Side] ^= Bitboards.Bitboards.SquareBitboards[LastMove.OriginMove.Item2.Item2, LastMove.OriginMove.Item2.Item1];
+            // put back the moved pieces
+            PiecePositions[!Side].Add(LastMove.OriginMove.Item1);
+            SideBitboards[!Side] ^= Bitboards.Bitboards.SquareBitboards[LastMove.OriginMove.Item1.Item2, LastMove.OriginMove.Item1.Item1];
+            
+            board[LastMove.OriginMove.Item2.Item2, LastMove.OriginMove.Item2.Item1] = LastMove.CapturedPiece;
+            PiecePositions[Side].Remove(LastMove.OriginMove.Item2);
+            SideBitboards[Side] ^= Bitboards.Bitboards.SquareBitboards[LastMove.OriginMove.Item2.Item2, LastMove.OriginMove.Item2.Item1];
             
             if (LastMove.CapturedPiece.Role != PieceType.Pawn)
-                this.PieceCounter += LastMove.CapturedPiece.LocalValue;
+                PieceCounter += LastMove.CapturedPiece.LocalValue;
             
             // unmaking the extra move, if there is one
             if (LastMove.ExtraMove.Item1.Item1 != 8)
             {
-                this.board[LastMove.ExtraMove.Item1.Item2, LastMove.ExtraMove.Item1.Item1] = this.board[LastMove.ExtraMove.Item2.Item2, LastMove.ExtraMove.Item2.Item1];
-                this.board[LastMove.ExtraMove.Item2.Item2, LastMove.ExtraMove.Item2.Item1] = Empty;
+                board[LastMove.ExtraMove.Item1.Item2, LastMove.ExtraMove.Item1.Item1] = board[LastMove.ExtraMove.Item2.Item2, LastMove.ExtraMove.Item2.Item1];
+                board[LastMove.ExtraMove.Item2.Item2, LastMove.ExtraMove.Item2.Item1] = Empty;
                 
-                this.PiecePositions[!this.Side].Add(LastMove.ExtraMove.Item1);
-                this.PiecePositions[!this.Side].Remove(LastMove.ExtraMove.Item2);
-                this.SideBitboards[!this.Side] ^= Bitboards.Bitboards.SquareBitboards[LastMove.ExtraMove.Item1.Item2, LastMove.ExtraMove.Item1.Item1];
-                this.SideBitboards[!this.Side] ^= Bitboards.Bitboards.SquareBitboards[LastMove.ExtraMove.Item2.Item2, LastMove.ExtraMove.Item2.Item1];
+                PiecePositions[!Side].Add(LastMove.ExtraMove.Item1);
+                PiecePositions[!Side].Remove(LastMove.ExtraMove.Item2);
+                SideBitboards[!Side] ^= Bitboards.Bitboards.SquareBitboards[LastMove.ExtraMove.Item1.Item2, LastMove.ExtraMove.Item1.Item1];
+                SideBitboards[!Side] ^= Bitboards.Bitboards.SquareBitboards[LastMove.ExtraMove.Item2.Item2, LastMove.ExtraMove.Item2.Item1];
             }
             
             // if there was an en passant capture, put the pawn back
             if (LastMove.Enpassant.Item1 != 8)
             {
-                this.board[LastMove.Enpassant.Item2, LastMove.Enpassant.Item1] = Pawns[this.Side];
-                this.PiecePositions[this.Side].Add(LastMove.Enpassant);
-                this.SideBitboards[!this.Side] ^= Bitboards.Bitboards.SquareBitboards[LastMove.Enpassant.Item2, LastMove.Enpassant.Item1];
+                board[LastMove.Enpassant.Item2, LastMove.Enpassant.Item1] = Pawns[Side];
+                PiecePositions[Side].Add(LastMove.Enpassant);
+                SideBitboards[!Side] ^= Bitboards.Bitboards.SquareBitboards[LastMove.Enpassant.Item2, LastMove.Enpassant.Item1];
             }
             
-            this.MoveChain = LastMove.MoveChain;
-            this.EnpassantSquare = LastMove.PrevEnpassant;
+            MoveChain = LastMove.MoveChain;
+            EnpassantSquare = LastMove.PrevEnpassant;
 
-            this.Castling[false] = new[] { LastMove.WhiteCastle[0], LastMove.WhiteCastle[1] };
-            this.Castling[true] = new[] { LastMove.BlackCastle[0], LastMove.BlackCastle[1] };
+            Castling[false] = new[] { LastMove.WhiteCastle[0], LastMove.WhiteCastle[1] };
+            Castling[true] = new[] { LastMove.BlackCastle[0], LastMove.BlackCastle[1] };
 
-            this.KingPos[false] = LastMove.WKingPos;
-            this.KingPos[true] =  LastMove.BKingPos;
+            KingPos[false] = LastMove.WKingPos;
+            KingPos[true] =  LastMove.BKingPos;
 
+            PieceBitboards[false] = LastMove.BitboardWhite;
+            PieceBitboards[true] = LastMove.BitboardBlack;
+            
             Side = !Side;
         }
 
@@ -282,7 +328,12 @@ namespace Board
                 for (int j = 0; j < 8; j++)
                 {
                     if (board[i, j].Role != PieceType.Empty)
+                    {
                         NewBoard.SideBitboards[board[i, j].Color] |= Bitboards.Bitboards.SquareBitboards[i, j];
+                        
+                        NewBoard.PieceBitboards[board[i, j].Color][(int)board[i, j].Role] |= Bitboards.Bitboards.SquareBitboards[i, j];
+                    }
+                    
                 }
             }
             
@@ -293,57 +344,59 @@ namespace Board
         {
             Board Clone = new Board();
             
-            Clone.board = (Piece.Piece[,])this.board.Clone();
+            Clone.board = (Piece.Piece[,])board.Clone();
             
             Clone.PiecePositions = new Dictionary<bool, List<(int, int)>>
             {
-                {false, new List<(int, int)>(this.PiecePositions[false])},
-                {true, new List<(int, int)>(this.PiecePositions[true])}
+                {false, new List<(int, int)>(PiecePositions[false])},
+                {true, new List<(int, int)>(PiecePositions[true])}
             };
             
             Clone.KingPos = new Dictionary<bool, (int,int)>
             {
-                {false, this.KingPos[false]},
-                {true, this.KingPos[true]}
+                {false, KingPos[false]},
+                {true, KingPos[true]}
             };
             
-            Clone.EnpassantSquare = this.EnpassantSquare;
-            Clone.Side = this.Side;
-            Clone.MoveChain = this.MoveChain;
-            Clone.Repetition = new Dictionary<int, int>(this.Repetition);
-            Clone.PieceCounter = this.PieceCounter;
+            Clone.EnpassantSquare = EnpassantSquare;
+            Clone.Side = Side;
+            Clone.MoveChain = MoveChain;
+            Clone.Repetition = new Dictionary<int, int>(Repetition);
+            Clone.PieceCounter = PieceCounter;
             Clone.Castling = new Dictionary<bool, bool[]> 
             {
-                {false, (bool[])this.Castling[false].Clone()},
-                {true, (bool[])this.Castling[true].Clone()}
+                {false, (bool[])Castling[false].Clone()},
+                {true, (bool[])Castling[true].Clone()}
             };
             
-            Clone.SideBitboards[false] = this.SideBitboards[false];
-            Clone.SideBitboards[true] = this.SideBitboards[true];
+            Clone.SideBitboards[false] = SideBitboards[false];
+            Clone.SideBitboards[true] = SideBitboards[true];
+            Clone.PieceBitboards[false] = (ulong[])PieceBitboards[false].Clone();
+            Clone.PieceBitboards[true] = (ulong[])PieceBitboards[true].Clone();
             
             return Clone;
         }
 
         public bool KingInCheck(bool color)
         {
-            return MoveFinder.Attacked(this, this.GetKingPos(color), !color);
+            return MoveFinder.Attacked(this, GetKingPos(color), !color);
         }
 
         private (int,int) GetKingPos(bool color)
         {
-            if (this.KingPos[color].Item1 != 8)
+            if (KingPos[color].Item1 != 8)
             {
-                return this.KingPos[color];
+                return KingPos[color];
             }
 
             for (int i = 0; i < 8; i++)
             {
                 for (int j = 0; j < 8; j++)
                 {
-                    Piece.Piece TargetPiece = this.board[i, j];
+                    Piece.Piece TargetPiece = board[i, j];
                     if (TargetPiece.Role == PieceType.King && TargetPiece.Color == color)
                     {
-                        this.KingPos[color] = (j,i);
+                        KingPos[color] = (j,i);
                         return (j,i);
                     }
                 }
@@ -353,21 +406,21 @@ namespace Board
 
         public List<(int,int)> GetPiecePositions(bool side)
         {
-            if (this.PiecePositions[side].Count == 0)
+            if (PiecePositions[side].Count == 0)
             {
                 for (int i = 0; i < 8; i++)
                 {
                     for (int j = 0; j < 8; j++)
                     {
-                        Piece.Piece TargetPiece = this.board[i, j];
+                        Piece.Piece TargetPiece = board[i, j];
                         if (TargetPiece.Color == side && TargetPiece.Role != PieceType.Empty)
                         {
-                            this.PiecePositions[side].Add((j,i));
+                            PiecePositions[side].Add((j,i));
                         }
                     }
                 }
             }
-            return this.PiecePositions[side];
+            return PiecePositions[side];
         }
 
         int[] LocalValue()
@@ -442,7 +495,7 @@ namespace Board
                     if (board[coords.Item2,coords.Item1].Role != PieceType.Pawn)
                         Total += board[coords.Item2,coords.Item1].LocalValue;
                 }
-                this.PieceCounter = Total;
+                PieceCounter = Total;
                 
                 Debug.Log("Pieces counted");
             }
@@ -452,11 +505,11 @@ namespace Board
         public (Outcome, List<Move.Move>) Status()
         {
             List<Move.Move> moveList = MoveFinder.Search(this, Side, true);
-            if (this.DeclaredOutcome == Outcome.Ongoing)
+            if (DeclaredOutcome == Outcome.Ongoing)
             {
                 if (moveList.Count == 0)
                 {
-                    if (this.KingInCheck(Side))
+                    if (KingInCheck(Side))
                     {
                         DeclaredOutcome = Presets.SideOutcomes[!Side];
                     }
@@ -465,15 +518,15 @@ namespace Board
                         DeclaredOutcome = Outcome.Draw;
                     }
                 }
-                else if (this.MoveChain > 49 || this.Repetition.ContainsValue(3))
+                else if (MoveChain > 49 || Repetition.ContainsValue(3))
                 {
                     DeclaredOutcome = Outcome.Draw;
                 }
                 else
                 {
-                    int[] LocalValues = this.LocalValue();
+                    int[] LocalValues = LocalValue();
 
-                    if (LocalValues[0] < 1400 && LocalValues[1] < 1400 && !this.PawnsLeft())
+                    if (LocalValues[0] < 1400 && LocalValues[1] < 1400 && !PawnsLeft())
                     {
                         DeclaredOutcome = Outcome.Draw;
                     }
@@ -489,7 +542,7 @@ namespace Board
 
         void AddSelf()
         {
-            int HashValue = this.GetHashCode();
+            int HashValue = GetHashCode();
             
             if (Repetition.ContainsKey(HashValue))
             {
@@ -584,8 +637,10 @@ namespace Board
         public bool[] BlackCastle;
         public (int,int) WKingPos;
         public (int,int) BKingPos;
+        public ulong[] BitboardWhite;
+        public ulong[] BitboardBlack;
         
-        public ReverseMove(((int, int),(int,int)) originMove, ((int, int),(int,int)) extraMove, Piece.Piece capturedPiece, bool promotion, (int, int) enpassant, (int, int) prevEnpassant,  int moveChain, bool[] whiteCastle, bool[] blackCastle, (int, int) wKingPos, (int, int) bKingPos)
+        public ReverseMove(((int, int),(int,int)) originMove, ((int, int),(int,int)) extraMove, Piece.Piece capturedPiece, bool promotion, (int, int) enpassant, (int, int) prevEnpassant,  int moveChain, bool[] whiteCastle, bool[] blackCastle, (int, int) wKingPos, (int, int) bKingPos, ulong[] bitboardWhite, ulong[] bitboardBlack)
         {
             OriginMove = originMove;
             ExtraMove = extraMove;
@@ -598,6 +653,8 @@ namespace Board
             BlackCastle = blackCastle;
             WKingPos = wKingPos;
             BKingPos = bKingPos;
+            BitboardWhite = bitboardWhite;
+            BitboardBlack = bitboardBlack;
         }
     }
 
