@@ -15,6 +15,7 @@ namespace Bitboards
     public static class Bitboards
     {
         public static readonly ulong[,] SquareBitboards = new ulong[8, 8];
+        private static readonly ulong Square = 0x8000000000000000;
         private static bool initialized;
         
         // rooks
@@ -277,6 +278,11 @@ namespace Bitboards
 
                 initialized = true;
             }
+        }
+
+        public static ulong GetSquareBitboard(int file, int rank)
+        {
+            return Square >> (file + rank * 8);
         }
 
         private static ulong[] BlockerCombinations(ulong blockerMask)
