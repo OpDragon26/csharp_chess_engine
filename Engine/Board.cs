@@ -660,16 +660,28 @@ namespace Board
 
     public static class TestCases
     {
-        public static Piece.Piece[,] RookBitboards =
+        public static Piece.Piece[,][] CheckTests =
         {
-            {Empty, Empty, Empty, Empty, Empty, Empty, Empty, Empty},
-            {Empty, Empty, Empty, Empty, Empty, Empty, Empty, Empty},
-            {Empty, Empty, Empty, Empty, Empty, Empty, Empty, Empty},
-            {Empty, Empty, Empty, Empty, Empty, Empty, Empty, Empty},
-            {Empty, Empty, Empty, Empty, W_Rook, Empty, Empty, Empty},
-            {Empty, Empty, Empty, Empty, Empty, Empty, Empty, Empty},
-            {Empty, Empty, Empty, Empty, Empty, Empty, Empty, Empty},
-            {Empty, Empty, Empty, Empty, Empty, Empty, Empty, Empty},
+            new Piece.Piece[,] {
+                {Empty, Empty, Empty, Empty, Empty, Empty, Empty, Empty},
+                {Empty, Empty, Empty, Empty, Empty, Empty, Empty, Empty},
+                {Empty, Empty, Empty, Empty, W_King, Empty, Empty, Empty},
+                {Empty, Empty, Empty, Empty, Empty, Empty, Empty, Empty},
+                {Empty, Empty, Empty, Empty, B_Rook, Empty, Empty, Empty},
+                {Empty, Empty, Empty, Empty, B_King, Empty, Empty, Empty},
+                {Empty, Empty, Empty, Empty, Empty, Empty, Empty, Empty},
+                {Empty, Empty, Empty, Empty, Empty, Empty, Empty, Empty},
+            },
+            new Piece.Piece[,] {
+                {Empty, Empty, Empty, Empty, Empty, Empty, Empty, Empty},
+                {Empty, Empty, Empty, Empty, Empty, Empty, Empty, Empty},
+                {Empty, Empty, W_King, Empty, Empty, Empty, Empty, Empty},
+                {Empty, Empty, Empty, Empty, Empty, Empty, Empty, Empty},
+                {Empty, Empty, Empty, Empty, B_Bishop, Empty, Empty, Empty},
+                {Empty, Empty, Empty, Empty, B_King, Empty, Empty, Empty},
+                {Empty, Empty, Empty, Empty, Empty, Empty, Empty, Empty},
+                {Empty, Empty, Empty, Empty, Empty, Empty, Empty, Empty},
+            },
         };
     }
 }
