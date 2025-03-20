@@ -75,6 +75,8 @@ namespace Board
             (int,int) bKingPos = KingPos[true];
             ulong[] whiteBitboard = (ulong[])PieceBitboards[false].Clone();
             ulong[] blackBitboard = (ulong[])PieceBitboards[true].Clone();
+            ulong sideBitboardWhite = SideBitboards[false];
+            ulong sideBitboardBlack = SideBitboards[true];
 
             if (TargetPiece.Role != PieceType.Empty)
             {
@@ -238,7 +240,7 @@ namespace Board
                 EnpassantSquare = (8,8);
             
             if (generateReverse)
-                LastMove = new ReverseMove((move.From, move.To), extraMove, TargetPiece, move.Promotion != Empty, enpassant, prevEnpassant, moveChain, whiteCastle, blackCastle, wKingPos, bKingPos, whiteBitboard, blackBitboard);
+                LastMove = new ReverseMove((move.From, move.To), extraMove, TargetPiece, move.Promotion != Empty, enpassant, prevEnpassant, moveChain, whiteCastle, blackCastle, wKingPos, bKingPos, whiteBitboard, blackBitboard, sideBitboardWhite, sideBitboardBlack);
             
             Side = !Side;
             
@@ -262,11 +264,9 @@ namespace Board
             
             // put back the moved pieces
             PiecePositions[!Side].Add(LastMove.OriginMove.Item1);
-            SideBitboards[!Side] ^= Bitboards.Bitboards.SquareBitboards[LastMove.OriginMove.Item1.Item2, LastMove.OriginMove.Item1.Item1];
             
             board[LastMove.OriginMove.Item2.Item2, LastMove.OriginMove.Item2.Item1] = LastMove.CapturedPiece;
             PiecePositions[Side].Remove(LastMove.OriginMove.Item2);
-            SideBitboards[Side] ^= Bitboards.Bitboards.SquareBitboards[LastMove.OriginMove.Item2.Item2, LastMove.OriginMove.Item2.Item1];
             
             if (LastMove.CapturedPiece.Role != PieceType.Pawn)
                 PieceCounter += LastMove.CapturedPiece.LocalValue;
@@ -279,8 +279,6 @@ namespace Board
                 
                 PiecePositions[!Side].Add(LastMove.ExtraMove.Item1);
                 PiecePositions[!Side].Remove(LastMove.ExtraMove.Item2);
-                SideBitboards[!Side] ^= Bitboards.Bitboards.SquareBitboards[LastMove.ExtraMove.Item1.Item2, LastMove.ExtraMove.Item1.Item1];
-                SideBitboards[!Side] ^= Bitboards.Bitboards.SquareBitboards[LastMove.ExtraMove.Item2.Item2, LastMove.ExtraMove.Item2.Item1];
             }
             
             // if there was an en passant capture, put the pawn back
@@ -288,7 +286,6 @@ namespace Board
             {
                 board[LastMove.Enpassant.Item2, LastMove.Enpassant.Item1] = Pawns[Side];
                 PiecePositions[Side].Add(LastMove.Enpassant);
-                SideBitboards[!Side] ^= Bitboards.Bitboards.SquareBitboards[LastMove.Enpassant.Item2, LastMove.Enpassant.Item1];
             }
             
             MoveChain = LastMove.MoveChain;
@@ -299,6 +296,9 @@ namespace Board
 
             KingPos[false] = LastMove.WKingPos;
             KingPos[true] =  LastMove.BKingPos;
+
+            SideBitboards[false] = LastMove.SideBitboardWhite;
+            SideBitboards[true] = LastMove.SideBitboardBlack;
 
             PieceBitboards[false] = LastMove.BitboardWhite;
             PieceBitboards[true] = LastMove.BitboardBlack;
@@ -637,10 +637,12 @@ namespace Board
         public bool[] BlackCastle;
         public (int,int) WKingPos;
         public (int,int) BKingPos;
+        ulong SideBitboardWhite;
+        ulong SideBitboardBlack;
         public ulong[] BitboardWhite;
         public ulong[] BitboardBlack;
         
-        public ReverseMove(((int, int),(int,int)) originMove, ((int, int),(int,int)) extraMove, Piece.Piece capturedPiece, bool promotion, (int, int) enpassant, (int, int) prevEnpassant,  int moveChain, bool[] whiteCastle, bool[] blackCastle, (int, int) wKingPos, (int, int) bKingPos, ulong[] bitboardWhite, ulong[] bitboardBlack)
+        public ReverseMove(((int, int),(int,int)) originMove, ((int, int),(int,int)) extraMove, Piece.Piece capturedPiece, bool promotion, (int, int) enpassant, (int, int) prevEnpassant,  int moveChain, bool[] whiteCastle, bool[] blackCastle, (int, int) wKingPos, (int, int) bKingPos, ulong[] bitboardWhite, ulong[] bitboardBlack, ulong sideBitboardWhite, ulong sideBitboardBlack)
         {
             OriginMove = originMove;
             ExtraMove = extraMove;
@@ -655,6 +657,8 @@ namespace Board
             BKingPos = bKingPos;
             BitboardWhite = bitboardWhite;
             BitboardBlack = bitboardBlack;
+            SideBitboardWhite = sideBitboardWhite;
+            SideBitboardBlack = sideBitboardBlack;
         }
     }
 
