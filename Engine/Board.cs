@@ -49,7 +49,7 @@ namespace Board
         
         public bool MakeMove(Move.Move move, bool filter, bool generateReverse)
         {
-            if (filter)
+            if (filter) // if the move isn't legal, don't make it
             {
                 List<Move.Move> LegalMoves = MoveFinder.Search(this, Side, false);
                 if (!move.InMovelist(LegalMoves))
@@ -323,6 +323,7 @@ namespace Board
             NewBoard.Endgame();
             NewBoard.LocalValue();
             
+            // fill out the bitboards
             for (int i = 0; i < 8; i++)
             {
                 for (int j = 0; j < 8; j++)
@@ -369,6 +370,7 @@ namespace Board
                 {true, (bool[])Castling[true].Clone()}
             };
             
+            // copy bitbooards over
             Clone.SideBitboards[false] = SideBitboards[false];
             Clone.SideBitboards[true] = SideBitboards[true];
             Clone.PieceBitboards[false] = (ulong[])PieceBitboards[false].Clone();
@@ -384,6 +386,7 @@ namespace Board
 
         private (int,int) GetKingPos(bool color)
         {
+            // only loops through the boards when you don't already know the position of the king
             if (KingPos[color].Item1 != 8)
             {
                 return KingPos[color];
@@ -406,6 +409,7 @@ namespace Board
 
         public List<(int,int)> GetPiecePositions(bool side)
         {
+            // initialize PiecePositions if it's empty
             if (PiecePositions[side].Count == 0)
             {
                 for (int i = 0; i < 8; i++)

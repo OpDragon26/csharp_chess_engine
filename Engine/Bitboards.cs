@@ -305,6 +305,7 @@ namespace Bitboards
             {
                 ulong combination = 0;
                 
+                // for each index in the mask, push the bits of the combination to the right indices 
                 for (int j = 0; j < l; j++)
                 {
                     combination ^= ((i << 63 - j) >> 63) << indices[j];
@@ -316,6 +317,7 @@ namespace Bitboards
             return combinations;
         }
 
+        // get the squares a ray piece can move to in a certain blocker combination using piece patterns
         private static ulong[] GetMoves(ulong[] blockers, (int,int) pos, PieceType piece)
         {
             ulong[] moves = new ulong[blockers.Length];
@@ -328,6 +330,7 @@ namespace Bitboards
                     ulong blocker = blockers[k];
                     ulong move = 0;
                 
+                    // calculate the distance to each side
                     int[] iterators = PiecePattern.Iterator.GetIterators(pos);
 
                     for (int l = 0; l < 4; l++)
