@@ -19,12 +19,8 @@ namespace Board
             for (int i = 0; i < l; i++)
             {
                 (int, int) coords = Pieces[i];
-                Piece.Piece Selected = board.board[coords.Item2, coords.Item1];
 
-                if (Selected.Color == color) // probably can be deleted
-                {
-                    MoveList.AddRange(SearchPieces(board, Selected.Role, color, coords));
-                }
+                MoveList.AddRange(SearchPieces(board, board.board[coords.Item2, coords.Item1].Role, color, coords));
             }
             
             
