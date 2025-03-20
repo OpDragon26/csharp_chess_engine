@@ -27,15 +27,14 @@ namespace Board
                 }
             }
             
-            Board MoveBoard = board.DeepCopy();
+            
             l = MoveList.Count;
             for (int i = l - 1; i >= 0; i--)
             {
-                MoveBoard.MakeMove(MoveList[i], false, true);
+                Board MoveBoard = board.DeepCopy();
+                MoveBoard.MakeMove(MoveList[i], false, false);
                 if (MoveBoard.KingInCheck(color))
                     MoveList.RemoveAt(i);
-                
-                MoveBoard.UnmakeMove();
             }
             
             if (ordering)
