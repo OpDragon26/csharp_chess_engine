@@ -86,7 +86,6 @@ namespace Board
                 {
                     board[Presets.WRShortCastlePos.Item2,Presets.WRShortCastlePos.Item1] = Empty;
                     board[Presets.WRShortCastleDest.Item2,Presets.WRShortCastleDest.Item1] = W_Rook;
-                    Debug.Log("Castled");
                     PiecePositions[false].Add(Presets.WRShortCastleDest);
                     PiecePositions[false].Remove(Presets.WRShortCastlePos);
                     // update the bitboards

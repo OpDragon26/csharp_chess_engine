@@ -189,7 +189,72 @@ namespace Board
 
         public static bool Attacked(Board board, (int,int) pos, bool color) // color refers to the color that is attacking the square
         {
-            return (GetAttackBitboard(board, color) & SquareBitboards[pos.Item2, pos.Item1]) != 0;
+            // check for pieces
+            for (int i = 0; i < 5; i++) 
+            {
+                Pattern PiecePattern = Patterns.PiecePatterns[Patterns.CheckPieces[i]];
+
+                if (PiecePattern.Repeat)
+                {
+                    int[] iterators = PiecePattern.Iterator.GetIterators(pos);
+                    int l = PiecePattern.MovePattern.Length;
+                    for (int k = 0; k < l; k++)
+                    {
+                        int it = iterators[k];
+                        for (int j = 0; j < it; j++)
+                        {
+                            (int, int) Target = (pos.Item1 + PiecePattern.MovePattern[k].Item1 * (j + 1), pos.Item2 + PiecePattern.MovePattern[k].Item2 * (j + 1));
+
+                            Piece.Piece TargetPiece = board.board[Target.Item2,Target.Item1];
+
+                            if (TargetPiece.Color == color && TargetPiece.Role == Patterns.CheckPieces[i])
+                            {
+                                return true;
+                            }
+                            if (TargetPiece.Role != PieceType.Empty) 
+                            { 
+                                break;
+                            }
+                        }
+                    }
+                }
+                else
+                {
+                    int l =  PiecePattern.MovePattern.Length;
+                    for (int j = 0; j < l; j++)
+                    {
+                        (int, int) Target = (pos.Item1 + PiecePattern.MovePattern[j].Item1, pos.Item2 + PiecePattern.MovePattern[j].Item2);
+                        if (PiecePattern.Validator.Validators[j](Target)) 
+                        {
+                            Piece.Piece TargetPiece = board.board[Target.Item2,Target.Item1];
+
+                            if (TargetPiece.Color == color && TargetPiece.Role == Patterns.CheckPieces[i])
+                            {
+                                return true;
+                            }
+                        }
+                    }
+                }
+            }
+
+            // check for pawns
+            PawnPattern CheckPattern = Patterns.PawnPatterns[!color]; // opposite pattern used for backwards direction
+            for (int i = 0; i < 2; i++)
+            {
+                (int, int) Target = (pos.Item1 + CheckPattern.CapturePattern[i].Item2, pos.Item2 + CheckPattern.CapturePattern[i].Item1);
+                
+                if (CheckPattern.Validator.CheckValidators[i](Target)) 
+                {
+                    Piece.Piece TargetPiece = board.board[Target.Item2,Target.Item1];
+                    
+                    if (TargetPiece.Role == PieceType.Pawn && TargetPiece.Color == color)
+                    {
+                        return true;
+                    }
+                }
+            }
+            
+            return false;
         }
         
         public static ulong GetAttackBitboard(Board board, bool color)
