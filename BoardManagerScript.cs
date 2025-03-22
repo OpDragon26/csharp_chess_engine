@@ -9,7 +9,7 @@ using Presets = Piece.Presets;
 using static Bitboards.Bitboards;
 using static MagicNumbers.MagicNumbers;
 
-// 2951
+// 3574 lines of code
 
 public class BoardManagerScript : MonoBehaviour
 {
