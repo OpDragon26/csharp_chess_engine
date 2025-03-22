@@ -2,11 +2,11 @@ using UnityEngine;
 
 public class SquareScript : MonoBehaviour
 {
-    public (int,int) Coords = (0,0);
+    public (int, int) Coords = (0, 0);
     private int TextureIndex;
     public Sprite[] Textures = new Sprite[2];
     public SpriteRenderer SpriteRenderer;
-    
+
     BoardManagerScript BoardManager;
 
     void Start()
@@ -24,4 +24,15 @@ public class SquareScript : MonoBehaviour
     {
         BoardManager.Click(Coords);
     }
+
+    void OnMouseEnter()
+    {
+        BoardManager.HoverEnter(Coords);
+    }
+
+    void OnMouseExit()
+    {
+        BoardManager.HoverExit(Coords);
+    }
+
 }

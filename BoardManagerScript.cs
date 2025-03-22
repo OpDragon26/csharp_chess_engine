@@ -20,12 +20,12 @@ public class BoardManagerScript : MonoBehaviour
     public readonly GameObject[] WMaterialVisualisers = new GameObject[16];
     public readonly GameObject[] BMaterialVisualisers = new GameObject[16];
 
-    SquareScript[,] SquareScripts = new SquareScript[8, 8];
-    PieceScript[,] PieceScripts = new PieceScript[8, 8];
-    OverlayScript[,] OverlayScripts = new OverlayScript[8, 8];
-    BitboardVisualiserScript[,] BitboardVisualiserScripts = new BitboardVisualiserScript[8, 8];
-    MaterialVisualiserScript[] WMaterialVisualiserScripts = new MaterialVisualiserScript[16];
-    MaterialVisualiserScript[] BMaterialVisualiserScripts = new MaterialVisualiserScript[16];
+    readonly SquareScript[,] SquareScripts = new SquareScript[8, 8];
+    readonly PieceScript[,] PieceScripts = new PieceScript[8, 8];
+    public readonly OverlayScript[,] OverlayScripts = new OverlayScript[8, 8];
+    readonly BitboardVisualiserScript[,] BitboardVisualiserScripts = new BitboardVisualiserScript[8, 8];
+    readonly MaterialVisualiserScript[] WMaterialVisualiserScripts = new MaterialVisualiserScript[16];
+    readonly MaterialVisualiserScript[] BMaterialVisualiserScripts = new MaterialVisualiserScript[16];
 
     GameObject PromotionSelection;
 
@@ -450,7 +450,17 @@ public class BoardManagerScript : MonoBehaviour
         OverlayScripts[from.Item1, from.Item2].UpdateTexture(2);
     }
 
-    public void UpdateMaterialVisualisers()
+    public void HoverEnter((int,int) coords)
+    {
+        OverlayScripts[coords.Item2, coords.Item1].HoverEnter();
+    }
+
+    public void HoverExit((int,int) coords)
+    {
+        OverlayScripts[coords.Item2, coords.Item1].HoverExit();
+    }
+
+    void UpdateMaterialVisualisers()
     {
         (int, List<PieceType>, List<PieceType>) imbalance = match.GetMaterialImbalance();
 
