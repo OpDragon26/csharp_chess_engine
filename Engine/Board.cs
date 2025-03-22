@@ -528,6 +528,6 @@ namespace Board
             {B_Rook, B_Knight, B_Bishop, B_Queen, B_King, B_Bishop, B_Knight, B_Rook},
         };
 
-        public static Board CastleCheck = Board.Constructor(Castle, false,new[] {true, true}, new[] {true, true}, (8,8), 2);
+        public static Board CastleCheck = Board.Constructor(Castle, false,new[] {true, true}, new[] {true, true}, (8,8), 2);    
     }
 }
