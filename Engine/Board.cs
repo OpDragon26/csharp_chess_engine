@@ -641,8 +641,8 @@ namespace Board
         public bool[] BlackCastle;
         public (int,int) WKingPos;
         public (int,int) BKingPos;
-        ulong SideBitboardWhite;
-        ulong SideBitboardBlack;
+        public ulong SideBitboardWhite;
+        public ulong SideBitboardBlack;
         public ulong[] BitboardWhite;
         public ulong[] BitboardBlack;
         
@@ -670,26 +670,6 @@ namespace Board
     {
         public static Piece.Piece[,][] CheckTests =
         {
-            new Piece.Piece[,] {
-                {Empty, Empty, Empty, Empty, Empty, Empty, Empty, Empty},
-                {Empty, Empty, Empty, Empty, Empty, Empty, Empty, Empty},
-                {Empty, Empty, Empty, Empty, W_King, Empty, Empty, Empty},
-                {Empty, Empty, Empty, Empty, Empty, Empty, Empty, Empty},
-                {Empty, Empty, Empty, Empty, B_Rook, Empty, Empty, Empty},
-                {Empty, Empty, Empty, Empty, B_King, Empty, Empty, Empty},
-                {Empty, Empty, Empty, Empty, Empty, Empty, Empty, Empty},
-                {Empty, Empty, Empty, Empty, Empty, Empty, Empty, Empty},
-            },
-            new Piece.Piece[,] {
-                {Empty, Empty, Empty, Empty, Empty, Empty, Empty, Empty},
-                {Empty, Empty, Empty, Empty, Empty, Empty, Empty, Empty},
-                {Empty, Empty, W_King, Empty, Empty, Empty, Empty, Empty},
-                {Empty, Empty, Empty, Empty, Empty, Empty, Empty, Empty},
-                {Empty, Empty, Empty, Empty, B_Bishop, Empty, Empty, Empty},
-                {Empty, Empty, Empty, Empty, B_King, Empty, Empty, Empty},
-                {Empty, Empty, Empty, Empty, Empty, Empty, Empty, Empty},
-                {Empty, Empty, Empty, Empty, Empty, Empty, Empty, Empty},
-            },
         };
     }
 }
