@@ -142,15 +142,13 @@ namespace Board
         
         public static List<Move.Move> FilterChecks(List<Move.Move> moves, Board board, bool color)
         {
-            Board MoveBoard = board.DeepCopy();
             int l = moves.Count;
             for (int i = l - 1; i >= 0; i--)
             {
-                MoveBoard.MakeMove(moves[i], false, true);
+                Board MoveBoard = board.DeepCopy();
+                MoveBoard.MakeMove(moves[i], false, false);
                 if (MoveBoard.KingInCheck(color))
                     moves.RemoveAt(i);
-                
-                MoveBoard.UnmakeMove();
             }
 
             return moves;
@@ -207,51 +205,75 @@ namespace Board
 
         public static bool Attacked(Board board, (int,int) pos, bool color) // color refers to the color that is attacking the square
         {
-            ulong[] attackers = board.PieceBitboards[color];
-            
-            // bishop pattern centered on pos
-            (ulong number, int push, ulong highest) magicNumber = BishopNumbers[pos.Item1, pos.Item2];
-                
-            ulong allPieces = board.SideBitboards[false] | board.SideBitboards[true];
-            ulong blockers = allPieces & BishopMask[pos.Item1, pos.Item2];
-                
-            ulong attacked = BishopLookup[pos.Item1, pos.Item2][(blockers * magicNumber.number) >> magicNumber.push];
-            ulong pieces = attackers[1] | attackers[2]; // combine the bitboards of queens and bishops
+            return (GetAttackBitboard(board, color) & SquareBitboards[pos.Item2, pos.Item1]) != 0;
+        }
+        
+        public static ulong GetAttackBitboard(Board board, bool color)
+        {
+            List<(int, int)> Pieces = board.PiecePositions[color];
+            int l = Pieces.Count;
+            ulong bitboard = 0;
 
-            if ((attacked & pieces) != 0) // if there is a matching bit, the square is attacked
-                return true;
-            
-            // rook pattern centered on pos
-            magicNumber = RookNumbers[pos.Item1, pos.Item2];
-            blockers = allPieces & RookMask[pos.Item1, pos.Item2];
-            attacked = RookLookup[pos.Item1, pos.Item2][(blockers * magicNumber.number) >> magicNumber.push];
-            pieces = attackers[0] | attackers[2]; // combine the bitboards of rooks and queens
-            
-            if ((attacked & pieces) != 0) // if there is a matching bit, the square is attacked
-                return true;
-            
-            // knight pattern centered on pos
-            attacked = KnightMask[pos.Item1, pos.Item2];
-            
-            if ((attacked & attackers[3]) != 0)
-                return true;
-            
-            // pawn pattern centered on pos
-            if (color) // attacker is black
-                attacked = BlackPawnCaptureMask[pos.Item1, pos.Item2];
-            else // attacker is white
-                attacked = WhitePawnCaptureMask[pos.Item1, pos.Item2];
+            for (int k = 0; k < l; k++)
+            {
+                (int, int) coords = Pieces[k];
+                PieceType role = board.board[coords.Item2, coords.Item1].Role;
+                
+                if (role == PieceType.Bishop)
+                {
+                    (ulong number, int push, ulong highest) magicNumber = BishopNumbers[coords.Item1, coords.Item2];
+                        
+                    ulong allPieces = board.SideBitboards[false] | board.SideBitboards[true];
+                    ulong blockers = allPieces & BishopMask[coords.Item1, coords.Item2]; // & ~((file >> board.KingPos[!color].Item1) & (rank >> (board.KingPos[!color].Item2 * 8)));
+                        
+                    ulong moves = BishopLookup[coords.Item1, coords.Item2][(blockers * magicNumber.number) >> magicNumber.push];
+                    bitboard |= moves;
+                }
+                    
+                else if (role  == PieceType.Rook)
+                {
+                    (ulong number, int push, ulong highest) magicNumber = RookNumbers[coords.Item1, coords.Item2];
+                        
+                    ulong allPieces = board.SideBitboards[false] | board.SideBitboards[true];
+                    ulong blockers = allPieces & RookMask[coords.Item1, coords.Item2]; // & ~((file >> board.KingPos[!color].Item1) & (rank >> (board.KingPos[!color].Item2 * 8)));
+                        
+                    ulong moves = RookLookup[coords.Item1, coords.Item2][(blockers * magicNumber.number) >> magicNumber.push];
+                    bitboard |= moves;
+                }
 
-            if ((attacked & attackers[5]) != 0) // if there is a matching bit, the square is attacked
-                return true;
-            
-            // king pattern centered on pos
-            attacked = KingMask[pos.Item1, pos.Item2];
-            
-            if ((attacked & attackers[4]) != 0) // if there is a matching bit, the square is attacked
-                return true;
-            
-            return false;
+                else if (role  == PieceType.Queen)
+                {
+                    (ulong number, int push, ulong highest) rookMagicNumber = RookNumbers[coords.Item1, coords.Item2];
+                    (ulong number, int push, ulong highest) bishopMagicNumber = BishopNumbers[coords.Item1, coords.Item2];
+                        
+                    ulong allPieces = board.SideBitboards[false] | board.SideBitboards[true];
+
+                    ulong rookBlockers = allPieces & RookMask[coords.Item1, coords.Item2]; // & ~((file >> board.KingPos[!color].Item1) & (rank >> (board.KingPos[!color].Item2 * 8)));
+                    ulong bishopBlockers = allPieces & BishopMask[coords.Item1, coords.Item2]; // & ~((file >> board.KingPos[!color].Item1) & (rank >> (board.KingPos[!color].Item2 * 8)));
+                        
+                    ulong rookMoves = RookLookup[coords.Item1, coords.Item2][(rookBlockers * rookMagicNumber.number) >> rookMagicNumber.push];
+                    ulong bishopMoves = BishopLookup[coords.Item1, coords.Item2][(bishopBlockers * bishopMagicNumber.number) >> bishopMagicNumber.push];
+                    ulong allMoves =  rookMoves | bishopMoves;
+                    bitboard |= allMoves;
+                }
+
+                else if (role  == PieceType.Knight)
+                    bitboard |= KnightMask[coords.Item2, coords.Item1];
+                    
+                else if (role == PieceType.King)
+                    bitboard |= KingMask[coords.Item2, coords.Item1];
+                    
+
+                else if (role == PieceType.Pawn)
+                {
+                    if (color)
+                        bitboard |= BlackPawnCaptureMask[coords.Item2, coords.Item1];
+                    else
+                        bitboard |= WhitePawnCaptureMask[coords.Item2, coords.Item1];
+                }
+            }
+
+            return bitboard;
         }
     }
 

@@ -32,6 +32,7 @@ public class BoardManagerScript : MonoBehaviour
     public bool Side;
     public int Depth = 2;
     public bool DebugMode;
+    public bool StandardDebug;
     
     public bool ShowBitboards = true;
     public bool BitboardColor = false;
@@ -118,23 +119,21 @@ public class BoardManagerScript : MonoBehaviour
 
         if (DebugMode)
         {
-            //match.board.board = Board.TestCases.RookBitboards;
+            match.board = TestCases.FalseCheck;
         }
     }
 
     // Update is called once per frame
     void Update()
     {
-        UpdatePieceTextures();
-        
         // update bitboards
-        if (Selected.Item1 == 8)
-        {
-            if (AllPieces)
-                UpdateBitboard(match.board.SideBitboards[BitboardColor]);
-            else
-                UpdateBitboard(match.board.PieceBitboards[BitboardColor][piece]);
-        }
+        if (AllPieces)
+            UpdateBitboard(match.board.SideBitboards[BitboardColor]);
+        else
+            UpdateBitboard(match.board.PieceBitboards[BitboardColor][piece]);
+        
+
+        UpdatePieceTextures();
         
         if (!DebugMode)
         {
@@ -313,47 +312,56 @@ public class BoardManagerScript : MonoBehaviour
         }
         else // debug mode is on
         {
-            //UpdateBitboard(BishopMask[bitboardCooords[0], bitboardCooords[1]]);
-            //UpdateBitboard(DownDiagonal);
-
-            switch (piece)
+            if (StandardDebug)
+            { 
+                switch (piece)
+                {
+                    case 0:
+                        if (Blockers)
+                            UpdateBitboard(RookBlockerCombinations[bitboardCooords[0], bitboardCooords[1]][blockerIndex]);
+                        else
+                            UpdateBitboard(RookMoves[bitboardCooords[0], bitboardCooords[1]][blockerIndex]);
+                    break;
+                    case 1:
+                        if (Blockers)
+                            UpdateBitboard(BishopBlockerCombinations[bitboardCooords[0], bitboardCooords[1]][blockerIndex]);
+                        else
+                            UpdateBitboard(BishopMoves[bitboardCooords[0], bitboardCooords[1]][blockerIndex]);
+                    break;
+                    case 2:
+                        if (Blockers)
+                            UpdateBitboard(RookBlockerCombinations[bitboardCooords[0], bitboardCooords[1]][blockerIndex] | BishopBlockerCombinations[bitboardCooords[0], bitboardCooords[1]][blockerIndex]);
+                        else
+                            UpdateBitboard(RookMoves[bitboardCooords[0], bitboardCooords[1]][blockerIndex] | BishopMoves[bitboardCooords[0], bitboardCooords[1]][blockerIndex]);
+                    break;
+                    case 3:
+                        UpdateBitboard(KingMask[bitboardCooords[0], bitboardCooords[1]]);
+                    break;
+                    case 4:
+                        UpdateBitboard(KnightMask[bitboardCooords[0], bitboardCooords[1]]);
+                    break;
+                    case 5:
+                        if (BitboardColor)
+                            UpdateBitboard(BlackPawnMask[bitboardCooords[0], bitboardCooords[1]]);
+                        else
+                            UpdateBitboard(WhitePawnMask[bitboardCooords[0], bitboardCooords[1]]);
+                    break;
+                    case 6:
+                        if (BitboardColor)
+                            UpdateBitboard(BlackPawnCaptureMask[bitboardCooords[0], bitboardCooords[1]]);
+                        else
+                            UpdateBitboard(WhitePawnCaptureMask[bitboardCooords[0], bitboardCooords[1]]);
+                    break;
+                }
+            }
+            else
             {
-                case 0:
-                    if (Blockers)
-                        UpdateBitboard(RookBlockerCombinations[bitboardCooords[0], bitboardCooords[1]][blockerIndex]);
-                    else
-                        UpdateBitboard(RookMoves[bitboardCooords[0], bitboardCooords[1]][blockerIndex]);
-                break;
-                case 1:
-                    if (Blockers)
-                        UpdateBitboard(BishopBlockerCombinations[bitboardCooords[0], bitboardCooords[1]][blockerIndex]);
-                    else
-                        UpdateBitboard(BishopMoves[bitboardCooords[0], bitboardCooords[1]][blockerIndex]);
-                break;
-                case 2:
-                    if (Blockers)
-                        UpdateBitboard(RookBlockerCombinations[bitboardCooords[0], bitboardCooords[1]][blockerIndex] | BishopBlockerCombinations[bitboardCooords[0], bitboardCooords[1]][blockerIndex]);
-                    else
-                        UpdateBitboard(RookMoves[bitboardCooords[0], bitboardCooords[1]][blockerIndex] | BishopMoves[bitboardCooords[0], bitboardCooords[1]][blockerIndex]);
-                break;
-                case 3:
-                    UpdateBitboard(KingMask[bitboardCooords[0], bitboardCooords[1]]);
-                break;
-                case 4:
-                    UpdateBitboard(KnightMask[bitboardCooords[0], bitboardCooords[1]]);
-                break;
-                case 5:
-                    if (BitboardColor)
-                        UpdateBitboard(BlackPawnMask[bitboardCooords[0], bitboardCooords[1]]);
-                    else
-                        UpdateBitboard(WhitePawnMask[bitboardCooords[0], bitboardCooords[1]]);
-                break;
-                case 6:
-                    if (BitboardColor)
-                        UpdateBitboard(BlackPawnCaptureMask[bitboardCooords[0], bitboardCooords[1]]);
-                    else
-                        UpdateBitboard(WhitePawnCaptureMask[bitboardCooords[0], bitboardCooords[1]]);
-                break;
+                if (Blockers)
+                    UpdateBitboard(MoveFinder.GetAttackBitboard(match.board, true));
+                else
+                    UpdateBitboard(match.board.PieceBitboards[false][4]);
+                
+                Debug.Log(match.board.KingInCheck(false));
             }
         }
     }
@@ -365,6 +373,9 @@ public class BoardManagerScript : MonoBehaviour
             for (int j = 0; j < 8; j++)
             {
                 (int, int) coords = BoardManagerInfo.BoardManagerInfo.Switch((i, j), !match.PlayerSide, false); // The *magic function* requires the opposite side for some reason
+
+                if (DebugMode)
+                    coords = (i, j);
 
                 PieceScripts[i, j].UpdateTexture(match.board.board[coords.Item1, coords.Item2]);
             }

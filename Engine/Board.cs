@@ -22,7 +22,7 @@ namespace Board
         private Dictionary<int, int> Repetition =  new();
         private Outcome DeclaredOutcome = Outcome.Ongoing;
         
-        private Dictionary<bool, (int,int)> KingPos = new() {
+        public Dictionary<bool, (int,int)> KingPos = new() {
             {true, (8,8)},
             {false, (8,8)},
         };
@@ -364,11 +364,7 @@ namespace Board
             Clone.MoveChain = MoveChain;
             Clone.Repetition = new Dictionary<int, int>(Repetition);
             Clone.PieceCounter = PieceCounter;
-            Clone.Castling = new Dictionary<bool, bool[]> 
-            {
-                {false, (bool[])Castling[false].Clone()},
-                {true, (bool[])Castling[true].Clone()}
-            };
+            Clone.Castling = new Dictionary<bool, bool[]>(Castling);
             
             // copy bitbooards over
             Clone.SideBitboards[false] = SideBitboards[false];
@@ -381,10 +377,10 @@ namespace Board
 
         public bool KingInCheck(bool color)
         {
-            return MoveFinder.Attacked(this, GetKingPos(color), !color);
+            return (MoveFinder.GetAttackBitboard(this, !color) & PieceBitboards[color][4]) != 0;
         }
 
-        private (int,int) GetKingPos(bool color)
+        public (int,int) GetKingPos(bool color)
         {
             // only loops through the boards when you don't already know the position of the king
             if (KingPos[color].Item1 != 8)
@@ -668,8 +664,18 @@ namespace Board
 
     public static class TestCases
     {
-        public static Piece.Piece[,][] CheckTests =
+        public static Piece.Piece[,] FalseCheck1 =
         {
+            { W_Rook, W_Knight, W_Bishop, W_Queen, Empty, W_Bishop, W_Knight, W_Rook },
+            { W_Pawn, W_Pawn, W_Pawn, W_Pawn, Empty, Empty, W_Pawn, W_Pawn },
+            { Empty, Empty, Empty, Empty, Empty, Empty, Empty, Empty },
+            { Empty, W_King, Empty, Empty, W_Pawn, Empty, Empty, Empty },
+            { Empty, Empty, Empty, Empty, B_Pawn, Empty, Empty, Empty },
+            { Empty, Empty, B_Knight, Empty, Empty, Empty, Empty, Empty },
+            { B_Pawn, B_Pawn, B_Pawn, B_Pawn, Empty, B_Pawn, B_Pawn, B_Pawn },
+            { B_Rook, Empty, B_Bishop, B_Queen, B_King, Empty, B_Knight, B_Rook },
         };
+
+        public static Board FalseCheck = Board.Constructor(FalseCheck1, true,new[] {false, false}, new[] {true, true}, (8,8), 2);
     }
 }
