@@ -118,7 +118,7 @@ public class BoardManagerScript : MonoBehaviour
 
         if (DebugMode)
         {
-            match.board.board = Board.TestCases.RookBitboards;
+            //match.board.board = Board.TestCases.RookBitboards;
         }
     }
 
