@@ -44,7 +44,7 @@ public class BoardManagerScript : MonoBehaviour
     public int[] bitboardCooords = { 0, 0 };
     public int blockerIndex = 0;
 
-    public Match.Match match = new Match.Match(false, 2, false, false);
+    public Match.Match match = new Match.Match(false, 3);
 
     public BmStatus Status = BmStatus.Idle;
 
@@ -119,13 +119,14 @@ public class BoardManagerScript : MonoBehaviour
 
         if (DebugMode)
         {
-            match.board = TestCases.FalseCheck;
+            match.board = TestCases.CastleCheck;
         }
     }
 
     // Update is called once per frame
     void Update()
     {
+        //Debug.Log(match.board.board[Board.Presets.WRShortCastleDest.Item2, Board.Presets.WRShortCastleDest.Item1].Role);
         // update bitboards
         UpdateBitboard(match.board.SideBitboards[BitboardColor]);
 
@@ -175,7 +176,7 @@ public class BoardManagerScript : MonoBehaviour
                         ResetButton.gameObject.SetActive(false);
                         ExitButton.gameObject.SetActive(false);
 
-                        Outcome BoardStatus = match.board.Status().Item1;
+                        Outcome BoardStatus = match.board.Status(true).Item1;
                         if (BoardStatus == Outcome.Draw)
                         {
                             Status = BmStatus.Draw;
@@ -211,7 +212,7 @@ public class BoardManagerScript : MonoBehaviour
                     HighlightMove(botMove, !match.PlayerSide);
                     StatusLabel.gameObject.SetActive(false);
 
-                    Outcome BoardStatus2 = match.board.Status().Item1;
+                    Outcome BoardStatus2 = match.board.Status(true).Item1;
                     if (BoardStatus2 == Outcome.Draw)
                     {
                         Status = BmStatus.Draw;
@@ -361,7 +362,7 @@ public class BoardManagerScript : MonoBehaviour
             {
                 (int, int) coords = BoardManagerInfo.BoardManagerInfo.Switch((i, j), !match.PlayerSide, false); // The *magic function* requires the opposite side for some reason
 
-                if (DebugMode)
+                if (DebugMode && StandardDebug)
                     coords = (i, j);
 
                 PieceScripts[i, j].UpdateTexture(match.board.board[coords.Item1, coords.Item2]);
@@ -406,7 +407,7 @@ public class BoardManagerScript : MonoBehaviour
                 {
                     Selected = ocoords;
 
-                    List<Move.Move> moves = MoveFinder.FilterChecks(MoveFinder.SearchPieces(match.board, match.board.board[ocoords.Item2, ocoords.Item1].Role, match.PlayerSide, ocoords), match.board, match.PlayerSide);
+                    List<Move.Move> moves = MoveFinder.FilterChecks(MoveFinder.SearchPieces(match.board.DeepCopy(), match.board.board[ocoords.Item2, ocoords.Item1].Role, match.PlayerSide, ocoords), match.board.DeepCopy(), match.PlayerSide);
                     foreach (Move.Move move in moves)
                     {
                         (int,int) scoords = BoardManagerInfo.BoardManagerInfo.Switch(move.To, match.PlayerSide, false);
@@ -545,7 +546,7 @@ public class BoardManagerScript : MonoBehaviour
             {
                 for (int j = 0; j < 8; j++)
                 {
-                    (int, int) coords = BoardManagerInfo.BoardManagerInfo.Switch((i,j), !match.PlayerSide, DebugMode);
+                    (int, int) coords = BoardManagerInfo.BoardManagerInfo.Switch((i,j), !match.PlayerSide, DebugMode && StandardDebug);
                     
                     BitboardVisualiserScripts[coords.Item1, coords.Item2].UpdateTexture((bits[i * 8 + j] == char.Parse("0") ? 1 : 2) + (ShowBits ? 0 : 2));
                 }
@@ -590,7 +591,7 @@ public void Reset(bool color)
         else
             Status = BmStatus.Idle;
         
-        match = new Match.Match(color, Depth, false, false);
+        match = new Match.Match(color, Depth);
         
         UpdatePieceTextures();
     }

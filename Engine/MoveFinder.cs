@@ -23,16 +23,6 @@ namespace Board
                 MoveList.AddRange(SearchPieces(board, board.board[coords.Item2, coords.Item1].Role, color, coords));
             }
             
-            
-            l = MoveList.Count;
-            for (int i = l - 1; i >= 0; i--)
-            {
-                Board MoveBoard = board.DeepCopy();
-                MoveBoard.MakeMove(MoveList[i], false, false);
-                if (MoveBoard.KingInCheck(color))
-                    MoveList.RemoveAt(i);
-            }
-            
             if (ordering)
                 MoveList.Sort((x,y) => x.Importance.CompareTo(y.Importance)); // Sorts the moves based on the value that has been attributed to the move
             return MoveList;
@@ -97,12 +87,6 @@ namespace Board
                         (int, int) SkipSquare = (pos.Item1 + Patterns.SkipPattern.MovePattern[i].Item1, pos.Item2 + Patterns.SkipPattern.MovePattern[i].Item2);
                         bool Castling = board.board[Target.Item2,Target.Item1] == Empty && board.board[SkipSquare.Item2,SkipSquare.Item1] == Empty;
 
-                        if (i == 1)
-                        {
-                            (int,int) LongCastleSkip = (pos.Item1 + Patterns.LongCastleSkip[0], pos.Item2 + Patterns.LongCastleSkip[1]);
-                            Castling = Castling && board.board[LongCastleSkip.Item2,LongCastleSkip.Item1] == Empty && !Attacked(board, LongCastleSkip, !color);
-                        }
-
                         if (Castling && !board.KingInCheck(color) && !Attacked(board, SkipSquare, !color))
                         {
                             MoveList.Add(new Move.Move(pos, Target, Empty, 9));
@@ -146,7 +130,7 @@ namespace Board
             for (int i = l - 1; i >= 0; i--)
             {
                 Board MoveBoard = board.DeepCopy();
-                MoveBoard.MakeMove(moves[i], false, false);
+                MoveBoard.MakeMove(moves[i]);
                 if (MoveBoard.KingInCheck(color))
                     moves.RemoveAt(i);
             }

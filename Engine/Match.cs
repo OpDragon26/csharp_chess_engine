@@ -12,34 +12,25 @@ namespace Match
         public bool PlayerSide = false;
         public int Depth = 2; // 0 for pvp
         public Board.Board board = Presets.StartingBoard.DeepCopy();
-
-        static Dictionary<Outcome, string> Outcomes = new Dictionary<Outcome, string>
-        {
-            { Outcome.Black, "Black won. Game over." },
-            { Outcome.White, "White won. Game over." },
-            { Outcome.Draw, "Game is a draw." }
-        };
-
+        
         bool Debug;
         bool Notate;
         
-        private Dictionary<bool, List<PieceType>> CapturedPieces = new Dictionary<bool, List<PieceType>>
+        private Dictionary<bool, List<PieceType>> CapturedPieces = new()
         {
             { false, new List<PieceType>() },
             { true, new List<PieceType>() }
         };
 
-        public Match(bool side, int depth, bool debug, bool notateMoves)
+        public Match(bool side, int depth)
         {
             PlayerSide = side;
             Depth = depth;
-            Debug = debug;
-            Notate = notateMoves;
         }
 
         bool StatusTest()
         {
-            return board.Status().Item1 == Outcome.Ongoing;
+            return board.Status(true).Item1 == Outcome.Ongoing;
         }
 
         private void UpdateCapturedPieces(bool color, PieceType piece, Piece.Piece promotion, bool enPassant)
@@ -78,7 +69,14 @@ namespace Match
             bool MoveColor = board.board[move.To.Item2, move.To.Item1].Color;
             PieceType MovePiece = board.board[move.To.Item2, move.To.Item1].Role;
             
-            if (board.MakeMove(move, true, false))
+            // filter the move here
+            Board.Board MoveBoard = board.DeepCopy();
+            List<Move.Move> Moves = MoveFinder.Search(MoveBoard, PlayerSide, false);
+
+            if (!move.InMovelist(Moves))
+                return false;
+            
+            if (board.MakeMove(move))
             {
                 UpdateCapturedPieces(MoveColor, MovePiece, move.Promotion, move.EnPassant);
                 return true;
@@ -98,7 +96,7 @@ namespace Match
                 
                 UpdateCapturedPieces(MoveColor, MovePiece, BotMove.Promotion, BotMove.EnPassant);
                 
-                board.MakeMove(BotMove, false, false);
+                board.MakeMove(BotMove);
                 return BotMove;
             }
 

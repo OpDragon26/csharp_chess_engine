@@ -32,8 +32,6 @@ namespace Board
         };
 
         private int PieceCounter;
-
-        private ReverseMove LastMove;
         
         public readonly Dictionary<bool, ulong> SideBitboards = new()
         {
@@ -41,34 +39,13 @@ namespace Board
             {true, 0},
         };
         
-        public bool MakeMove(Move.Move move, bool filter, bool generateReverse)
+        public bool MakeMove(Move.Move move)
         {
-            if (filter) // if the move isn't legal, don't make it
-            {
-                List<Move.Move> LegalMoves = MoveFinder.Search(this, Side, false);
-                if (!move.InMovelist(LegalMoves))
-                {
-                    return false;
-                }
-            }
-             
             // local variables storing data that is accessed over and over
             Piece.Piece OriginPiece = board[move.From.Item2,move.From.Item1];
             Piece.Piece TargetPiece = board[move.To.Item2,move.To.Item1];
             bool OriginColor = OriginPiece.Color;
             bool TargetColor = TargetPiece.Color;
-            
-            // Local variables to store all the data that will be required to generate the ReverseMove
-            ((int, int), (int, int)) extraMove = ((8, 8), (8, 8));
-            (int, int) enpassant = (8,8);
-            int moveChain = MoveChain;
-            (int,int) prevEnpassant = EnpassantSquare;
-            bool[] whiteCastle = (bool[])Castling[false].Clone();
-            bool[] blackCastle = (bool[])Castling[true].Clone();
-            (int,int) wKingPos =  KingPos[false];
-            (int,int) bKingPos = KingPos[true];
-            ulong sideBitboardWhite = SideBitboards[false];
-            ulong sideBitboardBlack = SideBitboards[true];
 
             if (TargetPiece.Role != PieceType.Empty)
             {
@@ -109,6 +86,7 @@ namespace Board
                 {
                     board[Presets.WRShortCastlePos.Item2,Presets.WRShortCastlePos.Item1] = Empty;
                     board[Presets.WRShortCastleDest.Item2,Presets.WRShortCastleDest.Item1] = W_Rook;
+                    Debug.Log("Castled");
                     PiecePositions[false].Add(Presets.WRShortCastleDest);
                     PiecePositions[false].Remove(Presets.WRShortCastlePos);
                     // update the bitboards
@@ -116,8 +94,6 @@ namespace Board
                     SideBitboards[OriginColor] ^= Bitboards.Bitboards.SquareBitboards[Presets.WRShortCastleDest.Item2, Presets.WRShortCastleDest.Item1];
                     
                     Castling[false] = new[] {false, false};
-
-                    extraMove = (Presets.WRShortCastlePos, Presets.WRShortCastleDest);
                 } 
                 else if (move.To == Presets.WKLongCastlePos && Castling[false][1])
                 {
@@ -130,8 +106,6 @@ namespace Board
                     SideBitboards[OriginColor] ^= Bitboards.Bitboards.SquareBitboards[Presets.WRLongCastleDest.Item2, Presets.WRLongCastleDest.Item1];
                     
                     Castling[false] = new[] {false, false};
-                    
-                    extraMove = (Presets.WRLongCastlePos, Presets.WRLongCastleDest);
                 }
             } 
             else if (move.From == Presets.BKStartPos && OriginPiece.Role == PieceType.King)
@@ -145,9 +119,8 @@ namespace Board
                     // update bitboards
                     SideBitboards[OriginColor] ^= Bitboards.Bitboards.SquareBitboards[Presets.BRShortCastlePos.Item2, Presets.BRShortCastlePos.Item1];
                     SideBitboards[OriginColor] ^= Bitboards.Bitboards.SquareBitboards[Presets.BRShortCastleDest.Item2, Presets.BRShortCastleDest.Item1];
-                    Castling[true] = new[] {false, false};
                     
-                    extraMove = (Presets.BRShortCastlePos, Presets.BRShortCastleDest);
+                    Castling[true] = new[] {false, false};
                 } 
                 else if (move.To == Presets.BKLongCastlePos && Castling[true][1])
                 {
@@ -159,8 +132,6 @@ namespace Board
                     SideBitboards[OriginColor] ^= Bitboards.Bitboards.SquareBitboards[Presets.BRLongCastlePos.Item2, Presets.BRLongCastlePos.Item1];
                     SideBitboards[OriginColor] ^= Bitboards.Bitboards.SquareBitboards[Presets.BRLongCastleDest.Item2, Presets.BRLongCastleDest.Item1];
                     Castling[true] = new[] {false, false};
-                    
-                    extraMove = (Presets.BRLongCastlePos, Presets.BRLongCastlePos);
                 }
             }
             // Remove castling rights
@@ -188,7 +159,6 @@ namespace Board
                         SideBitboards[board[move.To.Item2 + 1, move.To.Item1].Color] ^= Bitboards.Bitboards.SquareBitboards[move.To.Item1, move.To.Item2 + 1];
                         
                         board[move.To.Item2 + 1,move.To.Item1] = Empty;
-                        enpassant = (move.To.Item2 + 1,move.To.Item1);
                     }
                     else if (board[move.To.Item2 - 1,move.To.Item1].Role == PieceType.Pawn)
                     {
@@ -197,7 +167,6 @@ namespace Board
                         SideBitboards[board[move.To.Item2 - 1, move.To.Item1].Color] ^= Bitboards.Bitboards.SquareBitboards[move.To.Item1, move.To.Item2 - 1];
                         
                         board[move.To.Item2 - 1,move.To.Item1] = Empty;
-                        enpassant = (move.To.Item2 - 1,move.To.Item1);
                     }
                 }
                 else if (RankDistance == 2 || RankDistance == -2) // if the pawn made 2 moves forward, set EnpassantSquare
@@ -215,9 +184,6 @@ namespace Board
             else
                 EnpassantSquare = (8,8);
             
-            if (generateReverse)
-                LastMove = new ReverseMove((move.From, move.To), extraMove, TargetPiece, move.Promotion != Empty, enpassant, prevEnpassant, moveChain, whiteCastle, blackCastle, wKingPos, bKingPos, sideBitboardWhite, sideBitboardBlack);
-            
             Side = !Side;
             
             AddSelf();
@@ -230,54 +196,6 @@ namespace Board
             {false, W_Pawn},
             {true, B_Pawn}
         };
-        public void UnmakeMove()
-        {
-            // Unmaking the original move
-            if (LastMove.Promotion)
-                board[LastMove.OriginMove.Item1.Item2, LastMove.OriginMove.Item1.Item1] = Pawns[!Side];
-            else
-                board[LastMove.OriginMove.Item1.Item2, LastMove.OriginMove.Item1.Item1] = board[LastMove.OriginMove.Item2.Item2, LastMove.OriginMove.Item2.Item1];
-            
-            // put back the moved pieces
-            PiecePositions[!Side].Add(LastMove.OriginMove.Item1);
-            
-            board[LastMove.OriginMove.Item2.Item2, LastMove.OriginMove.Item2.Item1] = LastMove.CapturedPiece;
-            PiecePositions[Side].Remove(LastMove.OriginMove.Item2);
-            
-            if (LastMove.CapturedPiece.Role != PieceType.Pawn)
-                PieceCounter += LastMove.CapturedPiece.LocalValue;
-            
-            // unmaking the extra move, if there is one
-            if (LastMove.ExtraMove.Item1.Item1 != 8)
-            {
-                board[LastMove.ExtraMove.Item1.Item2, LastMove.ExtraMove.Item1.Item1] = board[LastMove.ExtraMove.Item2.Item2, LastMove.ExtraMove.Item2.Item1];
-                board[LastMove.ExtraMove.Item2.Item2, LastMove.ExtraMove.Item2.Item1] = Empty;
-                
-                PiecePositions[!Side].Add(LastMove.ExtraMove.Item1);
-                PiecePositions[!Side].Remove(LastMove.ExtraMove.Item2);
-            }
-            
-            // if there was an en passant capture, put the pawn back
-            if (LastMove.Enpassant.Item1 != 8)
-            {
-                board[LastMove.Enpassant.Item2, LastMove.Enpassant.Item1] = Pawns[Side];
-                PiecePositions[Side].Add(LastMove.Enpassant);
-            }
-            
-            MoveChain = LastMove.MoveChain;
-            EnpassantSquare = LastMove.PrevEnpassant;
-
-            Castling[false] = new[] { LastMove.WhiteCastle[0], LastMove.WhiteCastle[1] };
-            Castling[true] = new[] { LastMove.BlackCastle[0], LastMove.BlackCastle[1] };
-
-            KingPos[false] = LastMove.WKingPos;
-            KingPos[true] =  LastMove.BKingPos;
-
-            SideBitboards[false] = LastMove.SideBitboardWhite;
-            SideBitboards[true] = LastMove.SideBitboardBlack;
-            
-            Side = !Side;
-        }
 
         public static Board Constructor(Piece.Piece[,] board, bool side, bool[] whiteCastle, bool[] blackCastle, (int,int) enpassantSquare, int moveChain)
         {
@@ -334,9 +252,13 @@ namespace Board
             Clone.MoveChain = MoveChain;
             Clone.Repetition = new Dictionary<int, int>(Repetition);
             Clone.PieceCounter = PieceCounter;
-            Clone.Castling = new Dictionary<bool, bool[]>(Castling);
+            Clone.Castling = new Dictionary<bool, bool[]>
+            {
+                {false, (bool[])Castling[false].Clone()},
+                {true, (bool[])Castling[true].Clone()},
+            };
             
-            // copy bitbooards over
+            // copy bitboards over
             Clone.SideBitboards[false] = SideBitboards[false];
             Clone.SideBitboards[true] = SideBitboards[true];
             
@@ -470,12 +392,12 @@ namespace Board
             return PieceCounter <= 3200;
         }
 
-        public (Outcome, List<Move.Move>) Status()
+        public (Outcome, List<Move.Move>) Status(bool filter)
         {
-            List<Move.Move> moveList = MoveFinder.Search(this, Side, true);
+            List<Move.Move> moveList = filter ? MoveFinder.FilterChecks(MoveFinder.Search(DeepCopy(), Side, true), DeepCopy(), Side) : MoveFinder.Search(DeepCopy(), Side, true);
             if (DeclaredOutcome == Outcome.Ongoing)
             {
-                if (moveList.Count == 0)
+                if (moveList.Count == 0 && filter)
                 {
                     if (KingInCheck(Side))
                     {
@@ -591,55 +513,21 @@ namespace Board
         Black,
         Draw
     }
-    
-    public class ReverseMove
-    {
-        public ((int, int),(int,int)) OriginMove;
-        public ((int, int),(int,int)) ExtraMove;
-        public Piece.Piece CapturedPiece;
-        public bool Promotion;
-        public (int, int) Enpassant;
-        public (int, int) PrevEnpassant;
-        public int MoveChain;
-        public bool[] WhiteCastle;
-        public bool[] BlackCastle;
-        public (int,int) WKingPos;
-        public (int,int) BKingPos;
-        public ulong SideBitboardWhite;
-        public ulong SideBitboardBlack;
-        
-        public ReverseMove(((int, int),(int,int)) originMove, ((int, int),(int,int)) extraMove, Piece.Piece capturedPiece, bool promotion, (int, int) enpassant, (int, int) prevEnpassant,  int moveChain, bool[] whiteCastle, bool[] blackCastle, (int, int) wKingPos, (int, int) bKingPos, ulong sideBitboardWhite, ulong sideBitboardBlack)
-        {
-            OriginMove = originMove;
-            ExtraMove = extraMove;
-            CapturedPiece = capturedPiece;
-            Promotion = promotion;
-            Enpassant = enpassant;
-            MoveChain = moveChain;
-            PrevEnpassant = prevEnpassant;
-            WhiteCastle = whiteCastle;
-            BlackCastle = blackCastle;
-            WKingPos = wKingPos;
-            BKingPos = bKingPos;
-            SideBitboardWhite = sideBitboardWhite;
-            SideBitboardBlack = sideBitboardBlack;
-        }
-    }
 
     public static class TestCases
     {
-        public static Piece.Piece[,] FalseCheck1 =
+        public static Piece.Piece[,] Castle =
         {
-            { W_Rook, W_Knight, W_Bishop, W_Queen, Empty, W_Bishop, W_Knight, W_Rook },
-            { W_Pawn, W_Pawn, W_Pawn, W_Pawn, Empty, Empty, W_Pawn, W_Pawn },
-            { Empty, Empty, Empty, Empty, Empty, Empty, Empty, Empty },
-            { Empty, W_King, Empty, Empty, W_Pawn, Empty, Empty, Empty },
-            { Empty, Empty, Empty, Empty, B_Pawn, Empty, Empty, Empty },
-            { Empty, Empty, B_Knight, Empty, Empty, Empty, Empty, Empty },
-            { B_Pawn, B_Pawn, B_Pawn, B_Pawn, Empty, B_Pawn, B_Pawn, B_Pawn },
-            { B_Rook, Empty, B_Bishop, B_Queen, B_King, Empty, B_Knight, B_Rook },
+            {W_Rook, W_Knight, W_Bishop, W_Queen, W_King, Empty, Empty, W_Rook},
+            {W_Pawn, W_Pawn, W_Pawn, W_Pawn, W_Pawn, W_Pawn, W_Pawn, W_Pawn},
+            {Empty, Empty, Empty, Empty, Empty, Empty, Empty, Empty},
+            {Empty, Empty, Empty, Empty, Empty, Empty, Empty, Empty},
+            {Empty, Empty, Empty, Empty, Empty, Empty, Empty, Empty},
+            {Empty, Empty, Empty, Empty, Empty, Empty, Empty, Empty},
+            {B_Pawn, B_Pawn, B_Pawn, B_Pawn, B_Pawn, B_Pawn, B_Pawn, B_Pawn},
+            {B_Rook, B_Knight, B_Bishop, B_Queen, B_King, B_Bishop, B_Knight, B_Rook},
         };
 
-        public static Board FalseCheck = Board.Constructor(FalseCheck1, true,new[] {false, false}, new[] {true, true}, (8,8), 2);
+        public static Board CastleCheck = Board.Constructor(Castle, false,new[] {true, true}, new[] {true, true}, (8,8), 2);
     }
 }

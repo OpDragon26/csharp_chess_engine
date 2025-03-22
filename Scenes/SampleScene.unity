@@ -1993,7 +1993,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   Side: 0
-  Depth: 2
+  Depth: 3
   DebugMode: 0
   StandardDebug: 0
   ShowBitboards: 0
