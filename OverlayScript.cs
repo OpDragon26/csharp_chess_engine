@@ -3,7 +3,7 @@ using UnityEngine;
 public class OverlayScript : MonoBehaviour
 {
     public int TextureIndex;
-    public Sprite[] Textures = new Sprite[7];
+    public Sprite[] Textures = new Sprite[8];
     public SpriteRenderer SpriteRenderer;
 
     public void UpdateTexture(int texture)
@@ -14,13 +14,13 @@ public class OverlayScript : MonoBehaviour
 
     public void HoverEnter()
     {
-        if (TextureIndex > 1)
+        if (TextureIndex > 2)
             UpdateTexture(TextureIndex + 2);
     }
 
     public void HoverExit()
     {
-        if (TextureIndex > 2)
+        if (TextureIndex > 3)
             UpdateTexture(TextureIndex - 2);
     }
 }

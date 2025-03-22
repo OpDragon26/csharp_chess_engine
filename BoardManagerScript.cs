@@ -370,6 +370,21 @@ public class BoardManagerScript : MonoBehaviour
         }
         
         UpdateMaterialVisualisers();
+        
+        // change the overlay on the king's square if it's in check
+        (int, int) wCoords = BoardManagerInfo.BoardManagerInfo.Switch(match.board.GetKingPos(false), match.PlayerSide, false);
+
+        if (match.board.KingInCheck(false))
+            OverlayScripts[wCoords.Item2, wCoords.Item1].UpdateTexture(3);
+        else
+            OverlayScripts[wCoords.Item2, wCoords.Item1].UpdateTexture(0);
+        
+        (int, int) bCoords = BoardManagerInfo.BoardManagerInfo.Switch(match.board.GetKingPos(true), match.PlayerSide, false);
+        
+        if (match.board.KingInCheck(true))
+            OverlayScripts[bCoords.Item2, bCoords.Item1].UpdateTexture(3);
+        else
+            OverlayScripts[bCoords.Item2, bCoords.Item1].UpdateTexture(0);
     }
 
     public void Click((int, int) coords)
@@ -383,7 +398,7 @@ public class BoardManagerScript : MonoBehaviour
                 match.board.board[ocoords.Item2, ocoords.Item1].Color == match.PlayerSide)
             {
                 // Update the texture of the overlays
-                int set = 1 - OverlayScripts[coords.Item2, coords.Item1].TextureIndex;
+                //int set = 2 - OverlayScripts[coords.Item2, coords.Item1].TextureIndex;
 
                 for (int i = 0; i < 8; i++)
                 {
@@ -393,7 +408,7 @@ public class BoardManagerScript : MonoBehaviour
                     }
                 }
 
-                OverlayScripts[coords.Item2, coords.Item1].UpdateTexture(set);
+                OverlayScripts[coords.Item2, coords.Item1].UpdateTexture(1);
 
                 //Debug.Log(match.board.board[ocoords.Item2, ocoords.Item1].Role);
                 //Debug.Log(match.board.board[ocoords.Item2, ocoords.Item1].Color);
@@ -411,7 +426,7 @@ public class BoardManagerScript : MonoBehaviour
                     foreach (Move.Move move in moves)
                     {
                         (int,int) scoords = BoardManagerInfo.BoardManagerInfo.Switch(move.To, match.PlayerSide, false);
-                        OverlayScripts[scoords.Item2, scoords.Item1].UpdateTexture(match.board.board[move.To.Item2, move.To.Item1].Role == PieceType.Empty ? 3 : 4);
+                        OverlayScripts[scoords.Item2, scoords.Item1].UpdateTexture(match.board.board[move.To.Item2, move.To.Item1].Role == PieceType.Empty ? 4 : 5);
                     }
                 }
             }
@@ -421,7 +436,7 @@ public class BoardManagerScript : MonoBehaviour
                 {
                     for (int j = 0; j < 8; j++)
                     {
-                        if (OverlayScripts[i, j].TextureIndex != 2)
+                        if (OverlayScripts[i, j].TextureIndex != 2 && OverlayScripts[i, j].TextureIndex != 3)
                             OverlayScripts[i, j].UpdateTexture(0);
                     }
                 }
