@@ -1996,7 +1996,7 @@ MonoBehaviour:
   Depth: 2
   DebugMode: 0
   StandardDebug: 0
-  ShowBitboards: 1
+  ShowBitboards: 0
   BitboardColor: 0
   ShowBits: 0
   Blockers: 1

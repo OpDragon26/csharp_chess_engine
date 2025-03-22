@@ -377,7 +377,7 @@ namespace Board
 
         public bool KingInCheck(bool color)
         {
-            return (MoveFinder.GetAttackBitboard(this, !color) & PieceBitboards[color][4]) != 0;
+            return MoveFinder.Attacked(this, GetKingPos(color), !color);
         }
 
         public (int,int) GetKingPos(bool color)
