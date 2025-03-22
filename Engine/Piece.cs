@@ -22,8 +22,8 @@ namespace Piece
         public int LocalValue;
         public int HashValue;
 
-        public static readonly Dictionary<PieceType, int> Values = new Dictionary<PieceType, int>{
-            {PieceType.Pawn, 100},
+        public static readonly Dictionary<PieceType, int> Values = new() {
+            {PieceType.Pawn, 130},
             {PieceType.Rook, 500},
             {PieceType.Knight, 300},
             {PieceType.Bishop, 300},
@@ -32,7 +32,7 @@ namespace Piece
             {PieceType.Empty, 0},
         };
         
-        public static readonly Dictionary<PieceType, int> SortValues = new Dictionary<PieceType, int>{
+        public static readonly Dictionary<PieceType, int> SortValues = new() {
             {PieceType.Pawn, 1},
             {PieceType.Rook, 4},
             {PieceType.Knight, 2},
@@ -41,7 +41,7 @@ namespace Piece
             {PieceType.King, 6},
         };
 
-        static readonly Dictionary<bool, int> Multiplier = new Dictionary<bool, int>{
+        static readonly Dictionary<bool, int> Multiplier = new() {
             {false, 1},
             {true, -1},
         };
