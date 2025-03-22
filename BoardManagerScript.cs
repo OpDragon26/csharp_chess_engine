@@ -127,11 +127,7 @@ public class BoardManagerScript : MonoBehaviour
     void Update()
     {
         // update bitboards
-        if (AllPieces)
-            UpdateBitboard(match.board.SideBitboards[BitboardColor]);
-        else
-            UpdateBitboard(match.board.PieceBitboards[BitboardColor][piece]);
-        
+        UpdateBitboard(match.board.SideBitboards[BitboardColor]);
 
         UpdatePieceTextures();
         
@@ -353,15 +349,6 @@ public class BoardManagerScript : MonoBehaviour
                             UpdateBitboard(WhitePawnCaptureMask[bitboardCooords[0], bitboardCooords[1]]);
                     break;
                 }
-            }
-            else
-            {
-                if (Blockers)
-                    UpdateBitboard(MoveFinder.GetAttackBitboard(match.board, true));
-                else
-                    UpdateBitboard(match.board.PieceBitboards[false][4]);
-                
-                Debug.Log(match.board.KingInCheck(false));
             }
         }
     }
