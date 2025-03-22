@@ -23,16 +23,6 @@ namespace Board
                 MoveList.AddRange(SearchPieces(board, board.board[coords.Item2, coords.Item1].Role, color, coords));
             }
             
-            
-            l = MoveList.Count;
-            for (int i = l - 1; i >= 0; i--)
-            {
-                Board MoveBoard = board.DeepCopy();
-                MoveBoard.MakeMove(MoveList[i], false, false);
-                if (MoveBoard.KingInCheck(color))
-                    MoveList.RemoveAt(i);
-            }
-            
             if (ordering)
                 MoveList.Sort((x,y) => x.Importance.CompareTo(y.Importance)); // Sorts the moves based on the value that has been attributed to the move
             return MoveList;
@@ -97,12 +87,6 @@ namespace Board
                         (int, int) SkipSquare = (pos.Item1 + Patterns.SkipPattern.MovePattern[i].Item1, pos.Item2 + Patterns.SkipPattern.MovePattern[i].Item2);
                         bool Castling = board.board[Target.Item2,Target.Item1] == Empty && board.board[SkipSquare.Item2,SkipSquare.Item1] == Empty;
 
-                        if (i == 1)
-                        {
-                            (int,int) LongCastleSkip = (pos.Item1 + Patterns.LongCastleSkip[0], pos.Item2 + Patterns.LongCastleSkip[1]);
-                            Castling = Castling && board.board[LongCastleSkip.Item2,LongCastleSkip.Item1] == Empty && !Attacked(board, LongCastleSkip, !color);
-                        }
-
                         if (Castling && !board.KingInCheck(color) && !Attacked(board, SkipSquare, !color))
                         {
                             MoveList.Add(new Move.Move(pos, Target, Empty, 9));
@@ -142,15 +126,13 @@ namespace Board
         
         public static List<Move.Move> FilterChecks(List<Move.Move> moves, Board board, bool color)
         {
-            Board MoveBoard = board.DeepCopy();
             int l = moves.Count;
             for (int i = l - 1; i >= 0; i--)
             {
-                MoveBoard.MakeMove(moves[i], false, true);
+                Board MoveBoard = board.DeepCopy();
+                MoveBoard.MakeMove(moves[i]);
                 if (MoveBoard.KingInCheck(color))
                     moves.RemoveAt(i);
-                
-                MoveBoard.UnmakeMove();
             }
 
             return moves;
@@ -207,72 +189,75 @@ namespace Board
 
         public static bool Attacked(Board board, (int,int) pos, bool color) // color refers to the color that is attacking the square
         {
-            // check for pieces
-            for (int i = 0; i < 5; i++) 
+            return (GetAttackBitboard(board, color) & SquareBitboards[pos.Item2, pos.Item1]) != 0;
+        }
+        
+        public static ulong GetAttackBitboard(Board board, bool color)
+        {
+            List<(int, int)> Pieces = board.PiecePositions[color];
+            int l = Pieces.Count;
+            ulong bitboard = 0;
+
+            for (int k = 0; k < l; k++)
             {
-                Pattern PiecePattern = Patterns.PiecePatterns[Patterns.CheckPieces[i]];
-
-                if (PiecePattern.Repeat)
-                {
-                    int[] iterators = PiecePattern.Iterator.GetIterators(pos);
-                    int l = PiecePattern.MovePattern.Length;
-                    for (int k = 0; k < l; k++)
-                    {
-                        int it = iterators[k];
-                        for (int j = 0; j < it; j++)
-                        {
-                            (int, int) Target = (pos.Item1 + PiecePattern.MovePattern[k].Item1 * (j + 1), pos.Item2 + PiecePattern.MovePattern[k].Item2 * (j + 1));
-
-                            Piece.Piece TargetPiece = board.board[Target.Item2,Target.Item1];
-
-                            if (TargetPiece.Color == color && TargetPiece.Role == Patterns.CheckPieces[i])
-                            {
-                                return true;
-                            }
-                            if (TargetPiece.Role != PieceType.Empty) 
-                            { 
-                                break;
-                            }
-                        }
-                    }
-                }
-                else
-                {
-                    int l =  PiecePattern.MovePattern.Length;
-                    for (int j = 0; j < l; j++)
-                    {
-                        (int, int) Target = (pos.Item1 + PiecePattern.MovePattern[j].Item1, pos.Item2 + PiecePattern.MovePattern[j].Item2);
-                        if (PiecePattern.Validator.Validators[j](Target)) 
-                        {
-                            Piece.Piece TargetPiece = board.board[Target.Item2,Target.Item1];
-
-                            if (TargetPiece.Color == color && TargetPiece.Role == Patterns.CheckPieces[i])
-                            {
-                                return true;
-                            }
-                        }
-                    }
-                }
-            }
-
-            // check for pawns
-            PawnPattern CheckPattern = Patterns.PawnPatterns[!color]; // opposite pattern used for backwards direction
-            for (int i = 0; i < 2; i++)
-            {
-                (int, int) Target = (pos.Item1 + CheckPattern.CapturePattern[i].Item2, pos.Item2 + CheckPattern.CapturePattern[i].Item1);
+                (int, int) coords = Pieces[k];
+                PieceType role = board.board[coords.Item2, coords.Item1].Role;
                 
-                if (CheckPattern.Validator.CheckValidators[i](Target)) 
+                if (role == PieceType.Bishop)
                 {
-                    Piece.Piece TargetPiece = board.board[Target.Item2,Target.Item1];
+                    (ulong number, int push, ulong highest) magicNumber = BishopNumbers[coords.Item1, coords.Item2];
+                        
+                    ulong allPieces = board.SideBitboards[false] | board.SideBitboards[true];
+                    ulong blockers = allPieces & BishopMask[coords.Item1, coords.Item2]; // & ~((file >> board.KingPos[!color].Item1) & (rank >> (board.KingPos[!color].Item2 * 8)));
+                        
+                    ulong moves = BishopLookup[coords.Item1, coords.Item2][(blockers * magicNumber.number) >> magicNumber.push];
+                    bitboard |= moves;
+                }
                     
-                    if (TargetPiece.Role == PieceType.Pawn && TargetPiece.Color == color)
-                    {
-                        return true;
-                    }
+                else if (role  == PieceType.Rook)
+                {
+                    (ulong number, int push, ulong highest) magicNumber = RookNumbers[coords.Item1, coords.Item2];
+                        
+                    ulong allPieces = board.SideBitboards[false] | board.SideBitboards[true];
+                    ulong blockers = allPieces & RookMask[coords.Item1, coords.Item2]; // & ~((file >> board.KingPos[!color].Item1) & (rank >> (board.KingPos[!color].Item2 * 8)));
+                        
+                    ulong moves = RookLookup[coords.Item1, coords.Item2][(blockers * magicNumber.number) >> magicNumber.push];
+                    bitboard |= moves;
+                }
+
+                else if (role  == PieceType.Queen)
+                {
+                    (ulong number, int push, ulong highest) rookMagicNumber = RookNumbers[coords.Item1, coords.Item2];
+                    (ulong number, int push, ulong highest) bishopMagicNumber = BishopNumbers[coords.Item1, coords.Item2];
+                        
+                    ulong allPieces = board.SideBitboards[false] | board.SideBitboards[true];
+
+                    ulong rookBlockers = allPieces & RookMask[coords.Item1, coords.Item2]; // & ~((file >> board.KingPos[!color].Item1) & (rank >> (board.KingPos[!color].Item2 * 8)));
+                    ulong bishopBlockers = allPieces & BishopMask[coords.Item1, coords.Item2]; // & ~((file >> board.KingPos[!color].Item1) & (rank >> (board.KingPos[!color].Item2 * 8)));
+                        
+                    ulong rookMoves = RookLookup[coords.Item1, coords.Item2][(rookBlockers * rookMagicNumber.number) >> rookMagicNumber.push];
+                    ulong bishopMoves = BishopLookup[coords.Item1, coords.Item2][(bishopBlockers * bishopMagicNumber.number) >> bishopMagicNumber.push];
+                    ulong allMoves =  rookMoves | bishopMoves;
+                    bitboard |= allMoves;
+                }
+
+                else if (role  == PieceType.Knight)
+                    bitboard |= KnightMask[coords.Item2, coords.Item1];
+                    
+                else if (role == PieceType.King)
+                    bitboard |= KingMask[coords.Item2, coords.Item1];
+                    
+
+                else if (role == PieceType.Pawn)
+                {
+                    if (color)
+                        bitboard |= BlackPawnCaptureMask[coords.Item2, coords.Item1];
+                    else
+                        bitboard |= WhitePawnCaptureMask[coords.Item2, coords.Item1];
                 }
             }
-            
-            return false;
+
+            return bitboard;
         }
     }
 

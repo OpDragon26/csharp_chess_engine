@@ -83,7 +83,7 @@ namespace Move
         {
             for (int i = 0; i < MoveList.Count; i++)
             {
-                if (MoveList[i].Equals(this))
+                if (MoveList[i].From == From && MoveList[i].To == To && MoveList[i].Promotion.Role == Promotion.Role)
                 {
                     return true;
                 }
@@ -92,24 +92,6 @@ namespace Move
             return false;
         }
 
-        public override bool Equals(object obj)
-        {
-            var item = obj as Move;
-
-            if (item == null)
-            {
-                return false;
-            }
-
-            return this.From == item.From && this.To == item.To && this.Promotion == item.Promotion;
-        }
-
-        public override int GetHashCode() => HashCode.Combine(this.From, this.To, this.Promotion);
-
         public static string[] Files = {"a","b","c","d","e","f","g","h"};
-        public string Notate()
-        {
-            return (Files[From.Item1] + (From.Item2 + 1)).ToString() + "-" + (Files[To.Item1] + (To.Item2 + 1)).ToString();
-        }
     }
 }

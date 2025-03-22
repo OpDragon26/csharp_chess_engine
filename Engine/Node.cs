@@ -15,7 +15,7 @@ namespace Node
 
         public Move.Move BestMove(int Depth)
         {
-            List<Move.Move> MoveList = board.Status().Item2;
+            List<Move.Move> MoveList = board.Status(false).Item2;
             Dictionary<int, Move.Move> MoveDict = new Dictionary<int,  Move.Move>();
             int l = MoveList.Count;
 
@@ -30,7 +30,9 @@ namespace Node
                 {
                     // Generate child node
                     Board.Board MoveBoard = this.board.DeepCopy();
-                    MoveBoard.MakeMove(MoveList[i], false, false);
+                    MoveBoard.MakeMove(MoveList[i]);
+                    if (MoveBoard.KingInCheck(true))
+                        continue;
                     Node Child = new Node(MoveBoard);
 
                     // Finding eval
@@ -55,7 +57,9 @@ namespace Node
                 {
                     // Generate child node
                     Board.Board MoveBoard = this.board.DeepCopy();
-                    MoveBoard.MakeMove(MoveList[i], false, false);
+                    MoveBoard.MakeMove(MoveList[i]);
+                    if (MoveBoard.KingInCheck(true))
+                        continue;
                     Node Child = new Node(MoveBoard);
 
                     // Finding eval
@@ -139,11 +143,7 @@ namespace Node
 
         public int Minimax(int Depth, int alpha, int beta)
         {
-            (Outcome, List<Move.Move>) Status = board.Status();
-            if (Status.Item1 == Outcome.White)
-                return 1_000_000;
-            if (Status.Item1 == Outcome.Black)
-                return -1_000_000;
+            (Outcome, List<Move.Move>) Status = board.Status(false);
             if (Status.Item1 == Outcome.Draw)
                 return 0;
 
@@ -155,14 +155,18 @@ namespace Node
             
             if (!board.Side)
             {
+                bool found = false;
                 int MaxEval = Int32.MinValue;
                 
                 for (int i = 0; i < l; i++)
                 {
                     // Generate child node
                     Board.Board MoveBoard = this.board.DeepCopy();
-                    MoveBoard.MakeMove(MoveList[i], false, false);
+                    MoveBoard.MakeMove(MoveList[i]);
+                    if (MoveBoard.KingInCheck(false))
+                        continue;
                     Node Child = new Node(MoveBoard);
+                    found = true; // if at least one move passed the check test, set found to true
 
                     // Finding eval
                     int Eval = Child.Minimax(Depth - 1, alpha, beta);
@@ -172,7 +176,15 @@ namespace Node
                     if (beta <= alpha) break;
                 }
 
-                return MaxEval;
+                if (found) // if there was at least one legal move in the position return the eval
+                    return MaxEval;
+                
+                // no legal moves for board.Side
+                // return the eval based on the outcome
+                if (board.KingInCheck(board.Side)) // checkmate
+                    return board.Side ? Int32.MaxValue : Int32.MinValue; // if black was checkmated, return the best eval for white (max value), if white got checkmated, return the best result for black (min value)
+                return 0; // no moves but not in check -> stalemate
+
             }
             else
             {
@@ -182,7 +194,9 @@ namespace Node
                 {
                     // Generate child node
                     Board.Board MoveBoard = this.board.DeepCopy();
-                    MoveBoard.MakeMove(MoveList[i], false, false);
+                    MoveBoard.MakeMove(MoveList[i]);
+                    if (MoveBoard.KingInCheck(true))
+                        continue;
                     Node Child = new Node(MoveBoard);
 
                     // Finding eval
