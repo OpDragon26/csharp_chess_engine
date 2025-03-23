@@ -2636,7 +2636,7 @@ MonoBehaviour:
     Pitch: 1
   - Clip: {fileID: 8300000, guid: 96f8f63e062a74ee6b031d2c29b8bb46, type: 3}
     Source: {fileID: 0}
-    Volume: 1
+    Volume: 0.35
     Pitch: 1
 --- !u!4 &940668129
 Transform:

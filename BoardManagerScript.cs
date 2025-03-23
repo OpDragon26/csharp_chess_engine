@@ -610,7 +610,7 @@ public class BoardManagerScript : MonoBehaviour
         }
     }
 
-public void Reset(bool color)
+    public void Reset(bool color)
     {
         GameOverOverlay.SetActive(false);
         WinLabel.gameObject.SetActive(false);
@@ -618,6 +618,8 @@ public void Reset(bool color)
         DrawLabel.gameObject.SetActive(false);
         ResetButton.gameObject.SetActive(false);
         ExitButton.gameObject.SetActive(false);
+        
+        AudioManager.PlaySound(Audios.click);
         
         for (int i = 0; i < 8; i++)
         {
@@ -649,6 +651,7 @@ public void Reset(bool color)
 
     public void DepthIncrease()
     {
+        AudioManager.PlaySound(Audios.click);
         if (match.Depth < 9)
         {
             match.Depth++;
@@ -659,6 +662,7 @@ public void Reset(bool color)
 
     public void DepthDecrease()
     {
+        AudioManager.PlaySound(Audios.click);
         if (match.Depth > 0)
         {
             match.Depth--;
@@ -669,6 +673,7 @@ public void Reset(bool color)
 
     public void QuitGame()
     {
+        AudioManager.PlaySound(Audios.click);
         Application.Quit();
     }
 
