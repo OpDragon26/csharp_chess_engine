@@ -1994,7 +1994,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   AudioManager: {fileID: 0}
   Side: 0
-  Depth: 3
+  Depth: 2
   DebugMode: 0
   StandardDebug: 0
   ShowBitboards: 0
