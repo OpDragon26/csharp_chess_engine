@@ -187,7 +187,7 @@ public class BoardManagerScript : MonoBehaviour
                         ResetButton.gameObject.SetActive(false);
                         ExitButton.gameObject.SetActive(false);
 
-                        Outcome BoardStatus = match.board.Status(true).Item1;
+                        Outcome BoardStatus = match.board.Status(true);
                         if (BoardStatus == Outcome.Draw)
                         {
                             Status = BmStatus.Draw;
@@ -233,7 +233,7 @@ public class BoardManagerScript : MonoBehaviour
                     HighlightMove(botMove.move, !match.PlayerSide);
                     StatusLabel.gameObject.SetActive(false);
 
-                    Outcome BoardStatus2 = match.board.Status(true).Item1;
+                    Outcome BoardStatus2 = match.board.Status(true);
                     if (BoardStatus2 == Outcome.Draw)
                     {
                         Status = BmStatus.Draw;
@@ -443,7 +443,7 @@ public class BoardManagerScript : MonoBehaviour
                 {
                     Selected = ocoords;
 
-                    List<Move.Move> moves = MoveFinder.FilterChecks(MoveFinder.SearchPieces(match.board.DeepCopy(), match.board.board[ocoords.Item2, ocoords.Item1].Role, match.PlayerSide, ocoords), match.board.DeepCopy(), match.PlayerSide);
+                    List<Move.Move> moves = MoveFinder.FilterChecks(MoveFinder.SearchPieceList(match.board.DeepCopy(), match.board.board[ocoords.Item2, ocoords.Item1].Role, match.PlayerSide, ocoords), match.board.DeepCopy(), match.PlayerSide);
                     foreach (Move.Move move in moves)
                     {
                         (int,int) scoords = BoardManagerInfo.BoardManagerInfo.Switch(move.To, match.PlayerSide, false);

@@ -391,37 +391,61 @@ namespace Board
             return PieceCounter <= 3200;
         }
 
-        public (Outcome, List<Move.Move>) Status(bool filter)
+        public Outcome Status(bool complete)
         {
-            List<Move.Move> moveList = filter ? MoveFinder.FilterChecks(MoveFinder.Search(DeepCopy(), Side, true), DeepCopy(), Side) : MoveFinder.Search(DeepCopy(), Side, true);
-            if (DeclaredOutcome == Outcome.Ongoing)
+            if (complete) // looks for checkmates
             {
-                if (moveList.Count == 0 && filter)
+                List<Move.Move> moveList = MoveFinder.FilteredSearch(this, Side, false);
+                
+                if (DeclaredOutcome == Outcome.Ongoing)
                 {
-                    if (KingInCheck(Side))
+                    if (moveList.Count == 0)
                     {
-                        DeclaredOutcome = Presets.SideOutcomes[!Side];
+                        if (KingInCheck(Side))
+                        {
+                            DeclaredOutcome = Presets.SideOutcomes[!Side];
+                        }
+                        else
+                        {
+                            DeclaredOutcome = Outcome.Draw;
+                        }
+                    }
+                    else if (MoveChain > 49 || Repetition.ContainsValue(3))
+                    {
+                        DeclaredOutcome = Outcome.Draw;
                     }
                     else
                     {
-                        DeclaredOutcome = Outcome.Draw;
-                    }
-                }
-                else if (MoveChain > 49 || Repetition.ContainsValue(3))
-                {
-                    DeclaredOutcome = Outcome.Draw;
-                }
-                else
-                {
-                    int[] LocalValues = LocalValue();
+                        int[] LocalValues = LocalValue();
 
-                    if (LocalValues[0] < 1400 && LocalValues[1] < 1400 && !PawnsLeft())
-                    {
-                        DeclaredOutcome = Outcome.Draw;
+                        if (LocalValues[0] < 1400 && LocalValues[1] < 1400 && !PawnsLeft())
+                        {
+                            DeclaredOutcome = Outcome.Draw;
+                        }
                     }
                 }
             }
-            return (DeclaredOutcome,  moveList);
+            else // doesn't look for checkmates (doesn't need to search for moves, used in nodes)
+            {
+                if (DeclaredOutcome == Outcome.Ongoing)
+                {
+                    if (MoveChain > 49 || Repetition.ContainsValue(3))
+                    {
+                        DeclaredOutcome = Outcome.Draw;
+                    }
+                    else
+                    {
+                        int[] LocalValues = LocalValue();
+
+                        if (LocalValues[0] < 1400 && LocalValues[1] < 1400 && !PawnsLeft())
+                        {
+                            DeclaredOutcome = Outcome.Draw;
+                        }
+                    }
+                }
+            }
+            
+            return DeclaredOutcome;
         }
 
         public override int GetHashCode()

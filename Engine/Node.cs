@@ -1,6 +1,7 @@
 using Board;
 using System.Collections.Generic;
 using System;
+using NUnit.Framework;
 using UnityEngine;
 
 namespace Node
@@ -15,7 +16,7 @@ namespace Node
 
         public Move.Move BestMove(int Depth)
         {
-            List<Move.Move> MoveList = board.Status(false).Item2;
+            List<Move.Move> MoveList = MoveFinder.FilteredSearch(board, board.Side, true);
             Dictionary<int, Move.Move> MoveDict = new Dictionary<int,  Move.Move>();
             int l = MoveList.Count;
 
@@ -143,18 +144,19 @@ namespace Node
 
         public int Minimax(int Depth, int alpha, int beta)
         {
-            (Outcome, List<Move.Move>) Status = board.Status(false);
-            if (Status.Item1 == Outcome.Draw)
+            Outcome Status = board.Status(false);
+            if (Status == Outcome.Draw)
                 return 0;
 
             if (Depth == 0) 
                 return this.StaticEvaluate();
 
-            List<Move.Move> MoveList = Status.Item2;
-            int l = MoveList.Count;
+            Move.Move[] MoveList = MoveFinder.Search(board, board.Side, true);
+            int l = MoveList.Length;
             
             if (!board.Side)
             {
+                // white - maximising side
                 bool found = false;
                 int MaxEval = Int32.MinValue;
                 
@@ -179,15 +181,17 @@ namespace Node
                 if (found) // if there was at least one legal move in the position return the eval
                     return MaxEval;
                 
-                // no legal moves for board.Side
+                // no legal moves for white
                 // return the eval based on the outcome
-                if (board.KingInCheck(board.Side)) // checkmate
-                    return board.Side ? Int32.MaxValue : Int32.MinValue; // if black was checkmated, return the best eval for white (max value), if white got checkmated, return the best result for black (min value)
+                if (board.KingInCheck(false)) // checkmate
+                    return Int32.MinValue; // white was checkmated, return the best eval for black
                 return 0; // no moves but not in check -> stalemate
 
             }
             else
             {
+                // black - minimising side
+                bool found = false;
                 int MinEval = Int32.MaxValue;
                 
                 for (int i = 0; i < l; i++)
@@ -198,6 +202,7 @@ namespace Node
                     if (MoveBoard.KingInCheck(true))
                         continue;
                     Node Child = new Node(MoveBoard);
+                    found = true;
 
                     // Finding eval
                     int Eval = Child.Minimax(Depth - 1, alpha, beta);
@@ -207,7 +212,14 @@ namespace Node
                     if (beta <= alpha) break;
                 }
 
-                return MinEval;
+                if (found) // if there was at least one legal move in the position return the eval
+                    return MinEval;
+                
+                // no legal moves for black
+                // return the eval based on the outcome
+                if (board.KingInCheck(true)) // checkmate
+                    return Int32.MaxValue; // black was checkmated, return the best eval for white
+                return 0; // no moves but not in check -> stalemate
             }
         }
     }

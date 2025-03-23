@@ -30,7 +30,7 @@ namespace Match
 
         bool StatusTest()
         {
-            return board.Status(true).Item1 == Outcome.Ongoing;
+            return board.Status(true) == Outcome.Ongoing;
         }
 
         private void UpdateCapturedPieces(bool color, PieceType piece, Piece.Piece promotion, bool enPassant)
@@ -71,7 +71,7 @@ namespace Match
             
             // filter the move here
             Board.Board MoveBoard = board.DeepCopy();
-            List<Move.Move> Moves = MoveFinder.Search(MoveBoard, PlayerSide, false);
+            List<Move.Move> Moves = MoveFinder.FilteredSearch(MoveBoard, PlayerSide, false);
 
             if (!move.InMovelist(Moves))
                 return false;
