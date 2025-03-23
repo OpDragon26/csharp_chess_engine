@@ -8,7 +8,7 @@ using System.Collections.Generic;
 using Presets = Piece.Presets;
 using static Bitboards.Bitboards;
 
-// 3574 lines of code
+// 3902 lines of code
 
 public class BoardManagerScript : MonoBehaviour
 {

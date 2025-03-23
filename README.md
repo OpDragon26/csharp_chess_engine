@@ -1,2 +1,2 @@
 A primitive chess engine written in C#
-<br>Version-1.5.4f
+<br>Version-1.6.1o
