@@ -7,7 +7,6 @@ using UnityEngine.UI;
 using System.Collections.Generic;
 using Presets = Piece.Presets;
 using static Bitboards.Bitboards;
-using static MagicNumbers.MagicNumbers;
 
 // 3574 lines of code
 
@@ -28,6 +27,7 @@ public class BoardManagerScript : MonoBehaviour
     readonly MaterialVisualiserScript[] BMaterialVisualiserScripts = new MaterialVisualiserScript[16];
 
     GameObject PromotionSelection;
+    public AudioManagerScript AudioManager;
 
     public bool Side;
     public int Depth = 2;
@@ -35,14 +35,14 @@ public class BoardManagerScript : MonoBehaviour
     public bool StandardDebug;
     
     public bool ShowBitboards = true;
-    public bool BitboardColor = false;
+    public bool BitboardColor;
     public bool ShowBits;
     public bool Blockers = true;
     public bool AllPieces = true;
-    public int piece = 0;
+    public int piece;
     
     public int[] bitboardCooords = { 0, 0 };
-    public int blockerIndex = 0;
+    public int blockerIndex;
 
     public Match.Match match = new Match.Match(false, 3);
 
@@ -81,6 +81,8 @@ public class BoardManagerScript : MonoBehaviour
 
         HashCodeHelper.ZobristHash.Init();
 
+        AudioManager = GameObject.FindGameObjectWithTag("AudioManager").GetComponent<AudioManagerScript>();
+        
         PromotionSelection = GameObject.FindGameObjectWithTag("Promotion");
         PromotionSelection.SetActive(false);
         StatusLabel.gameObject.SetActive(false);
@@ -155,11 +157,13 @@ public class BoardManagerScript : MonoBehaviour
                         break;
                     }
 
-                    Move.Move playerMove = new Move.Move(Selected, Moved, PromotionPiece, 0);
+                    Move.Move playerMove = new Move.Move(Selected, Moved, PromotionPiece);
+                    bool capture = match.board.board[playerMove.To.Item2, playerMove.To.Item1].Role != PieceType.Empty; // check if the move would be a capture
 
                     // true if the move was legal and it was made on the board
                     bool moveMade = match.MakeMove(playerMove);
                     PromotionPiece = Presets.Empty;
+                    bool check = match.board.KingInCheck(match.board.Side);
 
                     Selected = (8, 8);
                     Moved = (8, 8);
@@ -168,6 +172,13 @@ public class BoardManagerScript : MonoBehaviour
                     {
                         UpdatePieceTextures();
                         HighlightMove(playerMove, !match.PlayerSide);
+                        
+                        if (check)
+                            AudioManager.PlaySound(Audios.check);
+                        else if (capture)
+                            AudioManager.PlaySound(Audios.capture);
+                        else
+                            AudioManager.PlaySound(Audios.move);
 
                         StatusLabel.gameObject.SetActive(true);
                         WinLabel.gameObject.SetActive(false);
@@ -182,7 +193,7 @@ public class BoardManagerScript : MonoBehaviour
                             Status = BmStatus.Draw;
                             break;
                         }
-                        else if (BoardStatus != Outcome.Ongoing)
+                        if (BoardStatus != Outcome.Ongoing)
                         {
                             Status = BmStatus.PlayerWon;
                             break;
@@ -206,10 +217,20 @@ public class BoardManagerScript : MonoBehaviour
 
                     Debug.Log("Bot move");
                     // Make the bot's move
-                    Move.Move botMove = match.MakeBotMove();
-
+                    (Move.Move move, bool isCapture) botMove = match.MakeBotMove();
+                    
+                    bool bCapture = botMove.isCapture;
+                    bool bCheck = match.board.KingInCheck(match.board.Side);
+                    
+                    if (bCheck)
+                        AudioManager.PlaySound(Audios.check);
+                    else if (bCapture)
+                        AudioManager.PlaySound(Audios.capture);
+                    else
+                        AudioManager.PlaySound(Audios.move);
+                    
                     UpdatePieceTextures();
-                    HighlightMove(botMove, !match.PlayerSide);
+                    HighlightMove(botMove.move, !match.PlayerSide);
                     StatusLabel.gameObject.SetActive(false);
 
                     Outcome BoardStatus2 = match.board.Status(true).Item1;

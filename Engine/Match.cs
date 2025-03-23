@@ -84,7 +84,7 @@ namespace Match
             return false;
         }
 
-        public Move.Move MakeBotMove()
+        public (Move.Move move, bool isCapture) MakeBotMove()
         {
             if (StatusTest())
             {
@@ -95,12 +95,13 @@ namespace Match
                 PieceType MovePiece = board.board[BotMove.To.Item2, BotMove.To.Item1].Role;
                 
                 UpdateCapturedPieces(MoveColor, MovePiece, BotMove.Promotion, BotMove.EnPassant);
+                bool capture = board.board[BotMove.To.Item2, BotMove.To.Item1].Role != PieceType.Empty;
                 
                 board.MakeMove(BotMove);
-                return BotMove;
+                return (BotMove, capture);
             }
 
-            return new Move.Move((8, 8), (8, 8), Empty, 0);
+            return(new Move.Move((8, 8), (8, 8), Empty), false);
         }
         
         public (int, List<PieceType>, List<PieceType>) GetMaterialImbalance()
