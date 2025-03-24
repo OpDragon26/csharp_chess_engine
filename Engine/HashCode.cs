@@ -74,15 +74,21 @@ namespace HashCodeHelper
             int hash = 0;
             if (board.Side)
                 hash = hash ^ BlackToMove;
-            foreach ((int, int) coords in board.PiecePositions[false])
-            {
-                hash = hash ^ BitTables[board.board[coords.Item2, coords.Item1].GetHashCode()][coords.Item2, coords.Item1];
-            }
-            foreach ((int, int) coords in board.PiecePositions[true])
-            {
-                hash = hash ^ BitTables[board.board[coords.Item2, coords.Item1].GetHashCode()][coords.Item2, coords.Item1];
-            }
 
+            ulong whitePieces = board.SideBitboards[false];
+            ulong blackPieces = board.SideBitboards[true];
+            
+            for (int i = 0; i < 8; i++)
+            {
+                for (int j = 0; j < 8; j++)
+                {
+                    if ((whitePieces & Bitboards.Bitboards.SquareBitboards[i, j]) != 0 || (blackPieces & Bitboards.Bitboards.SquareBitboards[i, j]) != 0)
+                    {
+                        hash = hash ^ BitTables[board.board[i, j].HashValue][i, j];
+                    }
+                }
+            }
+            
             return hash;
         }
 

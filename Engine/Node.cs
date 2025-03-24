@@ -2,6 +2,7 @@ using Board;
 using System.Collections.Generic;
 using System;
 using NUnit.Framework;
+using Piece;
 using UnityEngine;
 
 namespace Node
@@ -86,56 +87,38 @@ namespace Node
 
             if (!board.Endgame())
             {
-                List<(int,int)> PiecePositions = board.PiecePositions[false];
-                int l = PiecePositions.Count;
-                int multiplier = Weights.Weights.Multipliers[false];
-
-                for (int i = 0; i < l; i++)
+                ulong whitePieces = board.SideBitboards[false];
+                ulong blackPieces = board.SideBitboards[true];
+                int wMultiplier = Weights.Weights.Multipliers[false];
+                int bMultiplier = Weights.Weights.Multipliers[true];
+                
+                for (int i = 0; i < 8; i++)
                 {
-                    (int, int) coords = PiecePositions[i];
-                    Piece.Piece piece = this.board.board[coords.Item2,coords.Item1];
-
-                    Eval += piece.Value + Weights.Weights.PieceWeights[piece.HashValue][coords.Item2,coords.Item1] * multiplier;
-
-                }
-
-                PiecePositions = board.PiecePositions[true];
-                l = PiecePositions.Count;
-                multiplier = Weights.Weights.Multipliers[true];
-
-                for (int i = 0; i < l; i++)
-                {
-                    (int, int) coords = PiecePositions[i];
-                    Piece.Piece piece = this.board.board[coords.Item2,coords.Item1];
-
-                    Eval += piece.Value + Weights.Weights.PieceWeights[piece.HashValue][coords.Item2,coords.Item1] * multiplier;
+                    for (int j = 0; j < 8; j++)
+                    {
+                        if ((whitePieces & Bitboards.Bitboards.SquareBitboards[i, j]) != 0)
+                            Eval += board.board[i,j].Value + Weights.Weights.PieceWeights[board.board[i,j].HashValue][i,j] * wMultiplier;
+                        else if ((blackPieces & Bitboards.Bitboards.SquareBitboards[i, j]) != 0)
+                            Eval += board.board[i,j].Value + Weights.Weights.PieceWeights[board.board[i,j].HashValue][i,j] * bMultiplier;
+                    }
                 }
             }
             else
             {
-                // Debug.Log("Endgame");
-                List<(int,int)> PiecePositions = board.PiecePositions[false];
-                int l = PiecePositions.Count;
-                int multiplier = Weights.Weights.Multipliers[false];
-
-                for (int i = 0; i < l; i++)
+                ulong whitePieces = board.SideBitboards[false];
+                ulong blackPieces = board.SideBitboards[true];
+                int wMultiplier = Weights.Weights.Multipliers[false];
+                int bMultiplier = Weights.Weights.Multipliers[true];
+                
+                for (int i = 0; i < 8; i++)
                 {
-                    (int, int) coords = PiecePositions[i];
-                    Piece.Piece piece = this.board.board[coords.Item2,coords.Item1];
-
-                    Eval += piece.Value + Weights.Weights.EndgameWeights[piece.HashValue][coords.Item2,coords.Item1] * multiplier;
-                }
-
-                PiecePositions = board.PiecePositions[true];
-                l = PiecePositions.Count;
-                multiplier = Weights.Weights.Multipliers[true];
-
-                for (int i = 0; i < l; i++)
-                {
-                    (int, int) coords = PiecePositions[i];
-                    Piece.Piece piece = this.board.board[coords.Item2,coords.Item1];
-
-                    Eval += piece.Value + Weights.Weights.EndgameWeights[piece.HashValue][coords.Item2,coords.Item1] * multiplier;
+                    for (int j = 0; j < 8; j++)
+                    {
+                        if ((whitePieces & Bitboards.Bitboards.SquareBitboards[i, j]) != 0)
+                            Eval += board.board[i,j].Value + Weights.Weights.EndgameWeights[board.board[i,j].HashValue][i,j] * wMultiplier;
+                        else if ((blackPieces & Bitboards.Bitboards.SquareBitboards[i, j]) != 0)
+                            Eval += board.board[i,j].Value + Weights.Weights.EndgameWeights[board.board[i,j].HashValue][i,j] * bMultiplier;
+                    }
                 }
             }
 

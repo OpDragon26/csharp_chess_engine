@@ -13,7 +13,7 @@ namespace Weights
         
         public static readonly int[][,] PieceWeights = new int[][,]
         {
-            new int[0,0], // empty
+            new int[0,0], 
             
             new[,] // W_Pawn
             {

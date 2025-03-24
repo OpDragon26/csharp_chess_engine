@@ -1999,7 +1999,7 @@ MonoBehaviour:
   StandardDebug: 0
   ShowBitboards: 0
   BitboardColor: 0
-  ShowBits: 0
+  ShowBits: 1
   Blockers: 1
   AllPieces: 0
   piece: 5

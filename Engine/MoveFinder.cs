@@ -16,23 +16,25 @@ namespace Board
         {
             Move.Move[] MoveArray = new Move.Move[245];
             
-            List<(int, int)> Pieces = board.PiecePositions[color];
+            ulong Pieces = board.SideBitboards[color];
             
-            int l = Pieces.Count;
-
             int index = 0;
 
-            for (int i = 0; i < l; i++)
+            for (int i = 0; i < 8; i++)
             {
-                (int, int) coords = Pieces[i];
-
-                index += SearchPieces(board, board.board[coords.Item2, coords.Item1].Role, color, coords, new Span<Move.Move>(MoveArray, index, 27));
+                for (int j = 0; j < 8; j++)
+                {
+                    if ((Pieces & SquareBitboards[i, j]) != 0)
+                    {
+                        index += SearchPieces(board, board.board[i, j].Role, color, (j,i), new Span<Move.Move>(MoveArray, index, 27));
+                    }
+                }
             }
             
             Move.Move[] MoveList = new Span<Move.Move>(MoveArray, 0, index).ToArray();
             
             if (ordering)
-                Array.Sort(MoveList, (x,y) => x.Importance.CompareTo(y.Importance));// Sorts the moves based on the value that has been attributed to the move
+                Array.Sort(MoveList, (x,y) => x.Importance.CompareTo(y.Importance)); // Sorts the moves based on the value that has been attributed to the move
             return MoveList;
         }
 
@@ -40,13 +42,17 @@ namespace Board
         {
             
             List<Move.Move> MoveList = new List<Move.Move>();
-            List<(int, int)> Pieces = board.PiecePositions[color];
-            int l = Pieces.Count;
+            ulong Pieces = board.SideBitboards[color];
 
-            for (int i = 0; i < l; i++)
+            for (int i = 0; i < 8; i++)
             {
-                (int, int) coords = Pieces[i];
-                MoveList.AddRange(SearchPieceList(board, board.board[coords.Item2, coords.Item1].Role, color, coords));
+                for (int j = 0; j < 8; j++)
+                {
+                    if ((Pieces & SquareBitboards[i, j]) != 0)
+                    {
+                        MoveList.AddRange(SearchPieceList(board, board.board[i, j].Role, color, (j,i)));
+                    }
+                }
             }
             
             return FilterChecks(MoveList, board, color);
