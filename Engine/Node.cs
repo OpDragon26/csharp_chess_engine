@@ -7,7 +7,7 @@ using UnityEngine;
 
 namespace Node
 {
-    public class Node
+    public struct Node
     {
         public Board.Board board;
         public Node(Board.Board newBoard)

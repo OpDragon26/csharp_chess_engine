@@ -215,9 +215,11 @@ public class BoardManagerScript : MonoBehaviour
                     Selected = (0, 0);
                     Moved = (0, 0);
 
-                    Debug.Log("Bot move");
                     // Make the bot's move
+                    TimeSpan t = DateTime.UtcNow - new DateTime(1970, 1, 1);
                     (Move.Move move, bool isCapture) botMove = match.MakeBotMove();
+                    TimeSpan t2 = DateTime.UtcNow - new DateTime(1970, 1, 1);
+                    Debug.Log($"Bot move made in {Math.Round(t2.TotalMilliseconds - t.TotalMilliseconds)} milliseconds");
                     
                     bool bCapture = botMove.isCapture;
                     bool bCheck = match.board.KingInCheck(match.board.Side);

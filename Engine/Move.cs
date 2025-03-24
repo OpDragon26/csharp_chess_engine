@@ -4,7 +4,7 @@ using System;
 
 namespace Move
 {
-    public class Move
+    public struct Move
     {
         public (int,int) From;
         public (int,int) To;
