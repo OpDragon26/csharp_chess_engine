@@ -35,48 +35,13 @@ namespace Move
             {"b",B_Bishop},
         };
 
-        public Move((int,int) from, (int,int) to, Piece.Piece promotion, int importance=0, bool enPassant=false)        {
+        public Move((int,int) from, (int,int) to, Piece.Piece promotion, int importance=0, bool enPassant=false)
+        {
             From = from;
             To = to;
             Promotion = promotion;
             Importance = importance;
             EnPassant = enPassant;
-        }
-
-        public static Move FromString(string move) // Format: from-to(-promotion) a2-b1(-Q)
-        {
-            Move NewMove = new Move((8,8), (8,8), Empty, 0);
-
-            string[] MoveString = move.Split("-");
-
-            NewMove.From = ConvertSquare(MoveString[0], false);
-            NewMove.To = ConvertSquare(MoveString[1], false);
-
-            //Console.WriteLine(NewMove.From[0]);
-            //Console.WriteLine(NewMove.From[1]);
-            //Console.WriteLine(NewMove.To[0]);
-            //Console.WriteLine(NewMove.To[1]);
-
-            if (MoveString.Length == 2)
-            {
-                NewMove.Promotion = Empty;
-            }
-            else if (MoveString.Length == 3)
-            {
-                NewMove.Promotion = Promotions[MoveString[2]];
-            }
-
-            return NewMove;
-        }
-        
-        private static (int,int) ConvertSquare(string square, bool reverse)
-        {
-            if (!reverse)
-            {
-                return (FileIndex[square[0].ToString()], Int32.Parse(square[1].ToString()) - 1);
-            } else {
-                return (Int32.Parse(square[1].ToString()) - 1, FileIndex[square[0].ToString()]);
-            }
         }
 
         public bool InMovelist(List<Move> MoveList)
@@ -93,5 +58,18 @@ namespace Move
         }
 
         public static string[] Files = {"a","b","c","d","e","f","g","h"};
+    }
+
+    public static class MoveOp
+    {
+        // every move can be represented as a 32 bit uint:
+        // the coords to the from and to squares need 4 numbers each between 0-7, meaning 3 bits is enough to represent one
+        // -> first 12 bits
+        // there are 13 kind of pieces (6 for each side + empty)
+        // -> 4 bits for promotion
+        // all that remains is importance which can have the remaining 16 bits
+        
+
+        //public static (int,int) From();
     }
 }
