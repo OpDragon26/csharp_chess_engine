@@ -88,8 +88,7 @@ namespace Match
         {
             if (StatusTest())
             {
-                Node.Node node = new Node.Node(this.board);
-                Move.Move BotMove = node.BestMove(this.Depth);
+                Move.Move BotMove = board.BestMove(Depth);
                 
                 bool MoveColor = board.board[BotMove.To.Item2, BotMove.To.Item1].Color;
                 PieceType MovePiece = board.board[BotMove.To.Item2, BotMove.To.Item1].Role;
