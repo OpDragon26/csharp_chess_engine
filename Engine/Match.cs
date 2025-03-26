@@ -76,7 +76,7 @@ namespace Match
             if (!move.InMovelist(Moves))
                 return false;
             
-            if (board.MakeMove(ref move))
+            if (board.MakeMove(move))
             {
                 UpdateCapturedPieces(MoveColor, MovePiece, move.Promotion, move.EnPassant);
                 return true;
@@ -97,7 +97,7 @@ namespace Match
                 UpdateCapturedPieces(MoveColor, MovePiece, BotMove.Promotion, BotMove.EnPassant);
                 bool capture = board.board[BotMove.To.Item2, BotMove.To.Item1].Role != PieceType.Empty;
                 
-                board.MakeMove(ref BotMove);
+                board.MakeMove(BotMove);
                 return (BotMove, capture);
             }
 

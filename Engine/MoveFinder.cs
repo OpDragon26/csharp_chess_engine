@@ -255,7 +255,7 @@ namespace Board
             for (int i = l - 1; i >= 0; i--)
             {
                 Board MoveBoard = board.DeepCopy();
-                MoveBoard.MakeMove(ref moves[i]);
+                MoveBoard.MakeMove(moves[i]);
                 if (MoveBoard.KingInCheck(color))
                     moves.RemoveAt(i);
             }

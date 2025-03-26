@@ -35,7 +35,7 @@ namespace Board
             {true, 0},
         };
         
-        public bool MakeMove(ref Move.Move move)
+        public bool MakeMove(Move.Move move)
         {
             // local variables storing data that is accessed over and over
             Piece.Piece OriginPiece = board[move.From.Item2,move.From.Item1];

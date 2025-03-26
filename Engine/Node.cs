@@ -32,7 +32,7 @@ namespace Node
                 {
                     // Generate child node
                     Board.Board MoveBoard = this.board.DeepCopy();
-                    MoveBoard.MakeMove(ref MoveList[i]);
+                    MoveBoard.MakeMove(MoveList[i]);
                     if (MoveBoard.KingInCheck(true))
                         continue;
                     Node Child = new Node(MoveBoard);
@@ -59,7 +59,7 @@ namespace Node
                 {
                     // Generate child node
                     Board.Board MoveBoard = this.board.DeepCopy();
-                    MoveBoard.MakeMove(ref MoveList[i]);
+                    MoveBoard.MakeMove(MoveList[i]);
                     if (MoveBoard.KingInCheck(true))
                         continue;
                     Node Child = new Node(MoveBoard);
@@ -147,7 +147,7 @@ namespace Node
                 {
                     // Generate child node
                     Board.Board MoveBoard = this.board.DeepCopy();
-                    MoveBoard.MakeMove(ref MoveList[i]);
+                    MoveBoard.MakeMove(MoveList[i]);
                     if (MoveBoard.KingInCheck(false))
                         continue;
                     Node Child = new Node(MoveBoard);
@@ -181,7 +181,7 @@ namespace Node
                 {
                     // Generate child node
                     Board.Board MoveBoard = this.board.DeepCopy();
-                    MoveBoard.MakeMove(ref MoveList[i]);
+                    MoveBoard.MakeMove(MoveList[i]);
                     if (MoveBoard.KingInCheck(true))
                         continue;
                     Node Child = new Node(MoveBoard);
