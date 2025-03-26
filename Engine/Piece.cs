@@ -21,6 +21,7 @@ namespace Piece
         public int Value;
         public int LocalValue;
         public int HashValue;
+        public uint MPValue;
 
         public static readonly Dictionary<PieceType, int> Values = new() {
             {PieceType.Pawn, 130},
@@ -46,38 +47,38 @@ namespace Piece
             {true, -1},
         };
 
-        public Piece(PieceType role, bool color, bool hash = true)
+        public Piece(PieceType role, bool color,  uint mPValue, bool hash = true)
         {
             Color = color;
             Role = role;
             LocalValue = Values[role];
             Value = Values[role] * Multiplier[color];
             if (hash)
-                HashValue = HashCodeHelper.HashCodeHelper.GetPieceHashValue(new  Piece(role, color, false));
+                HashValue = HashCodeHelper.HashCodeHelper.GetPieceHashValue(new  Piece(role, color,0, false));
         }
 
         public override int GetHashCode()
         {
-            return this.HashValue;
+            return HashValue;
         }
 
     }
 
     public static class Presets
     {
-        public static readonly Piece Empty = new(PieceType.Empty, false);
-        public static readonly Piece W_Pawn = new(PieceType.Pawn, false);
-        public static readonly Piece W_Rook = new(PieceType.Rook, false);
-        public static readonly Piece W_Knight = new(PieceType.Knight, false);
-        public static readonly Piece W_Bishop = new(PieceType.Bishop, false);
-        public static readonly Piece W_Queen = new(PieceType.Queen, false);
-        public static readonly Piece W_King = new(PieceType.King, false);
-        public static readonly Piece B_Pawn = new(PieceType.Pawn, true);
-        public static readonly Piece B_Rook = new(PieceType.Rook, true);
-        public static readonly Piece B_Knight = new(PieceType.Knight, true);
-        public static readonly Piece B_Bishop = new(PieceType.Bishop, true);
-        public static readonly Piece B_Queen = new(PieceType.Queen, true);
-        public static readonly Piece B_King = new(PieceType.King, true);
+        public static readonly Piece Empty = new(PieceType.Empty, false,6);
+        public static readonly Piece W_Pawn = new(PieceType.Pawn, false,0);
+        public static readonly Piece W_Rook = new(PieceType.Rook, false,1);
+        public static readonly Piece W_Knight = new(PieceType.Knight, false,2);
+        public static readonly Piece W_Bishop = new(PieceType.Bishop, false,3);
+        public static readonly Piece W_Queen = new(PieceType.Queen, false,4);
+        public static readonly Piece W_King = new(PieceType.King, false,5);
+        public static readonly Piece B_Pawn = new(PieceType.Pawn, true,8);
+        public static readonly Piece B_Rook = new(PieceType.Rook, true,9);
+        public static readonly Piece B_Knight = new(PieceType.Knight, true,10);
+        public static readonly Piece B_Bishop = new(PieceType.Bishop, true,11);
+        public static readonly Piece B_Queen = new(PieceType.Queen, true,12);
+        public static readonly Piece B_King = new(PieceType.King, true,13);
 
         public static readonly Dictionary<Piece, string> PieceString = new Dictionary<Piece, string>{
             {Empty, " "},

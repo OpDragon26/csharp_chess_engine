@@ -69,7 +69,80 @@ namespace Move
         // -> 4 bits for promotion
         // all that remains is importance which can have the remaining 16 bits
         
+        /*
+        0000 w_pawn: 0
+        0001 w_rook: 1
+        0010 w_knight: 2
+        0011 w_bishop: 3
+        0100 w_queen: 4
+        0101 w_king: 5
+        
+        0110 empty: 6
+        
+        1000 b_pawn: 8
+        1001 b_rook: 9
+        1010 b_knight: 10
+        1011 b_bishop: 11
+        1100 b_queen: 12
+        1101 b_king: 13
+        */
 
-        //public static (int,int) From();
+        private static readonly Piece.Piece[] PromotionPieces = new[]
+        {
+            W_Pawn,
+            W_Rook,
+            W_Knight,
+            W_Bishop,
+            W_Queen,
+            W_King,
+            Empty,
+            Empty,
+            B_Pawn,
+            B_Rook,
+            B_Knight,
+            B_Bishop,
+            B_Queen,
+            B_Knight
+        };
+
+        private static readonly uint ImportanceMask = 0xFFFF; // the 16 bits on the left
+
+        public static (uint, uint) From(uint move)
+        {
+            return (move >> 29, (move << 3) >> 29);
+        }
+        
+        public static (uint, uint) To(uint move)
+        {
+            return ((move << 6) >> 29, (move << 9) >> 29);
+        }
+
+        public static Piece.Piece Promotion(uint move)
+        {
+            return PromotionPieces[(move << 12) >> 29];
+        }
+
+        public static int Importance(uint move)
+        {
+            return (Int16)(move & ImportanceMask);
+        }
+
+        public static uint Construct((uint,uint) From, (uint,uint) To, Piece.Piece promotion, int importance=0)
+        {
+            uint move = 0;
+
+            move |= ((uint)importance & ImportanceMask); // add the importance to the move
+            
+            // push the max 3 bits of the coord to the right position
+            move |= From.Item1 << 29;
+            move |= From.Item2 << 26;
+            move |= To.Item1 << 23;
+            move |= To.Item2 << 20;
+            
+            // add the promotion
+            move |= promotion.MPValue << 16;
+            
+            return move;
+        }
     }
 }
