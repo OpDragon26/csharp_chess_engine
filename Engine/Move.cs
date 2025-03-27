@@ -1,6 +1,7 @@
 using static Piece.Presets;
 using System.Collections.Generic;
 using System;
+using UnityEngine;
 
 namespace Move
 {
@@ -119,7 +120,7 @@ namespace Move
 
         public static Piece.Piece Promotion(uint move)
         {
-            return PromotionPieces[(move << 12) >> 29];
+            return PromotionPieces[(move << 12) >> 28];
         }
 
         public static int Importance(uint move)

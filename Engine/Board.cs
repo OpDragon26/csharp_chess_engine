@@ -175,6 +175,13 @@ namespace Board
 
             return true;
         }
+        
+        public bool MakeMove(Move.Move move)
+        {
+            MakeMove(Construct(((uint, uint))move.From, ((uint, uint))move.To, move.Promotion));
+            return true;
+        }
+
 
         private static readonly Dictionary<bool, Piece.Piece> Pawns = new()
         {
@@ -469,7 +476,7 @@ namespace Board
             if (Depth == 0) 
                 return StaticEvaluate();
 
-            Move.Move[] MoveList = MoveFinder.Search(this, Side, true);
+            uint[] MoveList = MoveFinder.Search(this, Side, true);
             int l = MoveList.Length;
             
             if (!Side)
@@ -539,7 +546,7 @@ namespace Board
             }
         }
         
-                public Move.Move BestMove(int Depth)
+        public Move.Move BestMove(int Depth)
         {
             List<Move.Move> MoveList = MoveFinder.FilteredSearch(this, Side, true);
             Dictionary<int, Move.Move> MoveDict = new Dictionary<int,  Move.Move>();

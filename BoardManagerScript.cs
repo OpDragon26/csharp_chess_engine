@@ -5,6 +5,8 @@ using Piece;
 using UnityEngine;
 using UnityEngine.UI;
 using System.Collections.Generic;
+using Move;
+using Unity.VisualScripting;
 using Presets = Piece.Presets;
 using static Bitboards.Bitboards;
 
@@ -80,6 +82,13 @@ public class BoardManagerScript : MonoBehaviour
         ExitButton.gameObject.SetActive(false);
 
         HashCodeHelper.ZobristHash.Init();
+
+        uint move = MoveOp.Construct((0,0),(7,7), Presets.Empty, 125);
+        Debug.Log(MoveOp.From(move));
+        Debug.Log(MoveOp.To(move));
+        Debug.Log(MoveOp.Promotion(move).Role);
+        Debug.Log(MoveOp.Promotion(move).Color);
+        Debug.Log(MoveOp.Importance(move));
 
         AudioManager = GameObject.FindGameObjectWithTag("AudioManager").GetComponent<AudioManagerScript>();
         

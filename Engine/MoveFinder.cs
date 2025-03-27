@@ -3,38 +3,38 @@ using Piece;
 using static Piece.Presets;
 using System.Collections.Generic;
 using Unity.Mathematics;
+using Unity.VisualScripting;
 using static Bitboards.Bitboards;
 using static MagicNumbers.MagicNumbers;
-using System.Linq;
-using NUnit.Framework;
+using static Move.MoveOp;
 
 namespace Board
 {
     public static class MoveFinder
     {
-        public static Move.Move[] Search(Board board, bool color, bool ordering)
+        public static uint[] Search(Board board, bool color, bool ordering)
         {
-            Move.Move[] MoveArray = new Move.Move[245];
+            uint[] MoveArray = new uint[245];
             
             ulong Pieces = board.SideBitboards[color];
             
             int index = 0;
 
-            for (int i = 0; i < 8; i++)
+            for (uint i = 0; i < 8; i++)
             {
-                for (int j = 0; j < 8; j++)
+                for (uint j = 0; j < 8; j++)
                 {
                     if ((Pieces & SquareBitboards[i, j]) != 0)
                     {
-                        index += SearchPieces(board, board.board[i, j].Role, color, (j,i), new Span<Move.Move>(MoveArray, index, 27));
+                        index += SearchPieces(board, board.board[i, j].Role, color, (j,i), new Span<uint>(MoveArray, index, 27));
                     }
                 }
             }
             
-            Move.Move[] MoveList = new Span<Move.Move>(MoveArray, 0, index).ToArray();
+            uint[] MoveList = new Span<uint>(MoveArray, 0, index).ToArray();
             
             if (ordering)
-                Array.Sort(MoveList, (x,y) => x.Importance.CompareTo(y.Importance)); // Sorts the moves based on the value that has been attributed to the move
+                Array.Sort(MoveList, (x,y) => Importance(x).CompareTo(Importance(y))); // Sorts the moves based on the value that has been attributed to the move
             return MoveList;
         }
 
@@ -58,7 +58,7 @@ namespace Board
             return FilterChecks(MoveList, board, color);
         }
 
-        public static int SearchPieces(Board board, PieceType role, bool color, (int,int) pos, Span<Move.Move> moveSpan)
+        public static int SearchPieces(Board board, PieceType role, bool color, (uint,uint) pos, Span<uint> moveSpan)
         {
             // look up bitboards
             if (role == PieceType.Bishop)
@@ -113,13 +113,13 @@ namespace Board
                 {
                     if (board.Castling[color][i])
                     {
-                        (int, int) Target = (pos.Item1 + Patterns.CastlingPattern.MovePattern[i].Item1, pos.Item2 + Patterns.CastlingPattern.MovePattern[i].Item2);
-                        (int, int) SkipSquare = (pos.Item1 + Patterns.SkipPattern.MovePattern[i].Item1, pos.Item2 + Patterns.SkipPattern.MovePattern[i].Item2);
+                        (uint, uint) Target = (pos.Item1 + (uint)Patterns.CastlingPattern.MovePattern[i].Item1, pos.Item2 + (uint)Patterns.CastlingPattern.MovePattern[i].Item2);
+                        (int, int) SkipSquare = ((int)pos.Item1 + Patterns.SkipPattern.MovePattern[i].Item1, (int)pos.Item2 + Patterns.SkipPattern.MovePattern[i].Item2);
                         bool Castling = board.board[Target.Item2,Target.Item1] == Empty && board.board[SkipSquare.Item2,SkipSquare.Item1] == Empty;
 
                         if (Castling && !board.KingInCheck(color) && !Attacked(board, SkipSquare, !color))
                         {
-                            moveSpan[moves] = new Move.Move(pos, Target, Empty, 9);
+                            moveSpan[moves] = Construct(pos, Target, Empty, 9);
                             moves++;
                         }
                     }
@@ -263,17 +263,17 @@ namespace Board
             return moves;
         }
 
-        private static int GetMovesFromBitboard(ulong bitboard, ref Piece.Piece[,] board, (int, int) pos, int importance, Span<Move.Move> moveSpan, int startAt=0) // overload that fills the span
+        private static int GetMovesFromBitboard(ulong bitboard, ref Piece.Piece[,] board, (uint, uint) pos, int importance, Span<uint> moveSpan, int startAt=0) // overload that fills the span
         {
             int moves = startAt;
 
-            for (int i = 0; i < 8; i++)
+            for (uint i = 0; i < 8; i++)
             {
-                for (int j = 0; j < 8; j++)
+                for (uint j = 0; j < 8; j++)
                 {
                     if ((bitboard & SquareBitboards[j, i]) != 0) // if the square isn't empty in the bitboard
                     {
-                        moveSpan[moves] = new Move.Move(pos, (i,j), Empty, importance + board[j, i].LocalValue);
+                        moveSpan[moves] = Construct(pos, (i,j), Empty, importance + board[j, i].LocalValue);
                         moves++;
                     }
                 }
@@ -299,17 +299,18 @@ namespace Board
             return moves;
         }
         
-        private static int GetPawnMovesFromBitboard(ulong bitboard, (int, int) pos, Span<Move.Move> moveSpan) // overload that fills the span
+        private static int GetPawnMovesFromBitboard(ulong bitboard, (uint, uint) pos, Span<uint> moveSpan) // overload that fills the span
         {
             int moves = 0;
 
-            for (int i = 0; i < 8; i++) // for every file
+            for (uint i = 0; i < 8; i++) // for every file
             {
-                for (int j = 1; j < 7; j++) // skip the 1st and 7th ranks as those are for promotions
+                for (uint j = 1; j < 7; j++) // skip the 1st and 7th ranks as those are for promotions
                 {
                     if ((bitboard & SquareBitboards[j, i]) != 0) // if the square isn't empty in the bitboard
                     {
-                        moveSpan[moves] = new Move.Move(pos, (i,j), Empty);
+                        //moveSpan[moves] = new Move.Move(pos, (i,j), Empty);
+                        moveSpan[moves] = Construct(pos, (i,j), Empty);
                         moves++;
                     }
                 }
@@ -317,25 +318,25 @@ namespace Board
                 // assume j = 0, so always a promotion for black
                 if ((bitboard & SquareBitboards[0, i]) != 0) // if the square isn't empty in the bitboard
                 {
-                    moveSpan[moves] = new Move.Move(pos, (i,0), B_Queen, 5);
+                    moveSpan[moves] = Construct(pos, (i,0), B_Queen, 8);
                     moves++;
-                    moveSpan[moves] = new Move.Move(pos, (i,0), B_Rook, -2);
+                    moveSpan[moves] = Construct(pos, (i,0), B_Rook, 1);
                     moves++;
-                    moveSpan[moves] = new Move.Move(pos, (i,0), B_Knight, -3);
+                    moveSpan[moves] = Construct(pos, (i,0), B_Knight);
                     moves++;
-                    moveSpan[moves] = new Move.Move(pos, (i,0), B_Bishop, -3);
+                    moveSpan[moves] = Construct(pos, (i,0), B_Bishop);
                     moves++;
                 }
                 // assume j = 7, so always a promotion for white
                 if ((bitboard & SquareBitboards[7, i]) != 0) // if the square isn't empty in the bitboard
                 {
-                    moveSpan[moves] = new Move.Move(pos, (i,7), W_Queen, 5);
+                    moveSpan[moves] = Construct(pos, (i,7), W_Queen, 8);
                     moves++;
-                    moveSpan[moves] = new Move.Move(pos, (i,7), W_Rook, -2);
+                    moveSpan[moves] = Construct(pos, (i,7), W_Rook, 1);
                     moves++;
-                    moveSpan[moves] = new Move.Move(pos, (i,7), W_Knight, -3);
+                    moveSpan[moves] = Construct(pos, (i,7), W_Knight);
                     moves++;
-                    moveSpan[moves] = new Move.Move(pos, (i,7), W_Bishop, -3);
+                    moveSpan[moves] = Construct(pos, (i,7), W_Bishop);
                     moves++;
                 }
             }
@@ -358,18 +359,18 @@ namespace Board
                 // assume j = 0, so always a promotion for black
                 if ((bitboard & SquareBitboards[0, i]) != 0) // if the square isn't empty in the bitboard
                 {
-                    moves.Add(new Move.Move(pos, (i,0), B_Queen, 5));
-                    moves.Add(new Move.Move(pos, (i,0), B_Rook, -2));
-                    moves.Add(new Move.Move(pos, (i,0), B_Knight, -3));
-                    moves.Add(new Move.Move(pos, (i,0), B_Bishop, -3));
+                    moves.Add(new Move.Move(pos, (i,0), B_Queen, 8));
+                    moves.Add(new Move.Move(pos, (i,0), B_Rook, 1));
+                    moves.Add(new Move.Move(pos, (i,0), B_Knight));
+                    moves.Add(new Move.Move(pos, (i,0), B_Bishop));
                 }
                 // assume j = 7, so always a promotion for white
                 if ((bitboard & SquareBitboards[7, i]) != 0) // if the square isn't empty in the bitboard
                 {
-                    moves.Add(new Move.Move(pos, (i,7), W_Queen, 5));
-                    moves.Add(new Move.Move(pos, (i,7), W_Rook, -2));
-                    moves.Add(new Move.Move(pos, (i,7), W_Knight, -3));
-                    moves.Add(new Move.Move(pos, (i,7), W_Bishop, -3));
+                    moves.Add(new Move.Move(pos, (i,7), W_Queen, 8));
+                    moves.Add(new Move.Move(pos, (i,7), W_Rook, 1));
+                    moves.Add(new Move.Move(pos, (i,7), W_Knight));
+                    moves.Add(new Move.Move(pos, (i,7), W_Bishop));
                 }
             }
 

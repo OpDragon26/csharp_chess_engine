@@ -53,6 +53,7 @@ namespace Piece
             Role = role;
             LocalValue = Values[role];
             Value = Values[role] * Multiplier[color];
+            MPValue = mPValue;
             if (hash)
                 HashValue = HashCodeHelper.HashCodeHelper.GetPieceHashValue(new  Piece(role, color,0, false));
         }
