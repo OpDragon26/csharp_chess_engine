@@ -19,7 +19,7 @@ namespace Piece
         public PieceType Role;
         public bool Color; // false = white (or empty), true = black
         public int Value;
-        public int LocalValue;
+        public uint LocalValue;
         public int HashValue;
         public uint MPValue;
 
@@ -51,7 +51,7 @@ namespace Piece
         {
             Color = color;
             Role = role;
-            LocalValue = Values[role];
+            LocalValue = (uint)Values[role];
             Value = Values[role] * Multiplier[color];
             MPValue = mPValue;
             if (hash)

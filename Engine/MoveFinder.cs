@@ -2,6 +2,7 @@ using System;
 using Piece;
 using static Piece.Presets;
 using System.Collections.Generic;
+using Move;
 using Unity.Mathematics;
 using Unity.VisualScripting;
 using static Bitboards.Bitboards;
@@ -119,13 +120,13 @@ namespace Board
 
                         if (Castling && !board.KingInCheck(color) && !Attacked(board, SkipSquare, !color))
                         {
-                            moveSpan[moves] = Construct(pos, Target, Empty, 9);
+                            moveSpan[moves] = Construct(pos, Target, Empty, CastleMasks[color][i], 9);
                             moves++;
                         }
                     }
                 }
 
-                return GetMovesFromBitboard(KingMask[pos.Item2, pos.Item1] & ~board.SideBitboards[color], ref board.board, pos, -1, moveSpan, moves);
+                return GetMovesFromBitboard(KingMask[pos.Item2, pos.Item1] & ~board.SideBitboards[color], ref board.board, pos,0 , moveSpan, moves);
             }
 
             if (role == PieceType.Pawn)
@@ -219,7 +220,7 @@ namespace Board
                     }
                 }
 
-                List<Move.Move> Moves = GetMovesFromBitboard(KingMask[pos.Item2, pos.Item1] & ~board.SideBitboards[color], ref board.board, pos, -1);
+                List<Move.Move> Moves = GetMovesFromBitboard(KingMask[pos.Item2, pos.Item1] & ~board.SideBitboards[color], ref board.board, pos, 0);
                 Moves.AddRange(MoveList);
                 return Moves;
             }
@@ -263,7 +264,7 @@ namespace Board
             return moves;
         }
 
-        private static int GetMovesFromBitboard(ulong bitboard, ref Piece.Piece[,] board, (uint, uint) pos, int importance, Span<uint> moveSpan, int startAt=0) // overload that fills the span
+        private static int GetMovesFromBitboard(ulong bitboard, ref Piece.Piece[,] board, (uint, uint) pos, uint importance, Span<uint> moveSpan, int startAt=0) // overload that fills the span
         {
             int moves = startAt;
 
@@ -273,7 +274,7 @@ namespace Board
                 {
                     if ((bitboard & SquareBitboards[j, i]) != 0) // if the square isn't empty in the bitboard
                     {
-                        moveSpan[moves] = Construct(pos, (i,j), Empty, importance + board[j, i].LocalValue);
+                        moveSpan[moves] = Construct(pos, (i,j), Empty, 0, importance + board[j, i].LocalValue);
                         moves++;
                     }
                 }
@@ -283,7 +284,7 @@ namespace Board
         }
         
         
-        private static List<Move.Move> GetMovesFromBitboard(ulong bitboard, ref Piece.Piece[,] board, (int, int) pos, int importance) // overload that returns a list
+        private static List<Move.Move> GetMovesFromBitboard(ulong bitboard, ref Piece.Piece[,] board, (int, int) pos, uint importance) // overload that returns a list
         {
             List<Move.Move> moves = new List<Move.Move>();
 
@@ -292,7 +293,7 @@ namespace Board
                 for (int j = 0; j < 8; j++)
                 {
                     if ((bitboard & SquareBitboards[j, i]) != 0) // if the square isn't empty in the bitboard
-                        moves.Add(new Move.Move(pos, (i,j), Empty, importance + board[j, i].LocalValue));
+                        moves.Add(new Move.Move(pos, (i,j), Empty, (int)(importance + board[j, i].LocalValue)));
                 }
             }
 
@@ -301,6 +302,12 @@ namespace Board
         
         private static int GetPawnMovesFromBitboard(ulong bitboard, (uint, uint) pos, Span<uint> moveSpan) // overload that fills the span
         {
+            if (pos.Item1 == 3) // if it can be a double move for white
+            {
+                
+            }
+            
+            
             int moves = 0;
 
             for (uint i = 0; i < 8; i++) // for every file
@@ -309,8 +316,7 @@ namespace Board
                 {
                     if ((bitboard & SquareBitboards[j, i]) != 0) // if the square isn't empty in the bitboard
                     {
-                        //moveSpan[moves] = new Move.Move(pos, (i,j), Empty);
-                        moveSpan[moves] = Construct(pos, (i,j), Empty);
+                        moveSpan[moves] = Construct(pos, (i,j), Empty, 0);
                         moves++;
                     }
                 }
@@ -318,25 +324,25 @@ namespace Board
                 // assume j = 0, so always a promotion for black
                 if ((bitboard & SquareBitboards[0, i]) != 0) // if the square isn't empty in the bitboard
                 {
-                    moveSpan[moves] = Construct(pos, (i,0), B_Queen, 8);
+                    moveSpan[moves] = Construct(pos, (i,0), B_Queen, 0, 8);
                     moves++;
-                    moveSpan[moves] = Construct(pos, (i,0), B_Rook, 1);
+                    moveSpan[moves] = Construct(pos, (i,0), B_Rook, 0, 1);
                     moves++;
-                    moveSpan[moves] = Construct(pos, (i,0), B_Knight);
+                    moveSpan[moves] = Construct(pos, (i,0), B_Knight, 0);
                     moves++;
-                    moveSpan[moves] = Construct(pos, (i,0), B_Bishop);
+                    moveSpan[moves] = Construct(pos, (i,0), B_Bishop, 0);
                     moves++;
                 }
                 // assume j = 7, so always a promotion for white
                 if ((bitboard & SquareBitboards[7, i]) != 0) // if the square isn't empty in the bitboard
                 {
-                    moveSpan[moves] = Construct(pos, (i,7), W_Queen, 8);
+                    moveSpan[moves] = Construct(pos, (i,7), W_Queen, 0, 8);
                     moves++;
-                    moveSpan[moves] = Construct(pos, (i,7), W_Rook, 1);
+                    moveSpan[moves] = Construct(pos, (i,7), W_Rook, 0, 1);
                     moves++;
-                    moveSpan[moves] = Construct(pos, (i,7), W_Knight);
+                    moveSpan[moves] = Construct(pos, (i,7), W_Knight, 0);
                     moves++;
-                    moveSpan[moves] = Construct(pos, (i,7), W_Bishop);
+                    moveSpan[moves] = Construct(pos, (i,7), W_Bishop, 0);
                     moves++;
                 }
             }

@@ -51,7 +51,7 @@ namespace Board
                 // take the piece off the other side's bitboards
                 SideBitboards[TargetColor] ^= Bitboards.Bitboards.SquareBitboards[to.Item2, to.Item1];
                 if (TargetPiece.Role != PieceType.Pawn)
-                    PieceCounter -= TargetPiece.LocalValue;
+                    PieceCounter -= (int)TargetPiece.LocalValue;
             }
             
             // update the piece's bitboard
@@ -279,8 +279,8 @@ namespace Board
         
         int[] LocalValue()
         {
-            int White = 0;
-            int Black = 0;
+            uint White = 0;
+            uint Black = 0;
 
             ulong whitePieces = SideBitboards[false];
             ulong blackPieces = SideBitboards[true];
@@ -296,7 +296,7 @@ namespace Board
                 }
             }
             
-            return new[] { White, Black };
+            return new[] { (int)White, (int)Black };
         }
 
         bool PawnsLeft()
@@ -330,7 +330,7 @@ namespace Board
                     for (int j = 0; j < 8; j++)
                     {
                         if (board[i,j].Role != PieceType.Pawn)
-                            Total += board[i,j].LocalValue;
+                            Total += (int)board[i,j].LocalValue;
                     }
                 }
                 
